@@ -1,0 +1,12 @@
+.venv/
+node_modules/
+private/
+dist/
+__pycache__/
+*.pyc
+.env
+outputs/
+
+# Supplied research document stays local until data distribution terms are settled.
+/design.md
+/site/

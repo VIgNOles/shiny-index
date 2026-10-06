@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "full_collection_enabled": true,
+  "public_distribution_enabled": false,
+  "reason": "2026-10-07 user directs local construction before seeking permission; public distribution remains pending",
+  "pages": [
+    {"id":"W02","kind":"P","url":"https://wikiwiki.jp/shinycolors/プロデュースアイドル一覧","required":true},
+    {"id":"W03","kind":"S","url":"https://wikiwiki.jp/shinycolors/サポートアイドル一覧","required":true},
+    {"id":"W04","kind":"S","url":"https://wikiwiki.jp/shinycolors/サポートアイドル一覧/分冊ファイル01","required":true},
+    {"id":"W07","url":"https://wikiwiki.jp/shinycolors/コラボアイドル","required":true},
+    {"id":"W08","url":"https://wikiwiki.jp/shinycolors/アイドルロード","required":true}
+  ],
+  "audit_pages": [{"id":"W05","url":"https://wikiwiki.jp/shinycolors/アイドル追加順"}],
+  "concurrency": 1,
+  "interval_seconds": 5,
+  "request_limit": 20
+}
