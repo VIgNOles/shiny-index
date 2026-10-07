@@ -333,6 +333,9 @@ def rollback(output,version):
     write(output/'data/latest.json',{'dataset_version':version,'manifest':version+'/manifest.json'})
 
 def collect(url, directory):
+    # One switch covers both the full-run CLI and the direct single-page CLI.
+    if not read(ROOT/'source_manifest.json').get('full_collection_enabled', False):
+        raise RuntimeError('Wiki acquisition disabled by source_manifest.json')
     p=urlsplit(url)
     if p.scheme!='https' or p.netloc!='wikiwiki.jp' or p.query or not unquote(p.path).startswith('/shinycolors/'): raise ValueError('URL outside allowlist')
     directory=Path(directory); directory.mkdir(parents=True,exist_ok=False)

@@ -162,3 +162,11 @@ UIは主要条件をP/S・レアリティ、他6条件を折りたたみの詳�
 [公式enzaサイトのアイドル一覧](https://shinycolors.idolmaster-official.jp/idol/)から8ユニットの各紹介ページへ進み、各ギャラリーに表示された計24カードの名称・人物を現行索引と照合して24/24一致、同名人物の複数候補なし。公開サイトのギャラリーは選択表示であり、enza版P/Sの全カード件数は提示していない。別商品の[カードフォリオ一覧](https://cardfolio.idolmaster-official.jp/cardlist/)をゲームカード総数として流用しない。記録はGit対象外のprivate/audits/official-gallery-sample-20261008.json。24件は索引上Sカードだが、公式ギャラリー自体はP/S種別の独立証拠ではない。公式総数との独立照合は未完了。
 
 追加したUI回帰で、詳細条件をキーボードのEnterで開閉できること、Pチェックボックスのアクセシブル名、0件時の案内をローカルと匿名公開URLの両方で確認。スクリーンリーダー読み上げ自体と実端末は未確認。
+
+## 2026-10-08 Wiki取得停止後のオフライン検証
+
+ユーザーの負荷回避指示を受け、source_manifest.jsonのfull_collection_enabled=falseにした。scripts/collect_all.pyのガード確認は「Full local acquisition disabled by source_manifest.json」、exit 1、新しいrunディレクトリなし。これは通信前の分岐である。直接取得のsrc.indexer.collectにも同じガードを追加し、urlopenを通信試行時に失敗させるモック付きテストで、ディレクトリ作成・ネットワーク呼出しより前に停止することを確認した。実URLを渡す直接CLIの試験は、ガード不具合時のWiki通信リスクを理由に自動承認レビューが拒否したため実行していない。今回の作業でWikiへのリクエストは送っていない。
+
+公開済みv1-ae32f82ff0a94d87を通信なしで監査した。カード1,466、項目別出典21,853行。カード出典なし、source_refsと出典行の不一致、P/S・カード名・人物名の根拠不一致、不正な出典URL、孤立出典はいずれも0。個別Wiki URLなし47、初回実装日なし56、ユニット名なし21。これは保存済み索引内部の整合性であり、Wiki現況やゲーム全網羅を証明しない。
+
+Python単体テスト16件、JavaScript検索テスト8件成功。scripts/check_site.pyにカードごとの出典参照、P/S・カード名・人物名の根拠、Wiki出典URLを検査する処理を追加し、公開用旧版v1-f94ad2056247a4efと現行版v1-ae32f82ff0a94d87を各1,466件で検証成功。正式Sheet原本、siteのデータ、公開URLへの更新は行っていない。取得再開には安全な経路・許容頻度の根拠が必要で、現時点では未確認。

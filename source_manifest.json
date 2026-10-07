@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "full_collection_enabled": true,
+  "full_collection_enabled": false,
   "public_distribution_enabled": true,
-  "reason": "2026-10-07 user explicitly authorizes public factual index; WIKIWIKI terms/rules reviewed; no article text, images, raw HTML or attachment copies in public bundle; source links and conservative rate limits retained",
+  "reason": "2026-10-07 user explicitly authorizes public factual index; WIKIWIKI terms/rules reviewed; no article text, images, raw HTML or attachment copies in public bundle; source links retained; Wiki acquisition paused after HTTP 429",
   "pages": [
     {
       "id": "W02",

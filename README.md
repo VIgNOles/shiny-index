@@ -91,14 +91,6 @@ $env:XLSX_BACKEND = 'stdlib'
 
 同じ論理データ版になりますが、XLSXのバイト列とファイルSHA-256は出力実装によって異なります。
 
-将来の全一覧再取得は新しいrunディレクトリを指定します。429後の現行設定では1ページずつ15秒以上空け、7ページで終了します。取得失敗時はそのrunを失敗として残し、原本に触れません。
-
-```powershell
-./.venv/Scripts/python.exe scripts/collect_all.py private/raw/next-run
-$env:RAW_RUN_ROOT = 'private/raw/next-run'
-$env:TRANSFORM_OUTPUT_ROOT = 'private/candidates/next-run'
-$env:TRANSFORM_SCOPE = 'full'
-./.venv/Scripts/python.exe scripts/full_transform.py
-```
+2026-10-08のW09 HTTP 429とユーザーの負荷回避指示を受け、Wiki取得は停止中です。source_manifest.jsonのfull_collection_enabled=falseにより、collect_all.pyと直接のcollectコマンドは通信前に終了します。15秒間隔や翌日への延期だけでは迷惑にならないことを確認できません。適切な取得経路・許容頻度をWiki管理者／運営の案内などで確認するまで再取得しません。保存済みrunのオフライン変換・監査は続けられます。失敗したrunは原本・公開版へ採用しません。
 
 新しい取得runでは`TRANSFORM_OUTPUT_ROOT`が必須です。候補・監査・人物ID台帳を隔離出力し、既存内容と異なるファイルの上書きは拒否します。初期人物IDは`private/idol-registry.json`から引き継ぎます。検証した候補だけを別操作でacceptします。

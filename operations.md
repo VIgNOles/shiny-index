@@ -37,6 +37,8 @@ prepareで入力エラーが出たら原本を修正する。WebやCSVを直接�
 
 ## 少数取得と再変換
 
+以下のcollect例は取得停止中には実行できません。再開条件を確認するまでは保存済みのprivate/raw入力からtransform以降を実行してください。直接の1ページ取得もsource_manifest.jsonの停止フラグで通信前に拒否されます。
+
 ```powershell
 ./.venv/Scripts/python.exe -m src.indexer collect 'https://wikiwiki.jp/shinycolors/【ほわっとスマイル】櫻木真乃' private/raw/new-run
 ./.venv/Scripts/python.exe scripts/transform.py private/raw/new-run private/sample-batch.json private/new-batch.json
@@ -147,4 +149,4 @@ main上の明示公開コミットでActions実行成功、匿名URLの公開対
 
 ## HTTP 429で取得が止まった場合
 
-run.json が incomplete、かつ失敗ページがある取得runは全件候補へ変換・採用しない。取得済み応答とfetch.jsonは監査用にそのまま残す。原本と公開中のsiteは変更しない。2026-10-08のW09で429となった後、source_manifest.jsonの逐次取得間隔を15秒へ延ばした。すぐに再取得を繰り返さず、翌日以降に新しいrunディレクトリを指定して scripts/collect_all.py を実行する。7ページすべて fetched を確認してから、保存応答のみを入力に full_transform.py → review_batch.py を実行する。再び429なら収集を止め、取得頻度・対象ページ・Wiki側の条件を確認する。429を「変更なし」の証拠や収録対象日の更新には使わない。
+run.json が incomplete、かつ失敗ページがある取得runは全件候補へ変換・採用しない。取得済み応答とfetch.jsonは監査用にそのまま残し、原本と公開中のsiteは変更しない。2026-10-08のW09 HTTP 429後、ユーザーはWikiに迷惑をかける取得を避けるよう指示した。source_manifest.jsonのfull_collection_enabledをfalseにしてWiki取得を停止した。15秒間隔や翌日までの待機だけを安全性の根拠として再試行しない。Wiki管理者／運営から適切な取得経路・頻度を確認するなど、負荷をかけない方法が確立するまではフラグを戻さない。再開時も新しい隔離runに保存し、全7ページ正常取得、オフライン変換、差分レビュー、採用を別操作にする。429を「変更なし」の証拠や収録対象日の更新には使わない。保存済み応答のオフライン監査と公開済みデータの検証は継続可能。
