@@ -37,7 +37,7 @@ node --test tests/search.test.mjs
 
 設計変更と制約はdesign.md 17章、操作はoperations.md、結果はdocs/verification.md。
 `private/`には原本・取得応答・バックアップを置きます。公開禁止です。
-公開するのは検証済み`dist/`だけで、コードとは別にデータの公開条件を確認します。
+公開するのは`dist/`から検証・隔離した`site/`だけです。private/の原本・生応答は含めません。
 
 ## 実装範囲
 
@@ -48,7 +48,7 @@ node --test tests/search.test.mjs
 - 不変版のJSON/CSV/XLSX、同一内容検証、版選択の復旧
 - レスポンシブ検索、複数選択、日付範囲、並べ替え、検索結果CSV
 
-以前の別アカウントではGoogle Sheets作成に失敗しました。ユーザー指定のGoogleアカウントにはDriveの空き容量と書込権限があり、原本移行を進めています。Sheetsの自動読書き連携は未実装です。
+以前の別アカウントではGoogle Sheets作成に失敗しました。ユーザー指定のGoogleアカウントにはDriveの空き容量と書込権限があり、非公開フォルダー作成までは確認済みですが、Google Sheets原本への移行は未完了です。Sheetsの自動読書き連携は未実装で、XLSXエクスポートの検証・採用CLIを用意しています。
 公開先は https://github.com/VIgNOles/shiny-index です。ユーザーの明示方針とsources-policy.mdに従い、検証済みの事実索引だけを配置します。Wikiへの問い合わせ回答は未取得です。
 
 ## 全件版のオフライン再変換

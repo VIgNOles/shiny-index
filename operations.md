@@ -2,9 +2,9 @@
 
 ## 現在の原本
 
-暫定原本は`private/master.xlsx`です。指定されたGoogleアカウントにはブラウザでログインでき、Driveの空き容量と書込権限を確認しました。Google Sheets原本の作成・全タブ読戻しは進行中です。以前の別アカウントではDrive容量超過とSheets権限不足を確認しました。
+暫定原本は`private/master.xlsx`です。指定されたGoogleアカウントにはブラウザでログインでき、Driveの空き容量と書込権限を確認しました。Google Sheets原本の作成・全タブ読戻しは未完了です。Chrome拡張のファイルアクセス設定はユーザーが有効にしましたが、ブラウザ操作環境の起動障害で再試行できていません。以前の別アカウントではDrive容量超過とSheets権限不足を確認しました。
 CSVを原本へ切り替えていません。指定アカウントで認証・書込権限を確認後、この完全XLSXをGoogle Sheetsへインポートし、全タブと非公開共有を確認してから原本の所在を切り替えます。二つを同時編集しないでください。
-Google側への作成に成功していないので、現時点のXLSXは「Sheetsからの取り出し」ではありません。空のnative Sheet作成もSheets APIの403 `PERMISSION_DENIED`で失敗したため、容量解消後に接続先アカウントとSheets書き込み権限を確認してから移行を再試行します。
+Google側への作成に成功していないので、現時点のXLSXは「Sheetsからの取り出し」ではありません。以前の別アカウントでは空のnative Sheet作成もSheets APIの403 `PERMISSION_DENIED`で失敗しました。指定アカウントのDriveには非公開フォルダーを作成できていますが、native Sheetの書込みは未確認です。
 
 ## 追加・修正
 
@@ -90,3 +90,23 @@ Pagesでの実復旧は公開済みだが未検証。Actions一時artifactだけ
 ### 現在の公開状態
 
 公開URLは https://vignoles.github.io/shiny-index/ 。Actionsの公開ワークフロー実行は成功し、匿名GETでHTML、latest、manifest、JSON、CSV、XLSX、coverage、sourcesの8ファイルがローカルsiteとバイト一致した。最初の失敗はGitの自動改行変換によるcards.csvのハッシュ不一致であり、.gitattributesのsite/** -textで修正した。今後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、Pages workflowを手動実行する。更新・復旧の公開URLでの実演はまだ行っていない。
+
+
+## Google Sheets原本をXLSXとして取り出す運用
+
+指定アカウントの非公開Google Sheets原本への移行が完了した後に使う手順です。現時点ではSheet作成と実エクスポートの検証が未了なので、ローカルXLSXを暫定原本とします。Sheetの「追加・手修正」だけを編集し、他の8タブを変更しないでください。更新の配布前に編集を止め、同じSheetをMicrosoft Excel形式でダウンロードして `private/sheets-exports/<日時>.xlsx` へ保存します。公開リポジトリに入れません。
+
+```powershell
+./.venv/Scripts/python.exe scripts/import_sheet_export.py review private/master.xlsx private/sheets-exports/<日時>.xlsx private/audits/sheets-review-<日時>.json
+```
+
+reviewは原本を変えません。レポートで追加ID・新規／修正／解除した手修正を確認します。既存ID・出典・取得履歴・保護タブの差異、手入力重複、式、入力不正があれば停止します。意図した変更と一致した場合だけ次を実行します。review後に原本またはエクスポートのバイトが変わればapplyは停止します。
+
+```powershell
+./.venv/Scripts/python.exe scripts/import_sheet_export.py apply private/master.xlsx private/sheets-exports/<日時>.xlsx private/audits/sheets-review-<日時>.json
+./.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx dist
+./.venv/Scripts/python.exe scripts/stage_release.py dist site-next --previous-site site
+./.venv/Scripts/python.exe scripts/check_site.py site-next
+```
+
+applyは旧XLSXのバックアップを作り、新XLSXを読み戻してから置換します。新しい公開候補の確認後に旧siteをバックアップしてsite-nextへ入れ替え、site配下のGitバイト一致を確認してコミット・pushし、Pagesの手動ワークフローを実行します。公開URLで版、更新日、Webと配布の変更内容、匿名取得を照合します。新規カードの取得時の重複照合と明示mappingは上記「再取得で手入力カードに一致した場合」を使います。

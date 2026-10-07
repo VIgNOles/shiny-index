@@ -99,3 +99,13 @@
 - ユーザー指定GoogleアカウントはChromeでログイン済みと確認し、Driveは15GB中4.96GB使用。ChatGPTフォルダーを新規作成した。完全XLSXのnative Sheetへのインポート、全タブ読戻し、原本の切替は未完了。既存private/master.xlsxを編集・破棄しない。
 - 次は指定DriveのChatGPTフォルダーへ非公開の完全XLSXをインポートし、native Sheetsのタブ・件数・ID・手修正を読み戻す。検証完了までXLSXを暫定原本とする。公開URLでの更新・復旧実演も未完了。
 - 公開文書内の個人アカウント表記は削除した。旧記録の未公開・ログイン待ちなどは履歴であり、現在の状態を表さない。
+
+## 2026-10-07 再取得とSheets更新経路（現在位置）
+
+- 新run `private/raw/recheck-20261007-2/` の7ページ取得は成功。隔離変換 `private/candidates/recheck-20261007-2/` と監査 `private/audits/recheck-review-20261007-2.json` は1,466件完全一致、新規・変更・消失0、警告0。既存原本・公開版の変更は不要。
+- `scripts/import_sheet_export.py` と `tests/test_sheet_import.py` を追加。Python15件成功。隔離した実原本コピーで差分0のレビューと適用無変更を確認。Google Sheetsからの実エクスポートにはまだ使えていない。
+- 指定DriveのChatGPTフォルダーは最後に確認した時点では空で、XLSXアップロードは最初にChrome拡張のファイルURLアクセス設定で拒否。ユーザーは設定を有効にした。その後、ブラウザ操作ツールのWindows sandbox helperが起動できない状態が反復し、再試行の成否は未確認。指定Googleアカウントのnative Sheetは未作成。既存の `private/master.xlsx` revision 5 を保持。
+- 公開Git履歴内の個人アカウント表記を除くため、自分の直近2コミットをまとめ直した。リモートmainは `75effd1`、変更前HEADと一致を確認してからlease付きで更新。公開サイトのHTML、latest、manifest、CSV、XLSXはその後も手元siteとバイト一致。Pagesワークフローを新HEADで再実行しようとしたところブラウザ操作環境が落ちたため、再実行は未完了。公開中のデータ内容は同じ。
+- 次はブラウザ操作が回復したらDriveの指定フォルダーに同名ファイルがないことを確認し、完全XLSXをアップロードしてnative Sheetに変換。全9タブ・固定ID・手修正・共有非公開を読み戻し、実Sheetエクスポートを`import_sheet_export.py review`で検査する。新HEADでPagesを再実行し成功と匿名ファイル一致を確認する。
+
+- 公開GitHub APIの読取ではPages実行は#1失敗、#2成功のみ。新HEADの#3は起動していない。公開中のHTML・latest・manifest・CSV・XLSXは新HEADのsiteファイルとバイト一致。IABの390px一時viewportを戻す操作もブラウザ操作環境の復旧後に必要。
