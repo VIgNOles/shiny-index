@@ -1,7 +1,12 @@
 import copy
+import os
+import tempfile
 import unittest
 import uuid
-from src.indexer import accept,empty,read,resolve,key,validate
+from pathlib import Path
+from unittest.mock import patch
+from src.indexer import accept,empty,load_master,read,resolve,key,save_master,validate
+from scripts.review_batch import review
 
 class PipelineTests(unittest.TestCase):
  def setUp(self):
@@ -47,6 +52,28 @@ class PipelineTests(unittest.TestCase):
   cid=self.m['registry'][0]['card_id']
   evidence=next(e for e in m['evidence'] if e['card_id']==cid and e['field_name']=='acquisition_category')
   self.assertEqual((evidence['source_ref'],evidence['response_hash']),('W09','testhash'))
+ def test_master_roundtrip_keeps_candidates_and_overrides(self):
+  m=copy.deepcopy(self.m);cid=m['registry'][0]['card_id']
+  m['candidates']=[{'run_id':'held-run','status':'held','parser_version':'test-1','changes':[{'card_id':cid,'old':'A','new':'B'}]}]
+  m['overrides']=[{'card_id':cid,'values':{'review_status':'needs_review'},'clear_fields':[],'reason':'候補を確認中','source_ref':'manual-test','updated_at':'2026-10-07T12:00:00+09:00'}]
+  with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{'XLSX_BACKEND':'stdlib'}):
+   path=Path(directory)/'master.xlsx';save_master(m,path)
+   self.assertEqual(load_master(path),m)
+   from openpyxl import load_workbook
+   wb=load_workbook(path);wb['取得候補']['B2']='accepted';wb.save(path)
+   with self.assertRaisesRegex(ValueError,'candidate row mismatch'):load_master(path)
+ def test_review_reports_changed_missing_new_and_override(self):
+  m=copy.deepcopy(self.m);cid=m['registry'][0]['card_id']
+  m['overrides']=[{'card_id':cid,'values':{'card_title':'手修正'},'clear_fields':[]}]
+  b=copy.deepcopy(self.batch);b.update(scope='full',run_id='review-test')
+  b['cards'][0]['card_title']='取得変更';b['cards'].pop(1)
+  new=copy.deepcopy(b['cards'][0]);new.update(wiki_url='https://wikiwiki.jp/shinycolors/新規',idol_id='idol_new',idol_name='新規',card_title='【新規】')
+  b['cards'].append(new)
+  report=review(m,b)
+  self.assertEqual({k:report['counts'][k] for k in ['new','changed','missing']},{'new':1,'changed':1,'missing':1})
+  self.assertTrue(report['changed_rows'][0]['fields'][0]['manual_override'])
+  self.assertTrue(report['warnings']['missing_existing_keys'])
+  self.assertEqual(m['revision'],1)
  def test_failed_batch(self):
   b=copy.deepcopy(self.batch);b['status']='failed'
   with self.assertRaises(ValueError):accept(self.m,b)

@@ -61,10 +61,11 @@ $env:TRANSFORM_OUTPUT_ROOT = 'private/candidates/replay-example'
 ./.venv/Scripts/python.exe scripts/full_transform.py
 ```
 
-結果は指定先のfull-batch.jsonとfull-audit.json。原本が未作成の初回だけ`TRANSFORM_SCOPE='initial-full'`を使います。既に全件原本がある場合は`full`候補を監査してからacceptします。
+結果は指定先のfull-batch.jsonとfull-audit.json。原本が未作成の初回だけ`TRANSFORM_SCOPE='initial-full'`を使います。既に全件原本がある場合は`full`候補を`scripts/review_batch.py`で現行原本と比較し、新規・変更・消失・手修正衝突を監査してからacceptします。レビュー出力は原本を変更しません。
 件数減少・既存キー消失・5%以上または20件以上の件数変動は自動採用できません。
 閾値を回避せず、変更の原因と掲載単位を調査してください。
 公開リポジトリのテストは合成データを使い、非公開のWiki生応答に依存しません。
+公開候補は`scripts/stage_release.py dist site`で最新の完成版だけを隔離配置できます。現時点の`site/`はローカルにのみ存在し、`.gitignore`対象です。公開条件が整うまではGitへ追加しません。
 
 PowerShellで代替出力を選ぶ例：
 

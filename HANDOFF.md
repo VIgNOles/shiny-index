@@ -67,3 +67,15 @@
 
 - 同日、revision 5の完全XLSX（1,057,337 bytes）を非公開Google Sheetsへ再インポートしたが、Driveは再び403 `storageQuotaExceeded`を返した。同名のDrive検索も0件で、Sheet作成は未成功。容量解消後に再試行し、全タブ・ID・手修正の読み戻しが必要。
 - READMEの隔離した9件採用とWeb/配布生成を実行し、`private/examples/sample-master.xlsx` revision 1／9件、`private/examples/sample-site`のJSON/CSV/XLSX照合が成功。全件原本はrevision 5／1466件、全件latestは`v1-f94ad2056247a4ef`のまま。試作成果物はGit対象外。
+
+## 2026-10-07の追加続行
+
+- 原本の「取得候補」タブが読み戻しで捨てられる不具合を修正。保存時の読み戻し比較を解決済みカードだけから、原本の全構成要素へ広げた。合成候補と手修正を含む回帰テストを追加し、Python9件成功。
+- revision 5／1466件の実原本を`private/audits/master-roundtrip-20261007.xlsx`へ隔離保存し、全状態の読み戻しが成功。出典21853行、取得履歴5行。元の`private/master.xlsx`と`dist/`には変更を加えていない。
+- 実データを基にした失敗・1件欠落・20件増加の候補はすべて採用前に停止し、原本内容と最新配布版のハッシュを保持。結果は`private/audits/failure-drill-20261007.json`。公開先の復旧検証、Google Sheets移行、Wiki配布条件、Pages匿名検証は引き続き未完了。
+
+- 公開成果物検証を厳格化し、余分なファイル・不正latest・分割JSONとcards.jsonの差異を拒否する。合成テストを含むPython11件、既存dist4版の再検証が成功。
+- `scripts/stage_release.py`を追加。ローカル`site/`には最新の1466件版`v1-f94ad2056247a4ef`だけを隔離配置し、`check_site.py site`成功。9件試作版は同梱していない。`site/`は.gitignore対象でGit・Pagesへ未配置。公開条件解決後の手順はoperations.mdを参照。
+- 公式ニュースのenza欄と最近のP2件・S2件を限定照合し、名称・人物・P/S・レアリティが一致。P2件とS1件のシリーズも一致。4件のサンプルであり、公式全件監査や初回日確定ではない。記録は`private/audits/official-sample-20261007.json`。
+- Wiki管理者／運営に確認するための未送信文案を`docs/wiki-permission-request.md`へ作成。取得済み7ページ、頻度、配布予定の項目・形式、出典リンク、除外・撤回条件を具体化した。送信と回答の記録、公開フラグの変更は未実施。
+- `scripts/review_batch.py`で採用前の差分監査を追加。実際の再取得候補は1466件すべて現行原本と一致し、新規・変更・消失・警告が0。結果は`private/audits/recheck-review-20261007.json`。合成異常の回帰を含むPython12件成功。

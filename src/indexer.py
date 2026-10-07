@@ -165,7 +165,14 @@ def load_master(path):
     if set(TABS)-set(wb.sheetnames): raise ValueError('missing master tabs')
     def records(name): return [json.loads(row[0]) for row in wb[name].iter_rows(min_row=2,values_only=True) if row[0]]
     meta=records('_meta')[0]
-    m={'revision':meta['revision'],'coverage':meta['coverage'],'registry':records('_registry'),'source':records('_source'),'evidence':records('_evidence'),'runs':records('_runs'),'dictionaries':records('辞書'),'candidates':[],'overrides':[]}
+    candidates=[]
+    for run_id,status,details,*_ in wb['取得候補'].iter_rows(min_row=2,values_only=True):
+        if run_id is None and status is None and details is None: continue
+        if not isinstance(details,str): raise ValueError('candidate details missing')
+        candidate=json.loads(details)
+        if candidate.get('run_id')!=run_id or candidate.get('status')!=status: raise ValueError('candidate row mismatch')
+        candidates.append(candidate)
+    m={'revision':meta['revision'],'coverage':meta['coverage'],'registry':records('_registry'),'source':records('_source'),'evidence':records('_evidence'),'runs':records('_runs'),'dictionaries':records('辞書'),'candidates':candidates,'overrides':[]}
     rows=list(wb['追加・手修正'].iter_rows(values_only=True)); headers=list(rows[0]); seen=set()
     for row in rows[1:]:
         x=dict(zip(headers,row)); cid=x.get('card_id')
@@ -225,7 +232,10 @@ def save_master(m,path):
     if path.exists(): shutil.copy2(path,path.with_name(path.stem+'.backup-'+datetime.now().strftime('%Y%m%d%H%M%S%f')+'.xlsx'))
     staged=path.with_name(path.stem+'.staged.xlsx'); xlsx(workbook_spec(m),staged)
     check=load_master(staged)
-    if resolve(check)!=resolve(m): raise ValueError('master roundtrip mismatch')
+    expected={k:v for k,v in m.items() if k!='overrides'}
+    actual={k:v for k,v in check.items() if k!='overrides'}
+    if actual!=expected or sorted(check['overrides'],key=lambda x:x['card_id'])!=sorted(m['overrides'],key=lambda x:x['card_id']) or resolve(check)!=resolve(m):
+        raise ValueError('master roundtrip mismatch')
     os.replace(staged,path)
 
 def prepare(m, output):
@@ -293,6 +303,14 @@ def verify_bundle(d):
     d=Path(d); doc=read(d/'cards.json'); cards=doc['cards']; validate(cards)
     if digest({k:doc[k] for k in ['cards','sources','coverage','redirects','dictionaries']})!=doc['meta']['content_hash']: raise ValueError('content hash')
     manifest=read(d/'manifest.json')
+    expected_files={'cards.json','cards.csv','cards.xlsx','sources.json','coverage.json','redirects.json'}
+    if {p.name for p in d.iterdir()}!=expected_files|{'manifest.json'} or set(manifest['files'])!=expected_files:
+        raise ValueError('unexpected or unlisted public file')
+    if doc['meta']['dataset_version']!=d.name or any(manifest.get(k)!=doc['meta'].get(k) for k in ['dataset_version','schema_version','published_at','content_hash','input_hash','count']):
+        raise ValueError('bundle metadata mismatch')
+    if manifest['count']!=len(cards): raise ValueError('bundle count mismatch')
+    for name in ['sources','coverage','redirects']:
+        if read(d/(name+'.json'))!=doc[name]: raise ValueError('bundle content mismatch '+name)
     for name,h in manifest['files'].items():
         if hashlib.sha256((d/name).read_bytes()).hexdigest()!=h: raise ValueError('file hash '+name)
     def val(v): return canonical(v) if isinstance(v,(list,dict)) else '' if v is None else str(v)
@@ -304,8 +322,6 @@ def verify_bundle(d):
             cv=r[k][1:] if r[k].startswith("'") else r[k]
             if cv!=val(v) or val(e[k])!=val(v): raise ValueError(f'export mismatch {k}: csv={cv!r} xlsx={e[k]!r} expected={val(v)!r}')
     if any(cell.data_type=='f' for ws in wb for row in ws for cell in row): raise ValueError('formula in output')
-    allowed={'cards.json','cards.csv','cards.xlsx','sources.json','coverage.json','redirects.json','manifest.json'}
-    if {p.name for p in d.iterdir()}!=allowed: raise ValueError('unexpected public file')
     return {'count':len(cards),'version':doc['meta']['dataset_version'],'verified':True}
 
 def rollback(output,version):
