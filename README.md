@@ -58,7 +58,7 @@ node --test tests/search.test.mjs
 - 不変版のJSON/CSV/XLSX、同一内容検証、版選択の復旧
 - レスポンシブ検索、複数選択、日付範囲、並べ替え、検索結果CSV
 
-以前の別アカウントではGoogle Sheets作成に失敗しました。ユーザー指定のGoogleアカウントにはDriveの空き容量と書込権限があり、非公開フォルダー作成までは確認済みですが、Google Sheets原本への移行は未完了です。Sheetsの自動読書き連携は未実装で、XLSXエクスポートの検証・採用CLIを用意しています。
+ユーザー指定アカウントの非公開Google Sheetsへの原本移行は完了しました。現行原本はrevision 6、1,466件、9タブで、実XLSXエクスポートとの往復一致を確認済みです。Sheetの自動読書き同期は未実装のため、XLSXエクスポートの検証・採用CLIと、取得値採用時の新Sheet切替手順をoperations.mdに記載しています。
 公開先は https://github.com/VIgNOles/shiny-index です。ユーザーの明示方針とsources-policy.mdに従い、検証済みの事実索引だけを配置します。Wikiへの問い合わせ回答は未取得です。
 
 ## 全件版のオフライン再変換

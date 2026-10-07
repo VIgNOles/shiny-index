@@ -140,3 +140,11 @@
 
 - 無害なHTMLコメントをsiteとテンプレートへ追加し、通常main pushはskipped・公開URLは旧版維持。publish: run 37608735639 success後、匿名URLにコメントが現れ、全12ファイル一致。Git revertで元のHTMLをバイト単位で復元し、次の通常pushはskipped。publish: run 37608939641 success後、匿名URLからコメントが消え、復元済み全12ファイルとバイト一致。正式Sheetとローカル原本の内容は変更なし。
 - 公開成果物の更新と元版への切戻しは実証。実カード1件追加・1件修正を公開し、異なるデータ版を切り戻す演習は未実施。合成試験カードは一度も一般公開していない。現在の公開版は1,466件、v1-f94ad2056247a4ef。
+
+## 2026-10-07 revision 6公開とデータ版切戻し（現在位置）
+
+- 指定アカウントの非公開native Sheet原本は enza P/S card master r6。IDとURLはGit対象外のprivate/sheets-connection.jsonに記録。所有者のみ、9タブ、Asia/Tokyo。revision 6・1,466カードの実XLSX往復reviewは差分0。旧revision 5 SheetはARCHIVEとして非公開で保持。ローカルprivate/master.xlsxは承認済みrevision 6スナップショット（SHA-256 0c9a559ead43506042ad8f2f7592545faee4503091ad0e421300a049878b52bb）。
+- 7一覧の別日再取得は新規0・変更0・消失0。coverageの未確認文言のみ訂正した。siteは新旧2版・19ファイル。公開URLの現行版はv1-ae32f82ff0a94d87、1,466カード。Actions run 37610524782で公開、37610787228で旧版へ公開切戻し、37611047652で新版へ公開復帰。3回ともsuccess。各段階で匿名URLの19ファイルがローカルsiteとバイト一致。通常pushの準備runはskipped。
+- コード・公開site・文書は指定origin/mainへ保存する。private/、design.md、取得生応答はGit対象外。合成カードは一般公開していない。
+- 未完了: 実カード1件追加・1件修正を正式原本から公開Webと配布全形式に反映する実地検証（現Wiki再取得に該当変更なし）。個別Wikiページ未作成47件、ロード派生初出日不明56件、公式総数との独立照合、実スマホ端末検証、Wiki管理者・運営の回答。
+- 再開時は指定Sheetのプロフィール・共有状態を確認し、編集があればXLSXエクスポート→scripts/import_sheet_export.py review/applyを実行。新しい7ページ取得runを保存してオフライン変換・差分レビューし、実在の更新だけをacceptする。取得値採用後は新native Sheetを取り込み・往復照合して編集原本を切り替える。prepare→stage_release（旧site保持）→check_site→通常main push→明示publish:コミット→Actions成功→check_publicの順。異常時は原本を変更せず失敗runを保存し、旧版を選ぶrollback→公開検証で復旧する。
