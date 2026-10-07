@@ -91,7 +91,7 @@ Pagesでの実復旧は公開済みだが未検証。Actions一時artifactだけ
 
 ### 現在の公開状態
 
-公開URLは https://vignoles.github.io/shiny-index/ 。Actionsの公開ワークフロー実行は成功し、匿名GETで公開中の全12ファイルがローカルsiteとバイト一致した。最初の失敗はGitの自動改行変換によるcards.csvのハッシュ不一致であり、.gitattributesのsite/** -textで修正した。今後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、Pages workflowを手動実行する。更新・復旧の公開URLでの実演はまだ行っていない。
+公開URLは https://vignoles.github.io/shiny-index/ 。Actionsの公開ワークフロー実行は成功し、匿名GETで公開中の全12ファイルがローカルsiteとバイト一致した。最初の失敗はGitの自動改行変換によるcards.csvのハッシュ不一致であり、.gitattributesのsite/** -textで修正した。今後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、Pages workflowを画面で手動実行するか、検証済みコミットにpublish-*タグを発行して起動する。更新・復旧の公開URLでの実演はまだ行っていない。
 
 
 ## Google Sheets原本をXLSXとして取り出す運用
@@ -131,3 +131,15 @@ accept 後、更新された `private/master.xlsx` を**新しい**非公開Goog
 ```
 
 成功したら新Sheetのタイムゾーンを Asia/Tokyo にし、`private/sheets-connection.json` のURLとIDを新Sheetへ更新します。この時点で新Sheetが唯一の編集原本です。旧Sheetは更新せずバックアップとして明確に改名・保管し、試験用Sheetは検証後に削除します。Sheetの直接API同期は未実装なので、取得値採用後にこの切替を飛ばすと原本と公開用スナップショットが食い違います。公開は新Sheetの往復検証と `check_site.py` が通った後に行います。
+
+### CLIからの明示的なPages実行
+
+サイトを含むコミットをpushし、check_siteでそのコミットのsiteが成功することを確認してから、一意のpublish-*タグをそのコミットに付けてpushします。タグは再利用せず、公開したいGitコミットを指していることをgit showで確認します。タグをpushした時だけ同じPagesワークフローが起動し、ワークフロー内でも公開フラグとcheck_siteを検査します。データ版に変化がなければ通常は再公開しません。
+
+```powershell
+git tag -a publish-YYYYMMDD-NN -m "Publish validated site"
+git show --no-patch publish-YYYYMMDD-NN
+git push origin publish-YYYYMMDD-NN
+```
+
+Actionsの実行成功と匿名URLでの全12ファイル一致を確認します。失敗したタグのまま成果物を修正せず、新コミットを作って別のタグを発行します。旧版へ戻す場合も、旧版を選ぶ検証済みsiteを新コミットとして作り、別のpublish-*タグで起動します。原本は戻しません。
