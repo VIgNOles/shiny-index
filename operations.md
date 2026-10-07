@@ -4,7 +4,7 @@
 
 暫定原本は`private/master.xlsx`です。Google Sheets原本の作成はDrive容量超過のため未完了です。
 CSVを原本へ切り替えていません。容量解消後、この完全XLSXをGoogle Sheetsへインポートし、全タブと非公開共有を確認してから原本の所在を切り替えます。二つを同時編集しないでください。
-Google側への作成に成功していないので、現時点のXLSXは「Sheetsからの取り出し」ではありません。
+Google側への作成に成功していないので、現時点のXLSXは「Sheetsからの取り出し」ではありません。空のnative Sheet作成もSheets APIの403 `PERMISSION_DENIED`で失敗したため、容量解消後に接続先アカウントとSheets書き込み権限を確認してから移行を再試行します。
 
 ## 追加・修正
 

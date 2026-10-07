@@ -50,7 +50,7 @@
 1. `git -c safe.directory='D:/THE IDOLM@STER/シャニマス/enza/index' status`、`private/master.xlsx`の読み戻し、`dist/data/latest.json`と`index.html`の版一致を確認する。結果不明の処理を推測で再実行しない。現ホストではGit所有者SIDが異なり、コマンド単位のsafe.directory指定が必要。
 2. TASK.md、HANDOFF.mdと実状態を照合し、必要な補正を記録する。
 3. 新runは`scripts/collect_all.py private/raw/<新run>`で7ページ取得し、`RAW_RUN_ROOT`と新しい`TRANSFORM_OUTPUT_ROOT`、`TRANSFORM_SCOPE=full`を指定して`scripts/full_transform.py`を実行する。候補を監査し、原本採用時は既存キー・件数を照合して変化があれば保留する。
-4. Google Drive容量の解消後に完全XLSXを非公開Google Sheetsへ移し、タブ・手修正・IDの読み戻しを検証する。
+4. Google Drive容量の解消と接続先のSheets作成・書き込み権限の確認後に完全XLSXを非公開Google Sheetsへ移し、タブ・手修正・IDの読み戻しを検証する。
 5. Wiki管理者/運営から取得・CSV/JSON/XLSX配布条件を確認する。ユーザーが後で許可取得予定。回答前に一般公開のフラグをtrueにしない。
 6. 公開条件が整いGitHub認証が利用可能になったらコードをpushし、完成バンドルをPagesへ配置。匿名ブラウザで版・検索・ファイル取得を検証し、公開での1件追加・1件修正・rollbackを実証する。
 
@@ -80,3 +80,7 @@
 - Wiki管理者／運営に確認するための未送信文案を`docs/wiki-permission-request.md`へ作成。取得済み7ページ、頻度、配布予定の項目・形式、出典リンク、除外・撤回条件を具体化した。送信と回答の記録、公開フラグの変更は未実施。
 - `scripts/review_batch.py`で採用前の差分監査を追加。実際の再取得候補は1466件すべて現行原本と一致し、新規・変更・消失・警告が0。結果は`private/audits/recheck-review-20261007.json`。合成異常の回帰を含むPython12件成功。
 - ステージング済みsiteを実ブラウザでデスクトップ幅と390px幅に表示し、1466件、AXE8検索3件、個別Wikiリンク、W03/W09出典、版、JSON/CSV/Excelリンクを確認。実スマホ端末と一般公開URLは未検証。一時ブラウザタブ・4175番サーバーは終了した。
+
+## Google Sheets別経路の再確認（2026-10-07）
+
+- 完全XLSXのDriveインポートは403 `storageQuotaExceeded`のまま。さらに接続済みGoogle Driveのnative Sheet作成APIは403 `PERMISSION_DENIED`（caller does not have permission）を返した。同名ファイルのDrive検索は0件。空Sheetも作成できておらず、原本は引き続き`private/master.xlsx`。容量解消に加え、対象アカウント・Sheets書き込み権限／接続設定の確認が必要。原因を一つに断定しない。勝手に権限を拡大していない。
