@@ -91,7 +91,7 @@ PagesでのHTML成果物の更新→元版への切戻しは実地検証済み�
 
 ### 現在の公開状態
 
-公開URLは https://vignoles.github.io/shiny-index/ 。データ版v1-ae32f82ff0a94d87、1,466件（P548/S918）、新旧2版19ファイル。2026-10-08にUIを更新し、明示公開run 37646437517がsuccess。匿名GETで19/19ファイルが検証済みsiteとバイト一致し、ログインなしのEdgeでPC幅とタッチ設定付き390px幅の検索・複数絞り込み・並べ替え・リセットを確認した。データ版と原本のカード内容は変更していない。
+公開URLは https://vignoles.github.io/shiny-index/ 。データ版v1-ae32f82ff0a94d87、1,466件（P548/S918）、新旧2版19ファイル。2026-10-08にUIを更新し、明示公開run 37646437517がsuccess。続けて各カードの出典表示を改善したrun 37647591990もsuccess。匿名GETで19/19ファイルが検証済みsiteとバイト一致し、ログインなしのEdgeでPC幅とタッチ設定付き390px幅の検索・複数絞り込み・並べ替え・リセットを確認した。データ版と原本のカード内容は変更していない。
 
 最初のPages失敗はGitの自動改行変換によるcards.csvハッシュ不一致であり、.gitattributesのsite/** -textで修正した。以後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、main上の明示publish:コミットでPagesを起動する。実カード1件追加・1件修正の一般公開反映は未実施。coverageだけが異なるデータ版の公開切戻しと復帰、HTML成果物の更新と復旧は検証済み。
 

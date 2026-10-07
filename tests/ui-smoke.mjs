@@ -39,6 +39,13 @@ try{
   assert.match(await page.locator('#version').textContent(),new RegExp(latest.dataset_version));
   assert.equal(await page.locator('#downloads a').count(),6);
   assert.equal(await page.getByRole('checkbox',{name:'P',exact:true}).count(),1);
+  if(label==='desktop'){
+   const summary=page.locator('#advanced-filters > summary');
+   await summary.focus();await page.keyboard.press('Enter');
+   assert.equal(await page.locator('#advanced-filters').evaluate(el=>el.open),true);
+   await page.keyboard.press('Enter');
+   assert.equal(await page.locator('#advanced-filters').evaluate(el=>el.open),false);
+  }
   assert.ok(await page.locator('.card').first().locator('.sources a').count()>=1);
   assert.match(await page.locator('.card').first().textContent(),/確認状態：/);
   assert.match(await page.locator('#coverage').textContent(),new RegExp('P '+doc.coverage.by_kind.P+'件'));
@@ -61,6 +68,9 @@ try{
   assert.equal(await count(),total+' / '+total+' 件');
   assert.equal(await page.locator('#active-filters').textContent(),'絞り込み条件なし');
   assert.equal(new URL(page.url()).search,'');
+  await page.locator('#q').fill('検索結果が存在しない文字列987654321');
+  assert.equal(await count(),'0 / '+total+' 件');
+  assert.match(await page.locator('#cards').textContent(),/条件に一致するカードはありません/);
   const withoutWiki=cards.find(c=>!c.wiki_url);
   if(withoutWiki){
    await page.locator('#q').fill(withoutWiki.card_title);
