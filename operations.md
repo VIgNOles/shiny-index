@@ -75,7 +75,7 @@ runフォルダーは新しい名前を使う。403/CAPTCHAは回避せず停止
 ```
 
 原本は変更しない。過去版データの検証後、indexとlatestの版を切り替える。その完成バンドルを再配置する。
-Pagesでの実復旧は公開済みだが未検証。Actions一時artifactだけを長期バックアップにしない。
+PagesでのHTML成果物の更新→元版への切戻しは実地検証済み。異なるカードデータ版への切戻しは未検証。Actions一時artifactだけを長期バックアップにしない。
 
 ## GitHub Pages公開・更新手順
 
@@ -91,7 +91,7 @@ Pagesでの実復旧は公開済みだが未検証。Actions一時artifactだけ
 
 ### 現在の公開状態
 
-公開URLは https://vignoles.github.io/shiny-index/ 。Actionsの公開ワークフロー実行は成功し、匿名GETで公開中の全12ファイルがローカルsiteとバイト一致した。最初の失敗はGitの自動改行変換によるcards.csvのハッシュ不一致であり、.gitattributesのsite/** -textで修正した。今後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、Pages workflowを画面で手動実行するか、main上の明示的なpublish:コミットで起動する。更新・復旧の公開URLでの実演はまだ行っていない。
+公開URLは https://vignoles.github.io/shiny-index/ 。Actionsの公開ワークフロー実行は成功し、匿名GETで公開中の全12ファイルがローカルsiteとバイト一致した。最初の失敗はGitの自動改行変換によるcards.csvのハッシュ不一致であり、.gitattributesのsite/** -textで修正した。今後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、Pages workflowを画面で手動実行するか、main上の明示的なpublish:コミットで起動する。カードデータの実更新・異なるデータ版への切戻しはまだ行っていない。HTML成果物のみの公開更新・元版切戻しは実施済み。
 
 
 ## Google Sheets原本をXLSXとして取り出す運用
