@@ -10,7 +10,8 @@ const root=path.resolve(process.argv[2]??path.join(project,'site'));
 const latest=JSON.parse(await readFile(path.join(root,'data/latest.json'),'utf8'));
 const doc=JSON.parse(await readFile(path.join(root,'data',latest.dataset_version,'cards.json'),'utf8'));
 const cards=doc.cards,total=cards.length;
-const server=createServer(async(req,res)=>{
+const publicUrl=process.env.UI_BASE_URL;
+const server=publicUrl?null:createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://127.0.0.1');
   const name=decodeURIComponent(url.pathname)==='/'?'index.html':decodeURIComponent(url.pathname).slice(1);
@@ -22,20 +23,24 @@ const server=createServer(async(req,res)=>{
   res.end(data);
  }catch(e){res.writeHead(404);res.end(String(e));}
 });
-await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+if(server)await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 let browser;
 try{
  const launch=process.env.UI_BROWSER_PATH?{executablePath:process.env.UI_BROWSER_PATH}:{};
  browser=await chromium.launch({headless:true,...launch});
- const url='http://127.0.0.1:'+server.address().port+'/';
+ const url=publicUrl??'http://127.0.0.1:'+server.address().port+'/';
  for(const [label,viewport] of [['desktop',{width:1280,height:800}],['mobile',{width:390,height:844}]]){
-  const page=await browser.newPage({viewport});
+  const page=await browser.newPage({viewport,...(label==='mobile'?{isMobile:true,hasTouch:true}:{})});
   const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url,{waitUntil:'networkidle'});
   const count=()=>page.locator('#count').textContent();
   assert.equal(await count(),total+' / '+total+' 件');
   assert.match(await page.locator('#version').textContent(),new RegExp(latest.dataset_version));
+  assert.equal(await page.locator('#downloads a').count(),6);
+  assert.equal(await page.getByRole('checkbox',{name:'P',exact:true}).count(),1);
+  assert.ok(await page.locator('.card').first().locator('.sources a').count()>=1);
+  assert.match(await page.locator('.card').first().textContent(),/確認状態：/);
   assert.match(await page.locator('#coverage').textContent(),new RegExp('P '+doc.coverage.by_kind.P+'件'));
   await page.locator('input[name="card_kind"][value="P"]').check();
   assert.equal(await count(),doc.coverage.by_kind.P+' / '+total+' 件');
@@ -56,9 +61,16 @@ try{
   assert.equal(await count(),total+' / '+total+' 件');
   assert.equal(await page.locator('#active-filters').textContent(),'絞り込み条件なし');
   assert.equal(new URL(page.url()).search,'');
+  const withoutWiki=cards.find(c=>!c.wiki_url);
+  if(withoutWiki){
+   await page.locator('#q').fill(withoutWiki.card_title);
+   const noPageCard=page.locator('.card').filter({hasText:'Wiki個別ページ未確認（一覧に収録）'}).first();
+   assert.ok(await noPageCard.count());
+   assert.equal(await noPageCard.getByRole('link',{name:/Wiki個別ページ/}).count(),0);
+  }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   assert.deepEqual(errors,[]);
   await page.close();
   console.log(label+' PASS');
  }
-}finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
+}finally{if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));}

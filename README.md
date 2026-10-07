@@ -48,6 +48,8 @@ node tests/ui-smoke.mjs
 ./.venv/Scripts/python.exe scripts/check_public.py site https://vignoles.github.io/shiny-index/
 ```
 
+公開URLのUIも確認する場合は、UI_BASE_URL を https://vignoles.github.io/shiny-index/ に設定して同じ node tests/ui-smoke.mjs を実行します。UI_BROWSER_PATH を設定しない場合は npx playwright install chromium でブラウザを導入します。
+
 設計変更と制約はdesign.md 17章、操作はoperations.md、結果はdocs/verification.md。
 `private/`には原本・取得応答・バックアップを置きます。公開禁止です。
 公開するのは`dist/`から検証・隔離した`site/`だけです。private/の原本・生応答は含めません。

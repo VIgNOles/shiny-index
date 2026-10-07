@@ -9,6 +9,16 @@ const base=`data/${window.DATA_VERSION}/`;
 const response=await fetch(base+'cards.json');if(!response.ok)throw Error('HTTP '+response.status);
 const doc=await response.json();if(doc.meta.dataset_version!==window.DATA_VERSION)throw Error('版不一致');
 const {cards,meta,coverage}=doc;let params=new URLSearchParams(location.search),shown=[];
+const sourceNames={W02:'Pカード一覧',W03:'Sカード一覧',W04:'Sカード分冊',W05:'アイドル追加順',W07:'コラボアイドル',W08:'アイドルロード',W09:'ガシャ'};
+const sourceUrls=new Map();
+for(const source of doc.sources??[]){
+ if(!source.url||!source.source_ref)continue;
+ let url;try{url=new URL(source.url);}catch{continue;}
+ if(url.protocol!=='https:'||url.hostname!=='wikiwiki.jp'||!url.pathname.startsWith('/shinycolors/'))continue;
+ if(!sourceUrls.has(source.card_id))sourceUrls.set(source.card_id,new Map());
+ sourceUrls.get(source.card_id).set(source.source_ref,url.href);
+}
+
 const filterFields=['card_kind','rarity','idol_name','unit_name','acquisition_category','series_ids','collab_work','review_status'];
 const advancedFields=filterFields.slice(2),filterGroups=new Map(),selectionCounts=new Map();
 for(const f of filterFields){
@@ -61,8 +71,17 @@ function render(limit=100){
  for(const c of shown.slice(0,limit)){const card=document.createElement('article');card.className='card';
  const add=(tag,value,cls)=>{const el=document.createElement(tag);el.textContent=value;if(cls)el.className=cls;card.append(el);return el;};
  add('div',`${c.card_kind} / ${text(c.rarity)} · ${c.variant_kind==='base'?'通常':c.variant_kind}`,'badge');add('h3',c.card_title);add('p',`${c.idol_name} / ${text(c.unit_name)}`);add('p',`${text(c.first_implemented_on)} · ${text(c.acquisition_category)}`);add('p',c.series_ids.map(text).join('・')||'シリーズ未確認');
- if(c.wiki_url){const a=add('a','Wiki個別ページ ↗');a.href=c.wiki_url;a.target='_blank';a.rel='noopener noreferrer';}else add('p','Wiki未掲載');
- add('p',`出典：${c.source_refs.join(', ')} / ${text(c.review_status)}`);const source=doc.sources.find(e=>e.card_id===c.card_id&&e.url);if(source){const ref=add('a','収録元の出典 ↗');ref.href=source.url;ref.target='_blank';ref.rel='noopener noreferrer';}$('cards').append(card);
+ if(c.wiki_url){const a=add('a','Wiki個別ページ ↗');a.href=c.wiki_url;a.target='_blank';a.rel='noopener noreferrer';}else add('p','Wiki個別ページ未確認（一覧に収録）');
+ add('p','確認状態：'+text(c.review_status));
+ const refs=document.createElement('p');refs.className='sources';refs.append(document.createTextNode('出典：'));
+ for(const [i,ref] of c.source_refs.entries()){
+  if(i)refs.append(document.createTextNode(' / '));
+  const url=sourceUrls.get(c.card_id)?.get(ref);
+  if(url){const a=document.createElement('a');a.textContent=sourceNames[ref]??ref;a.href=url;a.target='_blank';a.rel='noopener noreferrer';refs.append(a);}
+  else refs.append(document.createTextNode(sourceNames[ref]??ref));
+ }
+ if(!c.source_refs.length)refs.append(document.createTextNode('未確認'));
+ card.append(refs);$('cards').append(card);
  }
  more.hidden=shown.length<=limit;more.textContent=`さらに表示（${Math.min(limit,shown.length)} / ${shown.length} 件表示中）`;more.onclick=()=>render(limit+100);
 }

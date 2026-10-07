@@ -164,3 +164,9 @@ scripts/update_drill.pyの手修正値に空欄のNoneを含める誤りがあ�
 - web/app.mjs、web/index.html、web/style.cssとsiteの対応ファイルにUI改善を反映。P/S・レアリティを主要条件、残り6条件を詳細条件とし、チェックボックス複数選択と選択中表示、見出し付きcoverage要約を追加。tests/ui-smoke.mjsとpackage.jsonのPlaywright依存を追加。README、docs/ui-review.md、docs/verification.md、operations.md、design.mdを更新中。
 - Edge/PlaywrightでPC1280px・390pxの選択、並べ替え、リセット、URL、横切れを検証成功。Python15件、JS8件、siteの新旧各1,466件のcheck_site成功。ブラウザ操作プラグインはWindows sandbox helperエラーで起動せず、実スマートフォン端末・スクリーンリーダー検証は未実施。
 - 次に差分を確認し、検証済みUIをmainへ保存・明示公開して、Actionsと匿名URLの版・全ファイル一致を確認する。実カード追加・修正の一般公開反映、公式総数独立照合、Wiki個別ページなし47件、初回実装日不明56件は引き続き未完了。
+
+## 2026-10-08 UI公開後の現在位置
+
+- UIと取得間隔・運用文書をコミットb55bffaとしてorigin/mainへ保存。siteのデータ版v1-ae32f82ff0a94d87、1,466件、原本SHA-256は不変。
+- 明示公開コミット24395cfのPages run 37646437517はsuccess。匿名URL https://vignoles.github.io/shiny-index/ の19/19ファイルがsiteとバイト一致。ログインなしのEdgeでPC1280px・タッチ設定付き390pxの複数条件、並べ替え、リセットを実地確認。実スマートフォン端末の確認ではない。
+- 次の必須作業: Wikiの429後は同日再試行せず、翌日以降に新しい隔離runで15秒間隔の7ページ取得を実行し、保存応答をオフライン変換して差分監査する。新規・修正が実在する場合だけ正式Sheet原本の手編集同期・採用・往復照合・公開を行う。実カード1件追加・1件修正の一般公開反映、公式総数独立照合、Wiki個別ページなし47件、初回実装日不明56件、実端末/スクリーンリーダー検証は未完了。
