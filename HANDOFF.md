@@ -119,3 +119,11 @@
 - 公開照合スクリプトと手順書をコミット dc57c6c に保存し、指定origin/mainへpush済み。Git作業ツリーはこの後の文書補正を除きclean。公開内容は変更なし。
 - Google Driveプラグインの接続先は引き続き別アカウント。ユーザーへ指定アカウントの追加接続手順を案内した。既存接続は解除しない。Chrome操作ツールはWindows sandbox helperの起動障害が続く。実Sheetsの作成・アップロード・読戻し・実エクスポートは未完了。
 - 再開時はプラグインのプロフィールで指定アカウントへの接続を確かめ、指定Driveの非公開フォルダー内に同名ファイルがないことを確認して完全XLSXをnative Sheetへ移す。9タブ・固定ID・手修正・共有設定を読戻し、エクスポートをreviewする。公開サイトでの原本1件追加・1件修正とrollbackも未実施。
+
+## 2026-10-07 指定Sheets原本の初期移行（最新）
+
+- 指定Googleアカウントのプラグイン接続を確認。非公開ChatGPTフォルダー内にnative Google Sheets「enza P/S card master」を作成した。URLとIDはGit対象外のprivate/sheets-connection.jsonに保存。所有者のみ、共有なし、9タブ、Asia/Tokyo。指定Drive内の試験用Sheetsは削除し、正式原本1つのみ。
+- 実SheetのXLSX出力 private/sheets-exports/google-roundtrip.xlsx をレビューし、revision 5、1,466件、保護8タブと固定ID・手修正に差分なし。差分なしapplyはprivate/master.xlsxを再書込しなかった。
+- 非公開Sheetコピーで1件追加・1件修正し、出力を隔離原本へ適用。private/drill/google-sheet-dist は1,467件、v1-0b0a763e0c94b828。Web検索とJSON/CSV/XLSXで両変更一致、check_site合格。更新済み完全XLSXの新規Sheetへの再取込・再エクスポートも差分0。合成試験カードは正式原本・公開siteに含まない。
+- 原本の編集場所は指定Sheetsへ移行した。private/master.xlsxは承認済みのローカル作業スナップショット。手編集はSheet→XLSX→review/apply→prepare。取得値採用時はローカル採用後に新しい完全Sheetへ再取込・往復確認してからSheet原本のポインタを切り替える。operations.mdとdesign.md 17.15に反映した。
+- 残件は公開URLでの実際の追加・修正・切戻し、実スマートフォン端末、公式全件独立照合、Wiki管理者回答。ブラウザ操作環境のWindows sandbox helper起動障害は継続。正式原本と公開版は1,466件、v1-f94ad2056247a4ef。

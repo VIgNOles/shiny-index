@@ -3,6 +3,7 @@
 現在は**全期間のWiki一覧から1,466索引行を収録した公開版**です。[公開サイト](https://vignoles.github.io/shiny-index/)をログインなしで閲覧・検索・取得できることを確認しました。
 一覧掲載1,410件＋ロード派生56件。個別Wikiページ未作成47件も収録し、未掲載と表示します。
 ゲーム全網羅・公式照合は未完了です。P/S・分冊の重複・出典を監査しました。Wikiの凡例と補助ページで未確定だった入手分類21行を確認し、ローカル版へ反映しました。
+編集原本は指定アカウントの非公開Google Sheetsです。9タブ・1,466件を実エクスポートで照合済み。公開用のローカルXLSXは承認済みスナップショットとして保持し、更新手順はoperations.mdに記載しています。
 
 ## セットアップ
 
@@ -17,6 +18,14 @@ XLSX生成にはCodex付属 `@oai/artifact-tool` が必要です。今回の依�
 `load_workspace_dependencies`でNodeパッケージの場所を取得し、このフォルダーの`node_modules`へジャンクションを作ります。
 Codex依存バンドルがない環境では `XLSX_BACKEND=stdlib` を設定するとPython標準ライブラリだけでXLSXを生成します。この経路も全1466件で各形式の読み戻し検証を通しました。通常環境ではArtifact Tool経路を使います。
 Python/JS検索テストと保存済み公開ファイルの検証は、それぞれrequirements.txtとNodeだけで実行できます。
+
+
+別環境で全件版を再生成するには、上記依存関係の導入後、指定アカウントの非公開Google Sheets原本を「ファイル → ダウンロード → Microsoft Excel」から取り出し、Git対象外の `private/master.xlsx` に配置します。取得済み生応答やSheets原本のURL・IDは公開リポジトリに含まれません。新環境でSheetのURL・所有者を確認し、`private/sheets-connection.json` は安全な経路で移すか新しく作成してください。保存した原本を読み戻してから全件版を生成・検証します。
+
+```powershell
+./.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/rebuild-site
+./.venv/Scripts/python.exe scripts/check_site.py private/rebuild-site
+```
 
 ```powershell
 ./.venv/Scripts/python.exe scripts/sample.py

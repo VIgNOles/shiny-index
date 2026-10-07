@@ -2,13 +2,13 @@
 
 ## 現在の原本
 
-暫定原本は`private/master.xlsx`です。指定されたGoogleアカウントにはブラウザでログインでき、Driveの空き容量と書込権限を確認しました。Google Sheets原本の作成・全タブ読戻しは未完了です。Chrome拡張のファイルアクセス設定はユーザーが有効にしましたが、ブラウザ操作環境の起動障害で再試行できていません。以前の別アカウントではDrive容量超過とSheets権限不足を確認しました。
-CSVを原本へ切り替えていません。指定アカウントで認証・書込権限を確認後、この完全XLSXをGoogle Sheetsへインポートし、全タブと非公開共有を確認してから原本の所在を切り替えます。二つを同時編集しないでください。
-Google側への作成に成功していないので、現時点のXLSXは「Sheetsからの取り出し」ではありません。以前の別アカウントでは空のnative Sheet作成もSheets APIの403 `PERMISSION_DENIED`で失敗しました。指定アカウントのDriveには非公開フォルダーを作成できていますが、native Sheetの書込みは未確認です。
+編集原本は、指定されたGoogleアカウントが所有する非公開Google Sheets「enza P/S card master」です。SheetのURLとIDはGit対象外の `private/sheets-connection.json` に記録しています。所有者だけがアクセスできること、9タブ・1,466件・固定ID・取得値・手修正の往復一致、タイムゾーン Asia/Tokyo を確認しました。
+
+`private/master.xlsx` は最後に承認したローカル作業スナップショットです。日常の手編集はSheetsだけで行い、配布前にSheetsからXLSXを出力して下記の review → apply を通し、ローカルスナップショットを追いつかせます。両方を同時に編集しません。取得候補の採用でローカル側を更新した場合は、後述の手順で完全原本を新しい非公開Sheetに取り込み、往復検証後に原本を切り替えます。
 
 ## 追加・修正
 
-1. `private/master.xlsx`をバックアップし、Excel等で開く。更新処理中は閉じる。1人で編集する。
+1. 指定アカウントで非公開のGoogle Sheets原本を開く。1人で編集し、更新の取込中は編集を止める。
 2. 「追加・手修正」タブを編集する。他の内部タブは編集しない。
 3. 既存カードはcard_idで該当行を探し、変更したい列だけ入力する。空欄は取得値を使う。
 4. 意図的に不明へ戻す場合、`clear_fields`に`["first_implemented_on"]`のようなJSON配列を入れる。同じ列に値も入れる指定は禁止。
@@ -24,6 +24,8 @@ rarityはN/R/SR/SSR/UR、日付はYYYY-MM-DD、series_idsはJSON配列、series_
 人物IDは既存の同じ人物の値を使う。新人物の辞書登録UIは未整備なので、現段階では実装担当者と原本台帳を更新する。
 入手分類コードはdesign.md 5.5参照。未確認を恒常と推測しない。
 Wiki URLは実際に確認したリンクを貼り、未掲載なら空欄とする。
+
+編集後は下記のGoogle Sheets原本XLSX取込手順で review と apply を先に実行する。その後、次を実行する。
 
 ```powershell
 ./.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx dist
@@ -89,12 +91,12 @@ Pagesでの実復旧は公開済みだが未検証。Actions一時artifactだけ
 
 ### 現在の公開状態
 
-公開URLは https://vignoles.github.io/shiny-index/ 。Actionsの公開ワークフロー実行は成功し、匿名GETでHTML、latest、manifest、JSON、CSV、XLSX、coverage、sourcesの8ファイルがローカルsiteとバイト一致した。最初の失敗はGitの自動改行変換によるcards.csvのハッシュ不一致であり、.gitattributesのsite/** -textで修正した。今後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、Pages workflowを手動実行する。更新・復旧の公開URLでの実演はまだ行っていない。
+公開URLは https://vignoles.github.io/shiny-index/ 。Actionsの公開ワークフロー実行は成功し、匿名GETで公開中の全12ファイルがローカルsiteとバイト一致した。最初の失敗はGitの自動改行変換によるcards.csvのハッシュ不一致であり、.gitattributesのsite/** -textで修正した。今後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、Pages workflowを手動実行する。更新・復旧の公開URLでの実演はまだ行っていない。
 
 
 ## Google Sheets原本をXLSXとして取り出す運用
 
-指定アカウントの非公開Google Sheets原本への移行が完了した後に使う手順です。現時点ではSheet作成と実エクスポートの検証が未了なので、ローカルXLSXを暫定原本とします。Sheetの「追加・手修正」だけを編集し、他の8タブを変更しないでください。更新の配布前に編集を止め、同じSheetをMicrosoft Excel形式でダウンロードして `private/sheets-exports/<日時>.xlsx` へ保存します。公開リポジトリに入れません。
+指定アカウントの非公開Google Sheets原本で「追加・手修正」だけを編集し、他の8タブは変更しません。更新の配布前に編集を止め、同じSheetをMicrosoft Excel形式でダウンロードして `private/sheets-exports/<日時>.xlsx` へ保存します。公開リポジトリに入れません。実Sheetエクスポートを用いて9タブ・1,466件の差分なし往復検査と、非公開コピーでの1件追加・1件修正の取込検査を実施済みです。
 
 ```powershell
 ./.venv/Scripts/python.exe scripts/import_sheet_export.py review private/master.xlsx private/sheets-exports/<日時>.xlsx private/audits/sheets-review-<日時>.json
@@ -117,3 +119,15 @@ applyは旧XLSXのバックアップを作り、新XLSXを読み戻してから�
 ```powershell
 ./.venv/Scripts/python.exe scripts/check_public.py site https://vignoles.github.io/shiny-index/
 ```
+
+## 取得値を採用した後のSheets原本切替
+
+取得候補の採用はローカルスナップショットを先に更新します。Sheetsに未取込の手編集を残したまま accept しないでください。編集を止めてSheetをXLSXとして取り出し、review → apply を済ませてから、取得候補の差分監査と accept を実行します。
+
+accept 後、更新された `private/master.xlsx` を**新しい**非公開Google Sheetsとして同じDriveフォルダーへ取り込みます。旧Sheetを上書きせずに保持し、新Sheetの共有が所有者のみ・タブが9つであることを確認します。新SheetからXLSXを書き出し、次の差分なし review を通します。件数、revision、固定ID、手修正、内部8タブが一致しなければ切り替えません。
+
+```powershell
+./.venv/Scripts/python.exe scripts/import_sheet_export.py review private/master.xlsx private/sheets-exports/<新Sheetの出力>.xlsx private/audits/<新Sheetの往復確認>.json
+```
+
+成功したら新Sheetのタイムゾーンを Asia/Tokyo にし、`private/sheets-connection.json` のURLとIDを新Sheetへ更新します。この時点で新Sheetが唯一の編集原本です。旧Sheetは更新せずバックアップとして明確に改名・保管し、試験用Sheetは検証後に削除します。Sheetの直接API同期は未実装なので、取得値採用後にこの切替を飛ばすと原本と公開用スナップショットが食い違います。公開は新Sheetの往復検証と `check_site.py` が通った後に行います。
