@@ -173,8 +173,12 @@ Python単体テスト16件、JavaScript検索テスト8件成功。scripts/check
 
 ## 2026-10-08 限定取得経路の通信なし検証
 
-ユーザーの解除指示後も、前回429から約1時間なのでWikiへ再アクセスしていない。全件バッチと直接取得は停止したまま。単一ページCLIのstatusはsingle_page_enabled=true、full_collection_enabled=false、next_allowed_at=2026-10-08T15:30:00+00:00、can_fetch=falseを返した。取得状態ファイルは非公開に保管。Python24件成功。テストは通信をモックし、冷却期間前の拒否、状態欠落時の停止、排他ロック、許可リスト1ページの記録、429のRetry-After記録・延長を検証した。limited-runはfull_run=falseで、原本・公開版へ採用していない。
+ユーザーの解除指示後も、前回429から約1時間なので対象Wikiのデータページは再取得していない。全件バッチと直接取得は停止したまま。単一ページCLIのstatusはsingle_page_enabled=true、full_collection_enabled=false、next_allowed_at=2026-10-08T15:30:00+00:00、can_fetch=falseを返した。取得状態ファイルは非公開に保管。Python24件成功。テストは通信をモックし、冷却期間前の拒否、状態欠落時の停止、排他ロック、許可リスト1ページの記録、429のRetry-After記録・延長を検証した。limited-runはfull_run=falseで、原本・公開版へ採用していない。
 
 保存済みの正常7ページに新しいcanonical URL判定をオフライン適用し7/7一致。scripts/compare_saved_page.pyでW09の2026-10-07 01:04 UTCと05:32 UTCの保存応答を比較し、全バイト・本文テキスト・本文リンクが一致。W02の05:31 UTCと15:29 UTCの保存応答は全バイトが異なるが、本文テキスト4,251行と本文リンク531件は一致。比較は保存済み2応答だけの結果で、429後のW09現況や全件新鮮性の証明ではない。
 
 Wiki取得時はcanonical URLだけでなく本文領域の表とテキスト量も確認する。保存済み正常の一覧7ページと個別C01をオフライン確認し条件を満たした。canonicalだけ元ページと一致する確認画面の合成ケースも拒否するテストを追加した。
+
+## 2026-10-08 公式enza告知との限定照合
+
+[公式アイドルマスターポータルのソロライブ告知](https://idolmaster-official.jp/news/01_19898.html)の「enza対応ゲーム」節に明記されたP-SSR これも可能性／白瀬咲耶、P-SSR Hug？／樋口円香、S-SSR Heavy,Heavy Rain／小宮果穂、S-SSR Master ShowPiece／西城樹里を現行siteデータと照合。名称・人物・P/S・レアリティは4/4一致し、各1件だけ収録済み。後半のSong for Prism告知は対象外。告知の開催予定期間をカードの実際の初回実装日と同一視せず、日付の独立確定には使わない。公式総カード数も同ページからは得られないため、ゲーム全網羅の証明ではない。
