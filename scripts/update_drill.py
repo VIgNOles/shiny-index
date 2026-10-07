@@ -10,7 +10,7 @@ m=accept(empty(),initial);save_master(m,'private/drill/master.xlsx')
 v1=prepare(load_master('private/drill/master.xlsx'),'private/drill/site')
 cid=m['registry'][0]['card_id'];newid=str(uuid.uuid4());c=batch['cards'][-1]
 m['registry'].append({'card_id':newid,'family_id':newid,'aliases':[],'updated_at':now()})
-m['overrides']=[{'card_id':newid,'values':{f:c.get(f) for f in FIELDS},'clear_fields':[],'reason':'実カードC09を手入力で追加','source_ref':'design-C09','updated_at':now()}, {'card_id':cid,'values':{'review_status':'needs_review'},'clear_fields':[],'reason':'公式未照合のため確認待ちへ変更','source_ref':'design-C01','updated_at':now()}]
+m['overrides']=[{'card_id':newid,'values':{f:c[f] for f in FIELDS if c.get(f) is not None},'clear_fields':[],'reason':'実カードC09を手入力で追加','source_ref':'design-C09','updated_at':now()}, {'card_id':cid,'values':{'review_status':'needs_review'},'clear_fields':[],'reason':'公式未照合のため確認待ちへ変更','source_ref':'design-C01','updated_at':now()}]
 save_master(m,'private/drill/master.xlsx');loaded=load_master('private/drill/master.xlsx')
 v2=prepare(loaded,'private/drill/site')
 assert v1!=v2 and len(resolve(loaded))==9

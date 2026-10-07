@@ -148,3 +148,7 @@
 - コード・公開site・文書は指定origin/mainへ保存する。private/、design.md、取得生応答はGit対象外。合成カードは一般公開していない。
 - 未完了: 実カード1件追加・1件修正を正式原本から公開Webと配布全形式に反映する実地検証（現Wiki再取得に該当変更なし）。個別Wikiページ未作成47件、ロード派生初出日不明56件、公式総数との独立照合、実スマホ端末検証、Wiki管理者・運営の回答。
 - 再開時は指定Sheetのプロフィール・共有状態を確認し、編集があればXLSXエクスポート→scripts/import_sheet_export.py review/applyを実行。新しい7ページ取得runを保存してオフライン変換・差分レビューし、実在の更新だけをacceptする。取得値採用後は新native Sheetを取り込み・往復照合して編集原本を切り替える。prepare→stage_release（旧site保持）→check_site→通常main push→明示publish:コミット→Actions成功→check_publicの順。異常時は原本を変更せず失敗runを保存し、旧版を選ぶrollback→公開検証で復旧する。
+
+## 2026-10-07 更新演習の補修
+
+scripts/update_drill.pyの手修正値に空欄のNoneを含める誤りがあり、隔離XLSXの厳密往復確認が停止。空欄を除く修正後、実データ8→9件、手修正、後日の同一カード取得、版切戻しの演習が成功した。正式private/master.xlsxと公開site/latestは不変。Git追跡外のprivate/drillに試験成果物と失敗時のstaged/バックアップを保持し、削除していない。
