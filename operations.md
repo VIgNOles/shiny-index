@@ -169,4 +169,4 @@ WIKIWIKIの[確認画面の案内](https://wikiwiki.jp/pp/security-check-guide)�
 
     ./.venv/Scripts/python.exe scripts/compare_saved_page.py private/raw/recheck-20261007-2/gacha private/raw/limited-W09-YYYYMMDD
 
-この比較は応答ハッシュ、Wiki本文の可視テキスト、本文リンクの一致だけを示す。差分0でもほかの6ページや公式全件が新たに確認されたことにはならない。
+この比較は応答ハッシュ、Wiki本文の可視テキスト・本文リンクの一致と、差分件数・最大10件の例を示す。差分0でもほかの6ページや公式全件が新たに確認されたことにはならない。

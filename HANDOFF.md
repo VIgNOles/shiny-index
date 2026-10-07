@@ -204,4 +204,4 @@ scripts/update_drill.pyの手修正値に空欄のNoneを含める誤りがあ�
 
 ## 2026-10-08 GitHub送信の一時障害
 
-限定取得のコード・手順はコミット846d2f7としてorigin/mainへpush済み。公式4件照合と表現訂正のコミット1e86f81はローカルmainに保存したが、GitHubが2回連続でInternal Server Errorを返しpushを拒否。ls-remoteでorigin/mainが846d2f7のままを確認した。今回の後続コミットは未公開だが、siteのデータ版やGitHub Pagesの内容は変更していない。GitHub側が復旧したら、まずls-remoteとローカル差分を確認してからpushする。無期限の反復再試行はしない。
+限定取得のコード・手順はコミット846d2f7としてorigin/mainへpush済み。公式4件照合と表現訂正のコミット1e86f81はローカルmainに保存したが、GitHubが3回（16:54 UTCに2回、16:58 UTCに1回）Internal Server Errorを返しpushを拒否。ls-remoteでorigin/mainが846d2f7のままを確認した。この後のローカルコミットも含めmainはorigin/mainより4件先行し、siteのデータ版やGitHub Pagesの内容は変更していない。GitHub側が復旧したら、まずls-remoteとローカル差分を確認してからpushする。無期限の反復再試行はしない。

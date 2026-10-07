@@ -1,5 +1,6 @@
 """Compare two saved Wiki responses offline; never fetch or adopt data."""
 import argparse
+from collections import Counter
 import hashlib
 import json
 import re
@@ -40,13 +41,21 @@ def compare(old_directory,new_directory):
     new=load_saved(new_directory)
     if old['url']!=new['url']:
         raise ValueError('Cannot compare different Wiki pages')
+    removed_text=list((Counter(old['text_lines'])-Counter(new['text_lines'])).elements())
+    added_text=list((Counter(new['text_lines'])-Counter(old['text_lines'])).elements())
+    removed_links=list((Counter(old['links'])-Counter(new['links'])).elements())
+    added_links=list((Counter(new['links'])-Counter(old['links'])).elements())
     return {'url':old['url'],'old_fetched_at':old['fetched_at'],
             'new_fetched_at':new['fetched_at'],'old_sha256':old['sha256'],
             'new_sha256':new['sha256'],'same_response_bytes':old['sha256']==new['sha256'],
             'same_visible_text':old['text_lines']==new['text_lines'],
             'same_content_links':old['links']==new['links'],
             'old_text_lines':len(old['text_lines']),'new_text_lines':len(new['text_lines']),
-            'old_links':len(old['links']),'new_links':len(new['links'])}
+            'old_links':len(old['links']),'new_links':len(new['links']),
+            'removed_text_line_count':len(removed_text),'added_text_line_count':len(added_text),
+            'removed_link_count':len(removed_links),'added_link_count':len(added_links),
+            'removed_text_sample':removed_text[:10],'added_text_sample':added_text[:10],
+            'removed_link_sample':removed_links[:10],'added_link_sample':added_links[:10]}
 
 
 def main():
