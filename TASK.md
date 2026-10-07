@@ -38,7 +38,7 @@
 ## 不足・未確認
 
 - Wiki由来データの取得・公開配布について、管理者や運営からの回答はない。返答や許諾条件を推測しない。
-- Google Driveの容量解消、Google Sheets原本の作成・認証、GitHub認証、Pagesの公開設定は未確認または未完了。design.md、HANDOFF.mdと実状態で追跡する。
+- 指定Google DriveはChromeでログイン済みで空き容量も確認済み。Google Driveプラグインは別アカウントへ接続中で、native Google Sheets原本の作成・読戻しは未完了。GitHub認証とPages公開は完了し、公開更新・rollbackの実証が残る。
 - 別環境でのXLSX生成用Artifact Tool入手方法、ゲーム全カードの公式な総数と独立照合資料は未確認。
 
 ## 2026-10-07に追加された明示指示（現行）
