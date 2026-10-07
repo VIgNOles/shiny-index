@@ -110,3 +110,10 @@ reviewは原本を変えません。レポートで追加ID・新規／修正／
 ```
 
 applyは旧XLSXのバックアップを作り、新XLSXを読み戻してから置換します。新しい公開候補の確認後に旧siteをバックアップしてsite-nextへ入れ替え、site配下のGitバイト一致を確認してコミット・pushし、Pagesの手動ワークフローを実行します。公開URLで版、更新日、Webと配布の変更内容、匿名取得を照合します。新規カードの取得時の重複照合と明示mappingは上記「再取得で手入力カードに一致した場合」を使います。
+
+
+公開反映後は次を実行し、匿名URLの全ファイルをsite/とバイト単位で照合する。失敗したら公開版を完了扱いにせず、Actions結果とsiteの検証・Git改行属性を確認する。
+
+```powershell
+./.venv/Scripts/python.exe scripts/check_public.py site https://vignoles.github.io/shiny-index/
+```

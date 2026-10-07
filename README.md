@@ -33,6 +33,7 @@ Python/JS検索テストと保存済み公開ファイルの検証は、それ�
 ./.venv/Scripts/python.exe -m unittest discover -s tests -v
 node --test tests/search.test.mjs
 ./.venv/Scripts/python.exe scripts/update_drill.py
+./.venv/Scripts/python.exe scripts/check_public.py site https://vignoles.github.io/shiny-index/
 ```
 
 設計変更と制約はdesign.md 17章、操作はoperations.md、結果はdocs/verification.md。
