@@ -1,6 +1,6 @@
 # enza版シャニマス カード索引
 
-現在は**全期間のWiki一覧から1,466索引行を収録したローカル版**です。一般公開は許可確認待ちです。
+現在は**全期間のWiki一覧から1,466索引行を収録した公開版**です。[公開サイト](https://vignoles.github.io/shiny-index/)をログインなしで閲覧・検索・取得できることを確認しました。
 一覧掲載1,410件＋ロード派生56件。個別Wikiページ未作成47件も収録し、未掲載と表示します。
 ゲーム全網羅・公式照合は未完了です。P/S・分冊の重複・出典を監査しました。Wikiの凡例と補助ページで未確定だった入手分類21行を確認し、ローカル版へ反映しました。
 
@@ -48,8 +48,8 @@ node --test tests/search.test.mjs
 - 不変版のJSON/CSV/XLSX、同一内容検証、版選択の復旧
 - レスポンシブ検索、複数選択、日付範囲、並べ替え、検索結果CSV
 
-Google Sheetsへの作成はDrive容量超過で失敗しました。Sheetsの自動読書き連携は未実装です。
-公開コードの配置先は https://github.com/VIgNOles/shiny-index です。Wiki由来データは許可確認前にpushしません。
+以前の別アカウントではGoogle Sheets作成に失敗しました。ユーザー指定のGoogleアカウントにはDriveの空き容量と書込権限があり、原本移行を進めています。Sheetsの自動読書き連携は未実装です。
+公開先は https://github.com/VIgNOles/shiny-index です。ユーザーの明示方針とsources-policy.mdに従い、検証済みの事実索引だけを配置します。Wikiへの問い合わせ回答は未取得です。
 
 ## 全件版のオフライン再変換
 
@@ -65,7 +65,7 @@ $env:TRANSFORM_OUTPUT_ROOT = 'private/candidates/replay-example'
 件数減少・既存キー消失・5%以上または20件以上の件数変動は自動採用できません。
 閾値を回避せず、変更の原因と掲載単位を調査してください。
 公開リポジトリのテストは合成データを使い、非公開のWiki生応答に依存しません。
-公開候補は`scripts/stage_release.py dist site`で最新の完成版だけを隔離配置できます。現時点の`site/`はローカルにのみ存在し、`.gitignore`対象です。公開条件が整うまではGitへ追加しません。
+公開候補は`scripts/stage_release.py dist site`で最新の完成版だけを隔離配置できます。`site/`は公開済みの完成版です。更新時も検証後に`git add -f site`で明示的に追加します。ファイルのハッシュを保つため`.gitattributes`でsite配下の改行変換を無効にしています。
 
 PowerShellで代替出力を選ぶ例：
 

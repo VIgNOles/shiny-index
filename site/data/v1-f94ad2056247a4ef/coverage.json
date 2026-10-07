@@ -1,0 +1,210 @@
+{
+  "scope": "full-list-candidate",
+  "complete": false,
+  "target_from": "2018-04-24",
+  "target_to": "2026-10-07",
+  "sections": [
+    {
+      "source": "W02",
+      "section": "UR(ガシャ)",
+      "expected": 6,
+      "parsed": 6
+    },
+    {
+      "source": "W02",
+      "section": "SSR(ガシャ)",
+      "expected": 350,
+      "parsed": 350
+    },
+    {
+      "source": "W02",
+      "section": "SR(ガシャ)",
+      "expected": 46,
+      "parsed": 46
+    },
+    {
+      "source": "W02",
+      "section": "SR(イベント報酬など)",
+      "expected": 62,
+      "parsed": 62
+    },
+    {
+      "source": "W02",
+      "section": "R(アイドルロード)",
+      "expected": 28,
+      "parsed": 28
+    },
+    {
+      "source": "W03",
+      "section": "UR(ガシャ)",
+      "expected": 6,
+      "parsed": 6
+    },
+    {
+      "source": "W03",
+      "section": "SSR(ガシャ)",
+      "expected": 326,
+      "parsed": 326
+    },
+    {
+      "source": "W03",
+      "section": "SSR(イベント報酬など)",
+      "expected": 158,
+      "parsed": 158
+    },
+    {
+      "source": "W03",
+      "section": "SSR(キャンペーン報酬／ガシャ特典など)",
+      "expected": 67,
+      "parsed": 67
+    },
+    {
+      "source": "W03",
+      "section": "SR(イベント報酬)",
+      "expected": 173,
+      "parsed": 173
+    },
+    {
+      "source": "W03",
+      "section": "SR(キャンペーン報酬／ガシャ特典など)",
+      "expected": 123,
+      "parsed": 123
+    },
+    {
+      "source": "W03",
+      "section": "SR(ガシャ)",
+      "expected": 33,
+      "parsed": 33
+    },
+    {
+      "source": "W03",
+      "section": "R",
+      "expected": 28,
+      "parsed": 28
+    },
+    {
+      "source": "W03",
+      "section": "N",
+      "expected": 4,
+      "parsed": 4
+    },
+    {
+      "source": "W04",
+      "section": "SR(イベント報酬)",
+      "expected": 173,
+      "parsed": 173
+    },
+    {
+      "source": "W04",
+      "section": "SR(キャンペーン報酬／ガシャ特典など)",
+      "expected": 123,
+      "parsed": 123
+    },
+    {
+      "source": "W04",
+      "section": "SR(ガシャ)",
+      "expected": 33,
+      "parsed": 33
+    },
+    {
+      "source": "W04",
+      "section": "R",
+      "expected": 28,
+      "parsed": 28
+    },
+    {
+      "source": "W04",
+      "section": "N",
+      "expected": 4,
+      "parsed": 4
+    }
+  ],
+  "expected_listing_rows": 1771,
+  "deduplicated_listing_rows": 1410,
+  "duplicate_inclusions": 361,
+  "road_expansion": 56,
+  "missing_collab": {},
+  "missing_chronology": {},
+  "unknown_classifications": 0,
+  "unverified": [
+    "ゲーム全網羅・公式独立照合",
+    "各派生の個別初回日",
+    "特殊分類の意味",
+    "最新追加漏れ（別日の取得との照合未実施）"
+  ],
+  "count": 1466,
+  "families": 1410,
+  "min_date": "2018-04-24",
+  "max_date": "2026-10-02",
+  "duplicate_keys": 0,
+  "by_kind": {
+    "P": 548,
+    "S": 918
+  },
+  "missing": {
+    "card_title": 0,
+    "idol_id": 0,
+    "idol_name": 0,
+    "card_kind": 0,
+    "rarity": 0,
+    "unit_id": 21,
+    "unit_name": 21,
+    "first_implemented_on": 56,
+    "acquisition_category": 0,
+    "series_ids": 0,
+    "series_status": 0,
+    "collab_work": 1458,
+    "wiki_url": 47,
+    "wiki_link_status": 0,
+    "variant_kind": 0,
+    "review_status": 0
+  },
+  "by_rarity": {
+    "S-R": 28,
+    "S-SSR": 551,
+    "P-SSR": 378,
+    "P-SR": 136,
+    "P-R": 28,
+    "S-SR": 329,
+    "S-N": 4,
+    "S-UR": 6,
+    "P-UR": 6
+  },
+  "by_year": {
+    "2018": 147,
+    "2019": 117,
+    "2020": 116,
+    "2021": 112,
+    "2022": 122,
+    "2023": 153,
+    "2024": 218,
+    "2025": 258,
+    "2026": 167,
+    "unkn": 56
+  },
+  "by_unit": {
+    "イルミネーションスターズ": 192,
+    "コメティック": 89,
+    "アルストロメリア": 177,
+    "ストレイライト": 156,
+    "放課後クライマックスガールズ": 281,
+    "ノクチル": 178,
+    "アンティーカ": 285,
+    "シーズ": 87,
+    "unknown": 21
+  },
+  "by_category": {
+    "permanent_gacha": 345,
+    "collection_gacha": 147,
+    "event_reward": 332,
+    "limited_gacha": 323,
+    "collaboration_gacha": 41,
+    "gacha_bonus": 122,
+    "exchange": 28,
+    "other_bonus": 29,
+    "campaign": 34,
+    "initial": 4,
+    "mission": 61
+  },
+  "wiki_unavailable": 47
+}

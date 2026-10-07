@@ -2,8 +2,8 @@
 
 ## 現在の原本
 
-暫定原本は`private/master.xlsx`です。Google Sheets原本の作成はDrive容量超過のため未完了です。
-CSVを原本へ切り替えていません。容量解消後、この完全XLSXをGoogle Sheetsへインポートし、全タブと非公開共有を確認してから原本の所在を切り替えます。二つを同時編集しないでください。
+暫定原本は`private/master.xlsx`です。指定されたGoogleアカウントにはブラウザでログインでき、Driveの空き容量と書込権限を確認しました。Google Sheets原本の作成・全タブ読戻しは進行中です。以前の別アカウントではDrive容量超過とSheets権限不足を確認しました。
+CSVを原本へ切り替えていません。指定アカウントで認証・書込権限を確認後、この完全XLSXをGoogle Sheetsへインポートし、全タブと非公開共有を確認してから原本の所在を切り替えます。二つを同時編集しないでください。
 Google側への作成に成功していないので、現時点のXLSXは「Sheetsからの取り出し」ではありません。空のnative Sheet作成もSheets APIの403 `PERMISSION_DENIED`で失敗したため、容量解消後に接続先アカウントとSheets書き込み権限を確認してから移行を再試行します。
 
 ## 追加・修正
@@ -73,16 +73,20 @@ runフォルダーは新しい名前を使う。403/CAPTCHAは回避せず停止
 ```
 
 原本は変更しない。過去版データの検証後、indexとlatestの版を切り替える。その完成バンドルを再配置する。
-Pagesでの実復旧は接続後に検証が必要。Actions一時artifactだけを長期バックアップにしない。
+Pagesでの実復旧は公開済みだが未検証。Actions一時artifactだけを長期バックアップにしない。
 
-## GitHub Pages公開手順（未実行）
+## GitHub Pages公開・更新手順
 
 1. ユーザー所有の公開リポジトリと無料の標準ランナーが使えることを確認する。
-2. sources-policy.mdの配布条件を解決する。送信前にdocs/wiki-permission-request.mdの未送信文案を確認し、回答内容を非公開の運用記録へ残す。全期間一覧の保存・変換は実施済み。公式全網羅の限界を表示する。
+2. sources-policy.mdの現行公開方針とWIKIWIKIの禁止事項を確認する。問い合わせはユーザーが別途行う。回答や条件変更が届いたら公開範囲・収集手順を再評価する。公式全網羅の限界を表示する。
 3. コードの公開対象を明示的に選ぶ。private、node_modules、.venv、認証情報を含めない。
 4. `./.venv/Scripts/python.exe scripts/stage_release.py dist site`で初回の公開候補を新しい`site/`に作り、`./.venv/Scripts/python.exe scripts/check_site.py site`で検証する。`dist/`の過去の試作版は同梱しない。2回目以降は新しい`site-next/`へ`--previous-site site`を指定して作り、検証後に既存の`site/`をバックアップして入れ替える。ステージング先を既存フォルダーへ重ね書きしない。
-5. Wiki由来データの公開・配布条件を確認して`source_manifest.json`の公開フラグを更新した後だけ、無視対象の`site/`を`git add -f site`で明示的に追跡対象へ加える。コードとともにコミット・pushし、リポジトリSettings → Pages → SourceをGitHub Actionsにして同梱pages.ymlを手動実行する。公開条件が未確認の現在はフラグをfalseのままにし、site/をGitへ追加しない。
+5. ユーザーの公開指示とsources-policy.mdの範囲で`source_manifest.json`の公開フラグをtrueにする。`check_site.py site`成功後、無視対象の`site/`を`git add -f site`で明示的に追跡対象へ加える。コードとともにコミット・pushし、リポジトリSettings → Pages → SourceをGitHub Actionsにして同梱pages.ymlを手動実行する。private/と生応答は追加しない。
 6. 公開URLを未ログインで開き、検索、CSV/XLSX/JSON取得、manifestの版とハッシュを照合する。
 7. 1件追加・1件修正を新しい版として公開し、反映を確認する。その後旧artifactへの切り戻しを実証する。
 
 未確認状態を隠すためにcoverage.completeをtrueへ変更しない。公開できることとゲーム全網羅は別の条件。
+
+### 現在の公開状態
+
+公開URLは https://vignoles.github.io/shiny-index/ 。Actionsの公開ワークフロー実行は成功し、匿名GETでHTML、latest、manifest、JSON、CSV、XLSX、coverage、sourcesの8ファイルがローカルsiteとバイト一致した。最初の失敗はGitの自動改行変換によるcards.csvのハッシュ不一致であり、.gitattributesのsite/** -textで修正した。今後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、Pages workflowを手動実行する。更新・復旧の公開URLでの実演はまだ行っていない。

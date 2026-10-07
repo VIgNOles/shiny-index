@@ -84,3 +84,18 @@
 ## Google Sheets別経路の再確認（2026-10-07）
 
 - 完全XLSXのDriveインポートは403 `storageQuotaExceeded`のまま。さらに接続済みGoogle Driveのnative Sheet作成APIは403 `PERMISSION_DENIED`（caller does not have permission）を返した。同名ファイルのDrive検索は0件。空Sheetも作成できておらず、原本は引き続き`private/master.xlsx`。容量解消に加え、対象アカウント・Sheets書き込み権限／接続設定の確認が必要。原因を一つに断定しない。勝手に権限を拡大していない。
+
+## 2026-10-07 ユーザー方針更新と現在位置
+
+- ユーザーは一般公開を明示的に許可し、Wikiへの問い合わせは本人が別途行う。旧「回答前に公開しない」方針は更新。WIKIWIKI規約・利用ルール・Wikiコピーライトを再確認し、画像・記事本文・取得HTMLを含まない事実索引と出典リンクのみを公開対象とした。問い合わせ回答・許諾は未取得。
+- `ユーザー指定のGoogleアカウント` のDriveを原本に使う希望。既存Connectorの接続先は別アカウント。指定アカウントはGoogleログインのパスワード画面まで進んだが、本人認証待ち。接続先切替と原本移行・読戻しは未完了。暫定原本`private/master.xlsx`は変更していない。
+- `git status`は開始時clean、originは指定URL、`git ls-remote origin HEAD`は空リポジトリとして成功。`gh` CLIは未インストール。`scripts/check_site.py site`は1466件・`v1-f94ad2056247a4ef`で成功。公開前の候補・原本は保持。
+- 今回、source_manifestと公開方針・設計・操作・検証文書をユーザーの最新指示へ更新中。次は差分・公開候補を確認し、Git pushを通常経路で試す。成功した場合はPagesを設定して匿名ブラウザで検証する。認証不能なら必要なGit操作だけユーザーへ示す。
+
+## 2026-10-07 公開後の現在位置（上記の旧時点記録より優先）
+
+- 全件版1,466行、原本revision 5、版v1-f94ad2056247a4efは維持。GitHub Pages https://vignoles.github.io/shiny-index/ を公開し、未ログイン閲覧・検索・390px幅の表示・8配布ファイルのHTTP 200とローカルsiteとのバイト一致を確認した。
+- Actions初回はGit自動改行変換でcards.csvハッシュ不一致。site/** -textを.gitattributesへ追加して再実行成功。公開サイトに失敗版は出ていない。
+- ユーザー指定GoogleアカウントはChromeでログイン済みと確認し、Driveは15GB中4.96GB使用。ChatGPTフォルダーを新規作成した。完全XLSXのnative Sheetへのインポート、全タブ読戻し、原本の切替は未完了。既存private/master.xlsxを編集・破棄しない。
+- 次は指定DriveのChatGPTフォルダーへ非公開の完全XLSXをインポートし、native Sheetsのタブ・件数・ID・手修正を読み戻す。検証完了までXLSXを暫定原本とする。公開URLでの更新・復旧実演も未完了。
+- 公開文書内の個人アカウント表記は削除した。旧記録の未公開・ログイン待ちなどは履歴であり、現在の状態を表さない。
