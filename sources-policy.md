@@ -14,6 +14,6 @@ robotsは再配布許諾の証明にはしない。
 - https://wikiwiki.jp/pp/rules
 - https://wikiwiki.jp/shinycolors/編集相談所
 
-source_manifest.jsonは全件ローカル取得true、公開配布false。P/S一覧、S分冊、コラボ、ロード、追加順の6ページを順次保存済み。
+source_manifest.jsonは全件ローカル取得true、公開配布false。P/S一覧、S分冊、コラボ、ロード、追加順の6ページに加え、分類照合用のガシャページ1件を順次保存済み。
 対象項目・取得経路・頻度・出典表記・CSV/XLSX/JSON配布条件について確認結果を記録してから変更する。
 コードの公開了承を、データ再配布条件の解決として扱わない。

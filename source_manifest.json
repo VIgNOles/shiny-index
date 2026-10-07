@@ -10,7 +10,7 @@
     {"id":"W07","url":"https://wikiwiki.jp/shinycolors/コラボアイドル","required":true},
     {"id":"W08","url":"https://wikiwiki.jp/shinycolors/アイドルロード","required":true}
   ],
-  "audit_pages": [{"id":"W05","url":"https://wikiwiki.jp/shinycolors/アイドル追加順"}],
+  "audit_pages": [{"id":"W05","url":"https://wikiwiki.jp/shinycolors/アイドル追加順"},{"id":"W09","url":"https://wikiwiki.jp/shinycolors/ガシャ"}],
   "concurrency": 1,
   "interval_seconds": 5,
   "request_limit": 20

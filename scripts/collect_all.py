@@ -1,4 +1,4 @@
-"""Sequential bounded fetch of the six explicitly listed Wiki pages.
+"""Sequential bounded fetch of the seven explicitly listed Wiki pages.
 
 Acquisition stores raw responses only. It never adopts candidates or publishes.
 """
@@ -14,7 +14,7 @@ manifest=read('source_manifest.json')
 if not manifest['full_collection_enabled']:raise SystemExit('Full local acquisition disabled by source_manifest.json')
 pages=manifest['pages']+manifest['audit_pages']
 if len(pages)>manifest['request_limit']:raise ValueError('request cap exceeded')
-name={'W02':'p-list','W03':'s-list','W04':'s-volume','W07':'collab','W08':'road','W05':'chronology'}
+name={'W02':'p-list','W03':'s-list','W04':'s-volume','W07':'collab','W08':'road','W05':'chronology','W09':'gacha'}
 base=Path(a.directory)
 if base.exists():raise FileExistsError('Use a fresh run directory; old input is immutable')
 base.mkdir(parents=True)
@@ -37,4 +37,4 @@ try:
  run['status']='fetched'
 finally:
  write(base/'run.json',run)
-print('Saved six pages. Run full_transform.py with RAW_RUN_ROOT set to this directory. No master was changed.')
+print('Saved seven pages. Run full_transform.py with RAW_RUN_ROOT set to this directory. No master was changed.')

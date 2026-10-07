@@ -127,8 +127,10 @@ def accept(m, batch, mappings=None):
             m['evidence']=[x for x in m['evidence'] if x['card_id']!=reg['card_id']]
             for f in FIELDS:
                 if values[f] is not None:
-                    e={'card_id':reg['card_id'],'field_name':f,'value':values[f],'source_ref':candidate['source_ref'],'url':candidate.get('source_page') or candidate['wiki_url'],'observed_at':batch['observed_at'],'verification_status':'wiki_only'}
-                    if candidate.get('source_locator'):e.update(locator=candidate['source_locator'],response_hash=candidate['source_hash'])
+                    field_source=candidate.get('field_sources',{}).get(f,{})
+                    e={'card_id':reg['card_id'],'field_name':f,'value':values[f],'source_ref':field_source.get('source_ref',candidate['source_ref']),'url':field_source.get('url',candidate.get('source_page') or candidate['wiki_url']),'observed_at':batch['observed_at'],'verification_status':'wiki_only'}
+                    if field_source:e.update(locator=field_source.get('locator'),response_hash=field_source.get('response_hash'))
+                    elif candidate.get('source_locator'):e.update(locator=candidate['source_locator'],response_hash=candidate['source_hash'])
                     m['evidence'].append(e)
     if batch.get('coverage'):m['coverage']=batch['coverage']
     if batch.get('dictionaries'):m['dictionaries']=batch['dictionaries']

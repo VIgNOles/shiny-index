@@ -2,7 +2,7 @@
 
 現在は**全期間のWiki一覧から1,466索引行を収録したローカル版**です。一般公開は許可確認待ちです。
 一覧掲載1,410件＋ロード派生56件。個別Wikiページ未作成47件も収録し、未掲載と表示します。
-ゲーム全網羅・公式照合は未完了です。P/S・分冊の重複・出典を監査しました。
+ゲーム全網羅・公式照合は未完了です。P/S・分冊の重複・出典を監査しました。Wikiの凡例と補助ページで未確定だった入手分類21行を確認し、ローカル版へ反映しました。
 
 ## セットアップ
 
@@ -20,14 +20,14 @@ Python/JS検索テストと保存済み公開ファイルの検証は、それ�
 
 ```powershell
 ./.venv/Scripts/python.exe scripts/sample.py
-./.venv/Scripts/python.exe -m src.indexer accept private/sample-batch.json private/master.xlsx
-./.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx dist
-./.venv/Scripts/python.exe -m http.server 4173 --bind 127.0.0.1 --directory dist
+./.venv/Scripts/python.exe -m src.indexer accept private/sample-batch.json private/examples/sample-master.xlsx
+./.venv/Scripts/python.exe -m src.indexer prepare private/examples/sample-master.xlsx private/examples/sample-site
+./.venv/Scripts/python.exe -m http.server 4173 --bind 127.0.0.1 --directory private/examples/sample-site
 ```
 
 `sample.py`はdesign.mdと`private/raw/sample.html`が必要です。生応答は公開Gitへ入れません。
 取得する場合はoperations.mdの少数取得手順を使用してください。
-閲覧先はローカルの `http://127.0.0.1:4173`。公開URLではありません。
+閲覧先はローカルの `http://127.0.0.1:4173`。公開URLではありません。上の少数例は隔離した原本と表示先を使い、全件原本`private/master.xlsx`や全件バンドル`dist/`を変更しません。既存の全件版を表示するときは`--directory dist`へ切り替えます。
 
 ```powershell
 ./.venv/Scripts/python.exe -m unittest discover -s tests -v
@@ -53,14 +53,15 @@ Google Sheetsへの作成はDrive容量超過で失敗しました。Sheetsの�
 
 ## 全件版のオフライン再変換
 
-`private/raw/`内のp-list、s-list、s-volume、collab、road、chronologyの6取得runを使用します。
+`private/raw/`内のp-list、s-list、s-volume、collab、road、chronology、gachaの7取得runを使用します。
 
 ```powershell
+$env:TRANSFORM_SCOPE = 'full'
+$env:TRANSFORM_OUTPUT_ROOT = 'private/candidates/replay-example'
 ./.venv/Scripts/python.exe scripts/full_transform.py
 ```
 
-結果はprivate/full-batch.jsonとprivate/full-audit.json。初回全件取込用候補として作成します。
-既に全件原本がある場合は、監査後にscopeをfullとして別候補へ保存してacceptします。
+結果は指定先のfull-batch.jsonとfull-audit.json。原本が未作成の初回だけ`TRANSFORM_SCOPE='initial-full'`を使います。既に全件原本がある場合は`full`候補を監査してからacceptします。
 件数減少・既存キー消失・5%以上または20件以上の件数変動は自動採用できません。
 閾値を回避せず、変更の原因と掲載単位を調査してください。
 公開リポジトリのテストは合成データを使い、非公開のWiki生応答に依存しません。
@@ -74,12 +75,13 @@ $env:XLSX_BACKEND = 'stdlib'
 
 同じ論理データ版になりますが、XLSXのバイト列とファイルSHA-256は出力実装によって異なります。
 
-将来の全一覧再取得は新しいrunディレクトリを指定します。1ページずつ5秒以上空け、6ページで終了します。取得失敗時はそのrunを失敗として残し、原本に触れません。
+将来の全一覧再取得は新しいrunディレクトリを指定します。1ページずつ5秒以上空け、7ページで終了します。取得失敗時はそのrunを失敗として残し、原本に触れません。
 
 ```powershell
 ./.venv/Scripts/python.exe scripts/collect_all.py private/raw/next-run
 $env:RAW_RUN_ROOT = 'private/raw/next-run'
 $env:TRANSFORM_OUTPUT_ROOT = 'private/candidates/next-run'
+$env:TRANSFORM_SCOPE = 'full'
 ./.venv/Scripts/python.exe scripts/full_transform.py
 ```
 

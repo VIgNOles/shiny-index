@@ -1,4 +1,4 @@
-export const seriesNames={casting:'キャスティング',twilights:'トワイライツ',parallel:'パラレル',mysongs:'マイソングス',prelude:'プレリュード',birthday:'誕生日'};
+export const seriesNames={casting:'キャスティング',twilights:'トワイライツ',parallel:'パラレル',mysongs:'マイソングス',prelude:'プレリュード',birthday:'誕生日',expansion:'エクスパンション',axe8:'AXE8',vote_selection:'投票企画選出'};
 export const norm=s=>String(s??'').normalize('NFKC').toLocaleLowerCase('ja').replace(/\s+/g,' ').trim();
 export function search(cards,p){
  const terms=norm(p.get('q')).split(' ').filter(Boolean);

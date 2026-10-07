@@ -39,6 +39,14 @@ class PipelineTests(unittest.TestCase):
   with self.assertRaises(ValueError):validate(cards+[cards[0]])
  def test_road_same_url(self):
   cards=resolve(self.m);c=copy.deepcopy(cards[0]);c.update(card_id=str(uuid.uuid4()),family_id=cards[0]['card_id'],variant_kind='idol_road_sr',rarity='SR',first_implemented_on=None);cards.append(c);validate(cards)
+ def test_field_specific_evidence(self):
+  b=copy.deepcopy(self.batch);b['run_id']='field-evidence'
+  b['cards'][0].update(acquisition_category='limited_gacha',series_ids=['axe8'],series_status='known')
+  b['cards'][0]['field_sources']={'acquisition_category':{'source_ref':'W09','url':'https://wikiwiki.jp/shinycolors/ガシャ','response_hash':'testhash','locator':'AXE8'}}
+  m=accept(self.m,b)
+  cid=self.m['registry'][0]['card_id']
+  evidence=next(e for e in m['evidence'] if e['card_id']==cid and e['field_name']=='acquisition_category')
+  self.assertEqual((evidence['source_ref'],evidence['response_hash']),('W09','testhash'))
  def test_failed_batch(self):
   b=copy.deepcopy(self.batch);b['status']='failed'
   with self.assertRaises(ValueError):accept(self.m,b)

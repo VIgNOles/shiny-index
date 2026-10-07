@@ -13,6 +13,8 @@ from src.indexer import read,write,digest,key
 RAW_ROOT=Path(os.environ.get('RAW_RUN_ROOT','private/raw'))
 OUTPUT_ROOT=Path(os.environ.get('TRANSFORM_OUTPUT_ROOT','private'))
 SEED_ROOT=Path(os.environ.get('TRANSFORM_SEED_ROOT','private'))
+SCOPE=os.environ.get('TRANSFORM_SCOPE','initial-full')
+if SCOPE not in ('initial-full','full'):raise ValueError('TRANSFORM_SCOPE must be initial-full or full')
 if RAW_ROOT!=Path('private/raw') and 'TRANSFORM_OUTPUT_ROOT' not in os.environ:
  raise SystemExit('Set TRANSFORM_OUTPUT_ROOT for a new raw run; existing candidates must not be overwritten')
 OUTPUT_ROOT.mkdir(parents=True,exist_ok=True)
@@ -58,6 +60,10 @@ def category(raw,section):
  if raw.startswith('プラチナ'):cat='permanent_gacha'
  elif raw in ['キャスコレ','トワコレ','パラコレ','マイコレ','プレコレ']:cat='collection_gacha';series=[{'キャスコレ':'casting','トワコレ':'twilights','パラコレ':'parallel','マイコレ':'mysongs','プレコレ':'prelude'}[raw]]
  elif raw in ['期間限定','期間限定ガシャ','限定-誕','限定-囁','限定-特','期間-特']:cat='limited_gacha';series=['birthday'] if raw=='限定-誕' else []
+ elif raw=='限定-XPN':cat='limited_gacha';series=['expansion']
+ elif raw=='AXE8':cat='limited_gacha';series=['axe8']
+ elif raw=='限定-投':cat='limited_gacha';series=['vote_selection']
+ elif raw=='プラ-投':cat='permanent_gacha';series=['vote_selection']
  elif raw.startswith('コラボ'):cat='collaboration_gacha'
  elif raw=='初期所持':cat='initial'
  elif raw=='ガシャ特典':cat='gacha_bonus'
@@ -133,11 +139,17 @@ knownurls={unquote(c['wiki_url']) for c in cards.values() if c['wiki_url']}
 missing_collab={u:n for u,n in collablinks.items() if u not in knownurls}
 chron,chrono=readpage('chronology');chronlinks={unquote(urljoin(BASE,a['href'])):a.get_text(strip=True) for a in chron.select('#content a[href]') if cardlink(a)}
 missing_chron={u:n for u,n in chronlinks.items() if u not in knownurls}
-fetched=[datetime.fromisoformat(read(RAW_ROOT/name/'fetch.json')['fetched_at']) for name in ['p-list','s-list','s-volume','collab','road','chronology']]
+gacha,gm=readpage('gacha');gacha_text=clean(gacha)
+if 'AXE8シリーズ限定アイドル' not in gacha_text:raise ValueError('AXE8 limited-series explanation missing from W09')
+for c in cards.values():
+ if c['raw_acquisition']=='AXE8':
+  if re.sub(r'\s+','',c['card_title']+c['idol_name']) not in gacha_text:raise ValueError('AXE8 card missing from W09')
+  c['field_sources']={f:{'source_ref':'W09','url':gm['url'],'response_hash':gm['sha256'],'locator':'AXE8シリーズ限定アイドル'} for f in ['acquisition_category','series_ids','series_status']}
+fetched=[datetime.fromisoformat(read(RAW_ROOT/name/'fetch.json')['fetched_at']) for name in ['p-list','s-list','s-volume','collab','road','chronology','gacha']]
 observed=max(fetched).astimezone(timezone(timedelta(hours=9))).date().isoformat()
 coverage={'scope':'full-list-candidate','complete':False,'target_from':'2018-04-24','target_to':observed,'sections':sections,'expected_listing_rows':len(expectations),'deduplicated_listing_rows':len(cards)-road_count,'duplicate_inclusions':len(duplicates),'road_expansion':road_count,'missing_collab':missing_collab,'missing_chronology':missing_chron,'unknown_classifications':len(unknown),'unverified':['ゲーム全網羅・公式独立照合','各派生の個別初回日','特殊分類の意味','最新追加漏れ（別日の取得との照合未実施）']}
-batch={'status':'validated','scope':'initial-full','run_id':'full-'+digest(list(cards.values()))[:16],'observed_at':observed,'cards':list(cards.values()),'coverage':coverage,'parser_version':'html-lists-2','dictionaries':[{'type':'idol','id':v,'name':k} for k,v in idols.items()]+[{'type':'unit','id':'unit_'+str(i+1),'name':v,'source':'W02/W08'} for i,(k,v) in enumerate(UNITS.items())]}
-outputs=[(OUTPUT_ROOT/'full-batch.json',batch),(OUTPUT_ROOT/'full-audit.json',{'coverage':coverage,'expectations':expectations,'duplicates':duplicates,'unknown_classifications':unknown}),(idpath,idols)]
+batch={'status':'validated','scope':SCOPE,'run_id':'full-'+digest({'cards':list(cards.values()),'source_hashes':[read(RAW_ROOT/name/'fetch.json')['sha256'] for name in ['p-list','s-list','s-volume','collab','road','chronology','gacha']],'observed_at':observed,'scope':SCOPE})[:16],'observed_at':observed,'cards':list(cards.values()),'coverage':coverage,'parser_version':'html-lists-3','dictionaries':[{'type':'idol','id':v,'name':k} for k,v in idols.items()]+[{'type':'unit','id':'unit_'+str(i+1),'name':v,'source':'W02/W08'} for i,(k,v) in enumerate(UNITS.items())]}
+outputs=[(OUTPUT_ROOT/'full-batch.json',batch),(OUTPUT_ROOT/'full-audit.json',{'coverage':coverage,'expectations':expectations,'duplicates':duplicates,'unknown_classifications':unknown,'classification_sources':[{'source_ref':'W09','url':gm['url'],'sha256':gm['sha256'],'purpose':'AXE8 limited-series classification'}]}),(idpath,idols)]
 for path,value in outputs:
  if path.exists() and read(path)!=value:raise FileExistsError(f'Candidate already exists with different content: {path}')
 for path,value in outputs:
