@@ -18,6 +18,7 @@ XLSX生成にはCodex付属 `@oai/artifact-tool` が必要です。今回の依�
 `load_workspace_dependencies`でNodeパッケージの場所を取得し、このフォルダーの`node_modules`へジャンクションを作ります。
 Codex依存バンドルがない環境では `XLSX_BACKEND=stdlib` を設定するとPython標準ライブラリだけでXLSXを生成します。この経路も全1466件で各形式の読み戻し検証を通しました。通常環境ではArtifact Tool経路を使います。
 Python/JS検索テストと保存済み公開ファイルの検証は、それぞれrequirements.txtとNodeだけで実行できます。
+UI操作の再現試験はPlaywright 1.62.1を使います。通常のNode/npm環境では npm install と npx playwright install chromium を実行します。既存Edgeを使うWindows環境では UI_BROWSER_PATH に msedge.exe の絶対パスを指定して node tests/ui-smoke.mjs を実行できます。ブラウザ試験はローカルsiteを127.0.0.1の一時サーバーで開き、公開データを変更しません。
 
 
 別環境で全件版を再生成するには、上記依存関係の導入後、指定アカウントの非公開Google Sheets原本を「ファイル → ダウンロード → Microsoft Excel」から取り出し、Git対象外の `private/master.xlsx` に配置します。取得済み生応答やSheets原本のURL・IDは公開リポジトリに含まれません。新環境でSheetのURL・所有者を確認し、`private/sheets-connection.json` は安全な経路で移すか新しく作成してください。保存した原本を読み戻してから全件版を生成・検証します。
@@ -41,6 +42,8 @@ Python/JS検索テストと保存済み公開ファイルの検証は、それ�
 ```powershell
 ./.venv/Scripts/python.exe -m unittest discover -s tests -v
 node --test tests/search.test.mjs
+$env:UI_BROWSER_PATH = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+node tests/ui-smoke.mjs
 ./.venv/Scripts/python.exe scripts/update_drill.py
 ./.venv/Scripts/python.exe scripts/check_public.py site https://vignoles.github.io/shiny-index/
 ```

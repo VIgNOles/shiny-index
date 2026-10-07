@@ -44,6 +44,6 @@
     }
   ],
   "concurrency": 1,
-  "interval_seconds": 5,
+  "interval_seconds": 15,
   "request_limit": 20
 }

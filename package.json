@@ -1,1 +1,12 @@
-{"name":"shinycolors-enza-index","private":true,"type":"module","scripts":{"test":"node --test tests/search.test.mjs"}}
+{
+  "name": "shinycolors-enza-index",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/search.test.mjs",
+    "test:ui": "node tests/ui-smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

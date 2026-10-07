@@ -156,3 +156,11 @@ scripts/update_drill.pyの手修正値に空欄のNoneを含める誤りがあ�
 ## 2026-10-07 UIレビュー準備
 
 実機確認と表示改善の判定項目をdocs/ui-review.mdへ記録した。文書のみの変更であり、web/・site/・原本・公開データは変更していない。次回は実スマホ確認と、優先順位1からのUI改善を検討する。
+
+## 2026-10-08 続行中の状態
+
+- 新run private/raw/recheck-20261008 はW02/W03/W04/W07/W08/W05を保存、W09がHTTP 429で失敗し status incomplete。取得プロセスは終了。部分runは全件候補化・採用していない。原本SHA-256は接続記録と一致。正式Google Sheets r6と公開データ版v1-ae32f82ff0a94d87のカード内容は変更していない。
+- source_manifest.jsonの取得間隔を5秒から15秒へ変更。同日の再取得はしない。翌日以降、新runで7ページを取得してからオフライン変換・差分監査する。再度429なら取得を停止して条件を見直す。
+- web/app.mjs、web/index.html、web/style.cssとsiteの対応ファイルにUI改善を反映。P/S・レアリティを主要条件、残り6条件を詳細条件とし、チェックボックス複数選択と選択中表示、見出し付きcoverage要約を追加。tests/ui-smoke.mjsとpackage.jsonのPlaywright依存を追加。README、docs/ui-review.md、docs/verification.md、operations.md、design.mdを更新中。
+- Edge/PlaywrightでPC1280px・390pxの選択、並べ替え、リセット、URL、横切れを検証成功。Python15件、JS8件、siteの新旧各1,466件のcheck_site成功。ブラウザ操作プラグインはWindows sandbox helperエラーで起動せず、実スマートフォン端末・スクリーンリーダー検証は未実施。
+- 次に差分を確認し、検証済みUIをmainへ保存・明示公開して、Actionsと匿名URLの版・全ファイル一致を確認する。実カード追加・修正の一般公開反映、公式総数独立照合、Wiki個別ページなし47件、初回実装日不明56件は引き続き未完了。
