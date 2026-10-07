@@ -127,3 +127,5 @@
 - 非公開Sheetコピーで1件追加・1件修正し、出力を隔離原本へ適用。private/drill/google-sheet-dist は1,467件、v1-0b0a763e0c94b828。Web検索とJSON/CSV/XLSXで両変更一致、check_site合格。更新済み完全XLSXの新規Sheetへの再取込・再エクスポートも差分0。合成試験カードは正式原本・公開siteに含まない。
 - 原本の編集場所は指定Sheetsへ移行した。private/master.xlsxは承認済みのローカル作業スナップショット。手編集はSheet→XLSX→review/apply→prepare。取得値採用時はローカル採用後に新しい完全Sheetへ再取込・往復確認してからSheet原本のポインタを切り替える。operations.mdとdesign.md 17.15に反映した。
 - 残件は公開URLでの実際の追加・修正・切戻し、実スマートフォン端末、公式全件独立照合、Wiki管理者回答。ブラウザ操作環境のWindows sandbox helper起動障害は継続。正式原本と公開版は1,466件、v1-f94ad2056247a4ef。
+
+- 指定Sheetの実エクスポートだけから private/rebuild-from-sheet に1,466件・v1-f94ad2056247a4efを再生成し、check_site成功。公開版とカード・出典・coverage・redirect・辞書・content_hashが一致した。published_atは再生成日時で異なるため、内容差分なしの再公開は行わない。正式Sheet、ローカル原本、公開版は同じカード内容。
