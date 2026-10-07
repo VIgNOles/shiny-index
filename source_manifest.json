@@ -1,8 +1,10 @@
 {
   "schema_version": "1.0",
   "full_collection_enabled": false,
+  "single_page_collection_enabled": true,
+  "single_page_cooldown_seconds": 86400,
   "public_distribution_enabled": true,
-  "reason": "2026-10-07 user explicitly authorizes public factual index; WIKIWIKI terms/rules reviewed; no article text, images, raw HTML or attachment copies in public bundle; source links retained; Wiki acquisition paused after HTTP 429",
+  "reason": "2026-10-07 user explicitly authorizes public factual index; WIKIWIKI terms/rules reviewed; no article text, images, raw HTML or attachment copies in public bundle; source links retained; one-page recheck only after cooldown; full collection paused after HTTP 429",
   "pages": [
     {
       "id": "W02",

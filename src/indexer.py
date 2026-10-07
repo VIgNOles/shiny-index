@@ -14,6 +14,7 @@ import uuid
 from datetime import date, datetime, timezone
 from urllib.parse import urlsplit, urlunsplit, unquote
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from urllib.robotparser import RobotFileParser
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -332,9 +333,10 @@ def rollback(output,version):
     tmp=output/'index.html.next';tmp.write_text(html,encoding='utf-8');os.replace(tmp,output/'index.html')
     write(output/'data/latest.json',{'dataset_version':version,'manifest':version+'/manifest.json'})
 
-def collect(url, directory):
-    # One switch covers both the full-run CLI and the direct single-page CLI.
-    if not read(ROOT/'source_manifest.json').get('full_collection_enabled', False):
+def collect(url, directory, *, allow_limited=False):
+    manifest=read(ROOT/'source_manifest.json')
+    if not (manifest.get('full_collection_enabled',False) or
+            (allow_limited and manifest.get('single_page_collection_enabled',False))):
         raise RuntimeError('Wiki acquisition disabled by source_manifest.json')
     p=urlsplit(url)
     if p.scheme!='https' or p.netloc!='wikiwiki.jp' or p.query or not unquote(p.path).startswith('/shinycolors/'): raise ValueError('URL outside allowlist')
@@ -342,6 +344,8 @@ def collect(url, directory):
     report={'url':url,'fetched_at':now(),'status':'failed'}
     try:
         robots=urlopen('https://wikiwiki.jp/robots.txt',timeout=25).read().decode()
+        if '<html' in robots.lower() or 'user-agent' not in robots.lower():
+            raise ValueError('unexpected robots response')
         rp=RobotFileParser(); rp.parse(robots.splitlines())
         if not rp.can_fetch('ShinycolorsCardIndex',url): raise ValueError('robots denies')
         # Percent-encode only Unicode; preserve observed href spelling.
@@ -350,8 +354,21 @@ def collect(url, directory):
         with urlopen(req,timeout=25) as r:
             raw=r.read(); report.update({'http_status':r.status,'content_type':r.headers.get('Content-Type')})
         if b'<html' not in raw.lower() or len(raw)<1000: raise ValueError('unexpected response')
+        from bs4 import BeautifulSoup
+        document=BeautifulSoup(raw,'html.parser')
+        canonical_link=document.find('link',rel='canonical')
+        canonical_url=canonical_link.get('href') if canonical_link else None
+        observed=urlsplit(canonical_url) if canonical_url else None
+        if not observed or observed.scheme!='https' or observed.netloc!='wikiwiki.jp' or unquote(observed.path)!=unquote(p.path):
+            raise ValueError('unexpected Wiki page or security interstitial')
+        content=document.select_one('#content')
+        if content is None or not content.find('table') or len(content.get_text(' ',strip=True))<1000:
+            raise ValueError('unexpected Wiki content or security interstitial')
         (directory/'response.html').write_bytes(raw)
         report.update({'status':'fetched','sha256':hashlib.sha256(raw).hexdigest()})
+    except HTTPError as error:
+        report.update({'http_status':error.code,'retry_after':error.headers.get('Retry-After') if error.headers else None})
+        raise
     finally: write(directory/'fetch.json',report)
 
 def main():

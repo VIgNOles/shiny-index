@@ -149,4 +149,24 @@ main上の明示公開コミットでActions実行成功、匿名URLの公開対
 
 ## HTTP 429で取得が止まった場合
 
-run.json が incomplete、かつ失敗ページがある取得runは全件候補へ変換・採用しない。取得済み応答とfetch.jsonは監査用にそのまま残し、原本と公開中のsiteは変更しない。2026-10-08のW09 HTTP 429後、ユーザーはWikiに迷惑をかける取得を避けるよう指示した。source_manifest.jsonのfull_collection_enabledをfalseにしてWiki取得を停止した。15秒間隔や翌日までの待機だけを安全性の根拠として再試行しない。Wiki管理者／運営から適切な取得経路・頻度を確認するなど、負荷をかけない方法が確立するまではフラグを戻さない。再開時も新しい隔離runに保存し、全7ページ正常取得、オフライン変換、差分レビュー、採用を別操作にする。429を「変更なし」の証拠や収録対象日の更新には使わない。保存済み応答のオフライン監査と公開済みデータの検証は継続可能。
+run.json が incomplete、かつ失敗ページがある取得runは全件候補へ変換・採用しない。取得済み応答とfetch.jsonは監査用にそのまま残し、原本と公開中のsiteは変更しない。2026-10-08のW09 HTTP 429後、ユーザーはWikiに迷惑をかける取得を避けるよう指示した。source_manifest.jsonのfull_collection_enabledをfalseにしてWiki取得を停止した。15秒間隔や翌日までの待機だけを安全性の根拠として再試行しない。Wiki管理者／運営から適切な取得経路・頻度を確認するなど、負荷をかけない方法が確立するまではフラグを戻さない。再開時も新しい隔離runに保存し、全7ページ正常取得、オフライン変換、差分レビュー、採用を別操作にする。429を「変更なし」の証拠や収録対象日の更新には使わない。保存済み応答のオフライン監査と公開済みデータの検証は継続可能。この段落の全面停止方針は当時の記録であり、現行の単一ページ限定再開は末尾の節を参照。
+
+## 429後の限定再確認（2026-10-08更新）
+
+ユーザーは過負荷を避けた再開を指示した。7ページ連続取得と直接のcollect CLIは停止したまま。単一ページ用CLIのみ、前回の取得または429から24時間以上経過し、排他ロックがなく、新しい保存先を指定した場合に利用できる。この24時間は慎重な運用上の下限であり、Wiki側が許容した頻度という意味ではない。1回につき許可リストの1ページだけ、robots.txtの確認と対象ページ取得のみ行い、自動リトライはしない。429時のRetry-Afterが24時間を超える場合は長い方まで待つ。403・確認画面・429・形式異常では停止し、繰り返し試さない。
+
+    ./.venv/Scripts/python.exe scripts/collect_one.py status
+    # 新環境に状態ファイルがないときだけ、initで24時間の待機を開始する
+    ./.venv/Scripts/python.exe scripts/collect_one.py init
+    # statusのcan_fetchがtrueになってから、未使用の保存先で1ページだけ手動実行
+    ./.venv/Scripts/python.exe scripts/collect_one.py fetch W09 private/raw/limited-W09-YYYYMMDD
+
+既存のprivate/raw/acquisition-state.jsonには前回429時刻を記録済み。statusとinitは通信しない。fetch後はfetch.jsonとlimited-run.jsonを確認する。limited-run.jsonのfull_run=falseは全件取得runではないという意味であり、full_transform.pyの全件入力には使わない。前回保存済みHTMLとのオフライン差分を見ることはできるが、ほかのページを当日確認したとは扱わない。原本・公開版を更新する前に、対象ページと全件候補の整合性を別途確認する。途中終了でacquisition-state.lockが残った場合は、実行中プロセスと状態ファイル・保存先を確認してから解除し、前回試行からの待機を守る。
+
+WIKIWIKIの[確認画面の案内](https://wikiwiki.jp/pp/security-check-guide)は短時間の多ページ閲覧による再確認を説明している。[REST APIの説明](https://z.wikiwiki.jp/wikiwiki-rest-api/topic/1)では対象Wiki側のAPI許可設定と認証が必要。APIの公表レート上限を通常HTMLの許容頻度として流用しない。管理者・運営から個別の条件が示された場合はそれを優先し、取得方法を見直す。
+
+単一ページ保存後の通信なし比較例：
+
+    ./.venv/Scripts/python.exe scripts/compare_saved_page.py private/raw/recheck-20261007-2/gacha private/raw/limited-W09-YYYYMMDD
+
+この比較は応答ハッシュ、Wiki本文の可視テキスト、本文リンクの一致だけを示す。差分0でもほかの6ページや公式全件が新たに確認されたことにはならない。
