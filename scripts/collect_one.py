@@ -65,8 +65,8 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
     try:
         fetcher(pages[page_id]['url'],target,allow_limited=True)
     except HTTPError as error:
-        if error.code==429:
-            state['last_rate_limit_at']=stamp
+        if error.code in (429,503):
+            if error.code==429: state['last_rate_limit_at']=stamp
             deadline=retry_after_deadline(error.headers.get('Retry-After') if error.headers else None,current)
             if deadline: state['server_not_before_at']=deadline.isoformat(timespec='seconds')
             write(state_path,state)
