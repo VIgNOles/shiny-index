@@ -15,7 +15,7 @@ python -m venv .venv
 
 XLSX生成にはCodex付属 `@oai/artifact-tool` が必要です。今回の依存バンドルは26.909.12148。
 `load_workspace_dependencies`でNodeパッケージの場所を取得し、このフォルダーの`node_modules`へジャンクションを作ります。
-任意環境で公開npmから同じパッケージを入手できることは未確認です。Codex依存バンドルのない環境では、XLSX生成を含む完全再現はまだ保証できません。
+Codex依存バンドルがない環境では `XLSX_BACKEND=stdlib` を設定するとPython標準ライブラリだけでXLSXを生成します。この経路も全1466件で各形式の読み戻し検証を通しました。通常環境ではArtifact Tool経路を使います。
 Python/JS検索テストと保存済み公開ファイルの検証は、それぞれrequirements.txtとNodeだけで実行できます。
 
 ```powershell
@@ -64,3 +64,23 @@ Google Sheetsへの作成はDrive容量超過で失敗しました。Sheetsの�
 件数減少・既存キー消失・5%以上または20件以上の件数変動は自動採用できません。
 閾値を回避せず、変更の原因と掲載単位を調査してください。
 公開リポジトリのテストは合成データを使い、非公開のWiki生応答に依存しません。
+
+PowerShellで代替出力を選ぶ例：
+
+```powershell
+$env:XLSX_BACKEND = 'stdlib'
+./.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx dist
+```
+
+同じ論理データ版になりますが、XLSXのバイト列とファイルSHA-256は出力実装によって異なります。
+
+将来の全一覧再取得は新しいrunディレクトリを指定します。1ページずつ5秒以上空け、6ページで終了します。取得失敗時はそのrunを失敗として残し、原本に触れません。
+
+```powershell
+./.venv/Scripts/python.exe scripts/collect_all.py private/raw/next-run
+$env:RAW_RUN_ROOT = 'private/raw/next-run'
+$env:TRANSFORM_OUTPUT_ROOT = 'private/candidates/next-run'
+./.venv/Scripts/python.exe scripts/full_transform.py
+```
+
+新しい取得runでは`TRANSFORM_OUTPUT_ROOT`が必須です。候補・監査・人物ID台帳を隔離出力し、既存内容と異なるファイルの上書きは拒否します。初期人物IDは`private/idol-registry.json`から引き継ぎます。検証した候補だけを別操作でacceptします。

@@ -1,13 +1,21 @@
 """Parse saved Wiki list HTML. No network; audit every card anchor independently."""
 import copy
+import os
 import re
 import sys
 from pathlib import Path
 from urllib.parse import urljoin,unquote,parse_qs,urlsplit
 from collections import Counter
+from datetime import datetime, timezone, timedelta
 from bs4 import BeautifulSoup
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from src.indexer import read,write,digest,key
+RAW_ROOT=Path(os.environ.get('RAW_RUN_ROOT','private/raw'))
+OUTPUT_ROOT=Path(os.environ.get('TRANSFORM_OUTPUT_ROOT','private'))
+SEED_ROOT=Path(os.environ.get('TRANSFORM_SEED_ROOT','private'))
+if RAW_ROOT!=Path('private/raw') and 'TRANSFORM_OUTPUT_ROOT' not in os.environ:
+ raise SystemExit('Set TRANSFORM_OUTPUT_ROOT for a new raw run; existing candidates must not be overwritten')
+OUTPUT_ROOT.mkdir(parents=True,exist_ok=True)
 
 BASE='https://wikiwiki.jp'
 UNITS={'イルミネ':'イルミネーションスターズ','アンティーカ':'アンティーカ','放クラ':'放課後クライマックスガールズ','アルスト':'アルストロメリア','ストレイ':'ストレイライト','ノクチル':'ノクチル','シーズ':'シーズ','コメティック':'コメティック'}
@@ -32,13 +40,14 @@ def grid(table):
  return out
 def cardlink(a):return a.get('href','').startswith('/shinycolors/') and bool(re.match(r'^【.+】.+',a.get_text(strip=True)))
 def readpage(name):
- folder=Path('private/raw')/name;meta=read(folder/'fetch.json');raw=(folder/'response.html').read_bytes()
+ folder=RAW_ROOT/name;meta=read(folder/'fetch.json');raw=(folder/'response.html').read_bytes()
  import hashlib
  assert meta['status']=='fetched' and hashlib.sha256(raw).hexdigest()==meta['sha256']
  return BeautifulSoup(raw,'html.parser'),meta
-seed=read('private/sample-batch.json')['cards'];idols={c['idol_name']:c['idol_id'] for c in seed}
-idpath=Path('private/idol-registry.json')
-if idpath.exists():idols.update(read(idpath))
+seed=read(SEED_ROOT/'sample-batch.json')['cards'];idols={c['idol_name']:c['idol_id'] for c in seed}
+idpath=OUTPUT_ROOT/'idol-registry.json'
+registry_source=idpath if idpath.exists() else SEED_ROOT/'idol-registry.json'
+if registry_source.exists():idols.update(read(registry_source))
 def idol_id(name):
  if name not in idols:
   import uuid
@@ -124,7 +133,13 @@ knownurls={unquote(c['wiki_url']) for c in cards.values() if c['wiki_url']}
 missing_collab={u:n for u,n in collablinks.items() if u not in knownurls}
 chron,chrono=readpage('chronology');chronlinks={unquote(urljoin(BASE,a['href'])):a.get_text(strip=True) for a in chron.select('#content a[href]') if cardlink(a)}
 missing_chron={u:n for u,n in chronlinks.items() if u not in knownurls}
-coverage={'scope':'full-list-candidate','complete':False,'target_from':'2018-04-24','target_to':'2026-10-07','sections':sections,'expected_listing_rows':len(expectations),'deduplicated_listing_rows':len(cards)-road_count,'duplicate_inclusions':len(duplicates),'road_expansion':road_count,'missing_collab':missing_collab,'missing_chronology':missing_chron,'unknown_classifications':len(unknown),'unverified':['ゲーム全網羅・公式独立照合','各派生の個別初回日','特殊分類の意味','最新追加漏れ（別日の取得との照合未実施）']}
-batch={'status':'validated','scope':'initial-full','run_id':'full-'+digest(list(cards.values()))[:16],'observed_at':'2026-10-07','cards':list(cards.values()),'coverage':coverage,'parser_version':'html-lists-2','dictionaries':[{'type':'idol','id':v,'name':k} for k,v in idols.items()]+[{'type':'unit','id':'unit_'+str(i+1),'name':v,'source':'W02/W08'} for i,(k,v) in enumerate(UNITS.items())]}
-write('private/full-batch.json',batch);write('private/full-audit.json',{'coverage':coverage,'expectations':expectations,'duplicates':duplicates,'unknown_classifications':unknown});write(idpath,idols)
+fetched=[datetime.fromisoformat(read(RAW_ROOT/name/'fetch.json')['fetched_at']) for name in ['p-list','s-list','s-volume','collab','road','chronology']]
+observed=max(fetched).astimezone(timezone(timedelta(hours=9))).date().isoformat()
+coverage={'scope':'full-list-candidate','complete':False,'target_from':'2018-04-24','target_to':observed,'sections':sections,'expected_listing_rows':len(expectations),'deduplicated_listing_rows':len(cards)-road_count,'duplicate_inclusions':len(duplicates),'road_expansion':road_count,'missing_collab':missing_collab,'missing_chronology':missing_chron,'unknown_classifications':len(unknown),'unverified':['ゲーム全網羅・公式独立照合','各派生の個別初回日','特殊分類の意味','最新追加漏れ（別日の取得との照合未実施）']}
+batch={'status':'validated','scope':'initial-full','run_id':'full-'+digest(list(cards.values()))[:16],'observed_at':observed,'cards':list(cards.values()),'coverage':coverage,'parser_version':'html-lists-2','dictionaries':[{'type':'idol','id':v,'name':k} for k,v in idols.items()]+[{'type':'unit','id':'unit_'+str(i+1),'name':v,'source':'W02/W08'} for i,(k,v) in enumerate(UNITS.items())]}
+outputs=[(OUTPUT_ROOT/'full-batch.json',batch),(OUTPUT_ROOT/'full-audit.json',{'coverage':coverage,'expectations':expectations,'duplicates':duplicates,'unknown_classifications':unknown}),(idpath,idols)]
+for path,value in outputs:
+ if path.exists() and read(path)!=value:raise FileExistsError(f'Candidate already exists with different content: {path}')
+for path,value in outputs:
+ if not path.exists():write(path,value)
 print('Candidates',len(cards),'sections',sections,'missing collab',missing_collab,'missing chronology',len(missing_chron),'unknown labels',dict(Counter(x['raw'] for x in unknown)))

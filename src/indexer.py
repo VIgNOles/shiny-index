@@ -182,6 +182,10 @@ def load_master(path):
     resolve(m); return m
 
 def xlsx(spec, path):
+    if os.environ.get('XLSX_BACKEND')=='stdlib':
+        from src.xlsx_fallback import build
+        build(spec,path)
+        return
     specpath=Path(str(path)+'.spec.json'); write(specpath,spec)
     subprocess.run([os.environ.get('NODE','node'),str(ROOT/'scripts/workbook.mjs'),str(specpath),str(path)],check=True)
     # Artifact Tool coerces ISO strings to Excel dates even with @ formatting.
@@ -263,7 +267,7 @@ def prepare(m, output):
         with (d/'cards.csv').open('w',encoding='utf-8-sig',newline='') as f:
             w=csv.writer(f); w.writerow(columns); w.writerows([[safe(r[k]) for k in columns] for r in rows])
         xlsx({'sheets':[{'name':'Cards','rows':[columns]+[[r[k] for k in columns] for r in rows]},{'name':'Metadata','rows':[['key','value']]+list(meta.items())+[['CSV escaping','Leading apostrophe added for formula-like or apostrophe-prefixed strings; remove exactly one. JSON is authoritative.']]},{'name':'Sources','rows':[['card_id','field_name','source_ref','url','observed_at']]+[[e[k] for k in ['card_id','field_name','source_ref','url','observed_at']] for e in sources]}]},d/'cards.xlsx')
-        (d/'cards.xlsx.spec.json').unlink()
+        (d/'cards.xlsx.spec.json').unlink(missing_ok=True)
         for log in d.glob('*.inspect.ndjson'): log.unlink()
         manifest={**meta,'files':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in d.iterdir() if p.is_file()}}
         write(d/'manifest.json',manifest)

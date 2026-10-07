@@ -45,7 +45,7 @@ prepareで入力エラーが出たら原本を修正する。WebやCSVを直接�
 collectは原本を変更しない。transformはネット接続なしで同じ保存応答から再実行できる。
 現在のtransformはC01のタイトル・人物・実装日の照合専用。他のカード、全件一覧には使わない。
 runフォルダーは新しい名前を使う。403/CAPTCHAは回避せず停止。失敗runは採用しない。
-自動リトライ・ETagはまだ実装していない。全期間一覧の変換はscripts/full_transform.pyを使う。再実行前に原因を確認する。
+自動リトライ・ETagはまだ実装していない。全期間一覧の再取得はscripts/collect_all.pyで6ページを新しいrunへ保存する。RAW_RUN_ROOTと新しいTRANSFORM_OUTPUT_ROOTを指定してscripts/full_transform.pyで再変換する。既存候補との内容不一致は上書きせず停止する。取得と採用は別操作。再実行前に原因を確認する。
 
 ## 再取得で手入力カードに一致した場合
 
