@@ -186,3 +186,27 @@ Wiki管理者・運営への問い合わせと回答取得は、ユーザーの�
 ### r7公開後の確認
 
 2026-10-08に公開した現行版はv1-93a6a8b8d40e754a、編集原本は非公開Sheet r7。旧2版を残した3版構成で公開ファイルは26件。準備コミットea51e0dの通常pushはPages skipped、明示公開コミットd2cdd55のrun 37720130993はsuccess。`./.venv/Scripts/python.exe scripts/check_public.py site https://vignoles.github.io/shiny-index/` は26/26一致。公開URL指定のUI試験はPC・390px幅ともPASS。カード行の追加・変更はなく、確認範囲だけ2026-10-08に更新。次の実カード差分が見つかったときも、Sheet手編集→XLSXレビュー、または取得候補レビュー→新Sheet昇格→配布生成→公開URL照合という順を守る。
+
+
+## 保存済みページを組み合わせて再変換する（通信なし）
+
+429で中断したrunの正常保存分と、後から1ページだけ保存した結果は、元ファイルを編集・上書きせずに scripts/compose_saved_run.py で新しい private/raw/ 配下へ合成する。CLIは7つの登録済みページIDが揃うこと、各URL・canonical・応答SHA-256・取得状態を確認する。誤配置や破損があれば最終出力を作らず停止し、公開フォルダーを出力先に指定することも拒否する。
+
+    $savedPages = @(
+      '--page', 'W02=private/raw/recheck-20261008/p-list',
+      '--page', 'W03=private/raw/recheck-20261008/s-list',
+      '--page', 'W04=private/raw/recheck-20261008/s-volume',
+      '--page', 'W07=private/raw/recheck-20261008/collab',
+      '--page', 'W08=private/raw/recheck-20261008/road',
+      '--page', 'W05=private/raw/recheck-20261008/chronology',
+      '--page', 'W09=private/raw/limited-W09-20261008-user-early'
+    )
+    ./.venv/Scripts/python.exe scripts/compose_saved_run.py private/raw/composed-replay-YYYYMMDD @savedPages
+    $env:RAW_RUN_ROOT = 'private/raw/composed-replay-YYYYMMDD'
+    $env:TRANSFORM_OUTPUT_ROOT = 'private/candidates/composed-replay-YYYYMMDD'
+    $env:TRANSFORM_SEED_ROOT = 'private'
+    $env:TRANSFORM_SCOPE = 'full'
+    ./.venv/Scripts/python.exe scripts/full_transform.py
+    ./.venv/Scripts/python.exe scripts/review_batch.py private/master.xlsx private/candidates/composed-replay-YYYYMMDD/full-batch.json private/candidates/composed-replay-YYYYMMDD/review.json
+
+保存済みページの日付が異なる場合、収録確認日には7ページの日本時間で最も古い取得日を使う。最新の1ページだけの日付で全件を確認済みと表示しない。レビューで新規・変更・消失・分類不明と件数異常がないか確認し、元runと既存原本を保持する。合成先・変換先・レビュー先は毎回未使用の名前にする。

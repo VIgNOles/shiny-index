@@ -229,3 +229,8 @@ revision 7から作成したv1-93a6a8b8d40e754aのcheck_siteは1,466件PASS。�
 ## 2026-10-08 r7一般公開の実測
 
 準備コミットea51e0dは通常pushのためPages run 37720107702がskipped。明示公開コミットd2cdd55による[Pages run 37720130993](https://github.com/VIgNOles/shiny-index/actions/runs/37720130993)はsuccess。公開URL https://vignoles.github.io/shiny-index/ の26/26ファイルがsiteとバイト一致し、ログインなしの公開URLを指定したEdge/Playwrightでdesktopと390px mobileの検索・絞り込み・並べ替え等がともにPASS。ローカルのPython25件、JS8件、隔離原本の追加1件・修正1件更新演習もPASS。新公開版はv1-93a6a8b8d40e754a、published_at=2026-10-08T02:45:18+00:00、1,466件（P548/S918）、収録確認日2026-10-08。Wiki個別URL空欄47、初回日空欄56、ユニット欄空欄21、complete=falseを維持。実カードの新規追加・訂正は0であり、公開URL上の実カード1件追加・1件修正は依然未実証。
+
+
+## 2026-10-08 中断runのオフライン再構成試験
+
+新しいscripts/compose_saved_run.pyで保存済みW02/W03/W04/W07/W08/W05/W09の7ページを private/raw/composed-20261008-verified-v2 へ合成した。Wiki通信なし。URL・canonical・ハッシュ・取得状態を検査し、7ページの共通確認日を2026-10-08と算出。新入力を private/candidates/composed-20261008-verified-v2 へ再変換すると1,466候補のfull-batch.jsonがrevision 7採用時の候補と完全一致。原本r7とのレビューは新規0・変更0・消失0・分類不明0。合成の単体試験4件は正常系、誤URL/破損、欠損、公開フォルダー誤配置を確認してPASS。さらにprivate/raw限定を加えた最終CLIで別の新規保存先に再構成し、composition.jsonの一致を確認。正式原本、Google Sheet、公開版に変更なし。

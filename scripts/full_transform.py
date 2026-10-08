@@ -9,7 +9,7 @@ from collections import Counter
 from datetime import datetime, timezone, timedelta
 from bs4 import BeautifulSoup
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from src.indexer import read,write,digest,key
+from src.indexer import ROOT,read,write,digest,key
 RAW_ROOT=Path(os.environ.get('RAW_RUN_ROOT','private/raw'))
 OUTPUT_ROOT=Path(os.environ.get('TRANSFORM_OUTPUT_ROOT','private'))
 SEED_ROOT=Path(os.environ.get('TRANSFORM_SEED_ROOT','private'))
@@ -20,6 +20,9 @@ if RAW_ROOT!=Path('private/raw') and 'TRANSFORM_OUTPUT_ROOT' not in os.environ:
 OUTPUT_ROOT.mkdir(parents=True,exist_ok=True)
 
 BASE='https://wikiwiki.jp'
+PAGE_IDS={'p-list':'W02','s-list':'W03','s-volume':'W04','collab':'W07','road':'W08','chronology':'W05','gacha':'W09'}
+manifest=read(ROOT/'source_manifest.json')
+EXPECTED_URLS={item['id']:item['url'] for item in manifest['pages']+manifest['audit_pages']}
 UNITS={'イルミネ':'イルミネーションスターズ','アンティーカ':'アンティーカ','放クラ':'放課後クライマックスガールズ','アルスト':'アルストロメリア','ストレイ':'ストレイライト','ノクチル':'ノクチル','シーズ':'シーズ','コメティック':'コメティック'}
 def clean(el):
  c=copy.copy(el)
@@ -44,8 +47,16 @@ def cardlink(a):return a.get('href','').startswith('/shinycolors/') and bool(re.
 def readpage(name):
  folder=RAW_ROOT/name;meta=read(folder/'fetch.json');raw=(folder/'response.html').read_bytes()
  import hashlib
- assert meta['status']=='fetched' and hashlib.sha256(raw).hexdigest()==meta['sha256']
- return BeautifulSoup(raw,'html.parser'),meta
+ expected=EXPECTED_URLS[PAGE_IDS[name]]
+ if meta.get('status')!='fetched' or meta.get('url')!=expected:
+  raise ValueError(f'Wrong or incomplete saved page: {name}')
+ if hashlib.sha256(raw).hexdigest()!=meta.get('sha256'):
+  raise ValueError(f'Saved response hash mismatch: {name}')
+ soup=BeautifulSoup(raw,'html.parser')
+ canonical=soup.find('link',rel='canonical')
+ if canonical is None or unquote(urlsplit(canonical.get('href','')).path)!=unquote(urlsplit(expected).path):
+  raise ValueError(f'Saved response canonical mismatch: {name}')
+ return soup,meta
 seed=read(SEED_ROOT/'sample-batch.json')['cards'];idols={c['idol_name']:c['idol_id'] for c in seed}
 idpath=OUTPUT_ROOT/'idol-registry.json'
 registry_source=idpath if idpath.exists() else SEED_ROOT/'idol-registry.json'
@@ -146,7 +157,7 @@ for c in cards.values():
   if re.sub(r'\s+','',c['card_title']+c['idol_name']) not in gacha_text:raise ValueError('AXE8 card missing from W09')
   c['field_sources']={f:{'source_ref':'W09','url':gm['url'],'response_hash':gm['sha256'],'locator':'AXE8シリーズ限定アイドル'} for f in ['acquisition_category','series_ids','series_status']}
 fetched=[datetime.fromisoformat(read(RAW_ROOT/name/'fetch.json')['fetched_at']) for name in ['p-list','s-list','s-volume','collab','road','chronology','gacha']]
-observed=max(fetched).astimezone(timezone(timedelta(hours=9))).date().isoformat()
+observed=min(stamp.astimezone(timezone(timedelta(hours=9))).date() for stamp in fetched).isoformat()
 coverage={'scope':'full-list-candidate','complete':False,'target_from':'2018-04-24','target_to':observed,'sections':sections,'expected_listing_rows':len(expectations),'deduplicated_listing_rows':len(cards)-road_count,'duplicate_inclusions':len(duplicates),'road_expansion':road_count,'missing_collab':missing_collab,'missing_chronology':missing_chron,'unknown_classifications':len(unknown),'unverified':['ゲーム全網羅・公式独立照合','各派生の個別初回日','特殊分類の意味',f'{observed}以降の追加漏れ（継続確認）']}
 batch={'status':'validated','scope':SCOPE,'run_id':'full-'+digest({'cards':list(cards.values()),'source_hashes':[read(RAW_ROOT/name/'fetch.json')['sha256'] for name in ['p-list','s-list','s-volume','collab','road','chronology','gacha']],'observed_at':observed,'scope':SCOPE})[:16],'observed_at':observed,'cards':list(cards.values()),'coverage':coverage,'parser_version':'html-lists-3','dictionaries':[{'type':'idol','id':v,'name':k} for k,v in idols.items()]+[{'type':'unit','id':'unit_'+str(i+1),'name':v,'source':'W02/W08'} for i,(k,v) in enumerate(UNITS.items())]}
 outputs=[(OUTPUT_ROOT/'full-batch.json',batch),(OUTPUT_ROOT/'full-audit.json',{'coverage':coverage,'expectations':expectations,'duplicates':duplicates,'unknown_classifications':unknown,'classification_sources':[{'source_ref':'W09','url':gm['url'],'sha256':gm['sha256'],'purpose':'AXE8 limited-series classification'}]}),(idpath,idols)]

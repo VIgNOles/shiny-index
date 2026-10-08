@@ -260,3 +260,8 @@ Codexアプリの同一タスクにheartbeat自動化「シャニマス索引の
 - 変更ファイル: `scripts/collect_one.py`、`scripts/full_transform.py`、`tests/test_limited_collection.py`、`source_manifest.json`、`README.md`、`TASK.md`、`operations.md`、`docs/verification.md`、`site/index.html`、`site/data/latest.json`、新しいsite/data/v1-93a6a8b8d40e754a/の7ファイル。`design.md`はローカル文書、HANDOFF.mdはGitにも保存する。生応答・正式原本・接続情報・候補/監査はprivateでGit対象外。
 - Wiki取得の自動化 `wiki` は、手動W09確認を完了したためPAUSED。`scripts/collect_one.py status` は次回可能時刻 `2026-10-09T02:28:50+00:00`、can_fetch=false。`last_early_authorized_at` により同じ早期フラグの再使用を拒否。全件連続取得フラグはfalse。取得ロック、実行中Pythonプロセスなし。
 - 次の具体操作: 公式またはWikiの新しい根拠から実在する追加・訂正候補が現れたら、対象を最小限確認し、保存済み入力から変換→差分レビュー→指定Sheet原本の更新と往復照合→配布生成→公開URLとデータ版一致まで実行する。次のWiki通信はstatusとサーバー制限を確認してから単一ページで行い、429等なら再試行せず停止する。現在は差分0のため実カード1件追加・修正の本番実証を捏造しない。UIの具体的不満点はユーザーからの指摘待ちで、問い合わせは今回の要件外。
+
+
+## 2026-10-08 保存済み入力の再構成を追加
+
+scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scripts/full_transform.pyにURL・canonical再検査と7ページの最古JST日付採用を追加。実際の保存済み7ページからprivate/raw/composed-20261008-verified-v2へ再構成し、候補full-batch.jsonはr7採用時と完全一致、正式原本との差分0。合成試験4件PASS。Wiki通信、正式Sheet・公開サイトの変更なし。再利用手順はoperations.md末尾。公開済み版はv1-93a6a8b8d40e754aのまま。
