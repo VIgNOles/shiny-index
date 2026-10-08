@@ -98,7 +98,7 @@ try {
   'unit_name','acquisition_category','series_ids'
  ])$('sort').add(new Option(labels[field],field));
 
- const shortcutValues=['twilights','casting','birthday'].filter(value=>cards.some(card=>card.series_ids.includes(value)));
+ const shortcutValues=['twilights','casting','mysongs','parallel','prelude','birthday'].filter(value=>cards.some(card=>card.series_ids.includes(value)));
  for(const value of shortcutValues){
   const button=document.createElement('button');
   button.type='button';

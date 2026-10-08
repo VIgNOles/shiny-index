@@ -302,3 +302,9 @@ scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scr
 - 開発ブランチ codex/ui-v3-incremental で web/index.html・web/app.mjs・web/style.css にトワコレ、キャスコレ、誕生日の近道ボタンを追加。詳細条件の series_ids チェックボックスを同じ状態として操作し、URL・選択表示・aria-pressedを同期する。データに存在する系列だけを表示。main、site、原本、公開URLは変更しない。
 - tests/ui-smoke.mjs に近道→チェックボックス・URL、再読込、詳細条件→近道、解除の操作試験を追加。隔離候補 private/audits/ui-v3-slice2-20261008-01 と現行siteの双方でEdge/PlaywrightのPC1280px・390px・320pxがPASS。検索単体9件PASS。初回の試験は詳細条件の開閉状態を誤認して30秒タイムアウトしたが、試験のみ修正し全幅で再実行成功。
 - 残りの次期UI: マイコレ・パラコレ・プレコレの近道、ユニット／人物統合、年月日選択、スマホ一覧／詳細開閉、出典表示の整理、全体回帰・実機確認・明示公開。次の小工程は階層人物選択に着手する前に、仕様上の残りの近道を追加するか、スマホ一覧の骨格を優先する。
+
+## 2026-10-08 UI次版の第3工程（6系列の近道、未公開）
+
+- 前工程の共通処理を使い、web/app.mjsの近道をマイコレ・パラコレ・プレコレまで拡張。既存3件と合わせて6種類。編集原本、site、公開URL、データ版は変更しない。
+- tests/ui-smoke.mjsで6種類の表示順とプレコレ9件の結果を確認。隔離候補 private/audits/ui-v3-slice3-20261008-01 をEdge/PlaywrightでPC1280px・390px・320px操作試験PASS、横切れなし。検索単体と公開UI v2の試験は前工程でPASS済みで、この工程では検索ロジック・公開siteを変更していない。
+- 次の候補: ユニット／アイドル統合、日付選択、スマホ一覧／詳細展開をそれぞれ別の工程にする。現行UI v2は公開維持、UI v3全体は未完成・未公開。

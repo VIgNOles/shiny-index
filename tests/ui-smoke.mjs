@@ -55,6 +55,7 @@ try{
    assert.equal(new URL(page.url()).searchParams.has('missing'),false);
   }
   if(await page.locator('#series-shortcuts').count()){
+   assert.deepEqual(await page.locator('#series-shortcuts button').allTextContents(),['トワコレ','キャスコレ','マイコレ','パラコレ','プレコレ','誕生日']);
    const shortcut=page.locator('[data-series-shortcut="twilights"]');
    const twilights=cards.filter(c=>c.series_ids.includes('twilights')).length;
    assert.equal(await shortcut.getAttribute('aria-pressed'),'false');
@@ -66,6 +67,10 @@ try{
    assert.equal(await shortcut.getAttribute('aria-pressed'),'true');
    await shortcut.click();
    assert.equal(await count(),total+' / '+total+' 件');
+   const prelude=page.locator('[data-series-shortcut="prelude"]');
+   await prelude.click();
+   assert.equal(await count(),cards.filter(c=>c.series_ids.includes('prelude')).length+' / '+total+' 件');
+   await prelude.click();
    if(!await page.locator('#advanced-filters').evaluate(el=>el.open))await page.locator('#advanced-filters > summary').click();
    const seriesGroup=page.locator('#advanced-groups details').filter({has:page.locator('input[name="series_ids"]')});
    if(!await seriesGroup.evaluate(el=>el.open))await seriesGroup.locator('summary').click();
