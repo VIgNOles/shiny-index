@@ -47,12 +47,17 @@ def retry_after_deadline(value, current):
     return parsed.astimezone(timezone.utc) if parsed.tzinfo else None
 
 
-def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, fetcher=collect):
+def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False):
     manifest=read(ROOT/'source_manifest.json')
     current=current or datetime.now(timezone.utc)
     state=read(state_path) if Path(state_path).exists() else None
     availability=status(manifest,state,current)
-    if not availability['can_fetch']:
+    early_allowed=(authorized_early and availability['initialized'] and
+                   availability['single_page_enabled'] and not state.get('last_early_authorized_at') and
+                   current>=as_utc(state['last_attempt_at'])+timedelta(hours=1) and
+                   (not state.get('server_not_before_at') or
+                    current>=as_utc(state['server_not_before_at'])))
+    if not availability['can_fetch'] and not early_allowed:
         raise RuntimeError('Wiki single-page fetch unavailable until '+str(availability['next_allowed_at']))
     pages={item['id']:item for item in manifest['pages']+manifest['audit_pages']}
     if page_id not in pages: raise ValueError('page ID outside source manifest')
@@ -61,6 +66,8 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
     stamp=current.isoformat(timespec='seconds')
     state['last_attempt_at']=stamp
     state['last_page_id']=page_id
+    if early_allowed and not availability['can_fetch']:
+        state['last_early_authorized_at']=stamp
     write(state_path,state)
     try:
         fetcher(pages[page_id]['url'],target,allow_limited=True)
@@ -71,24 +78,24 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
             if deadline: state['server_not_before_at']=deadline.isoformat(timespec='seconds')
             write(state_path,state)
         if target.is_dir():
-            write(target/'limited-run.json',{'page_id':page_id,'status':'failed','full_run':False})
+            write(target/'limited-run.json',{'page_id':page_id,'status':'failed','full_run':False,'authorized_early':bool(early_allowed and not availability['can_fetch'])})
         raise
     except Exception:
         if target.is_dir():
-            write(target/'limited-run.json',{'page_id':page_id,'status':'failed','full_run':False})
+            write(target/'limited-run.json',{'page_id':page_id,'status':'failed','full_run':False,'authorized_early':bool(early_allowed and not availability['can_fetch'])})
         raise
     result=read(target/'fetch.json')
-    write(target/'limited-run.json',{'page_id':page_id,'status':result['status'],'full_run':False})
+    write(target/'limited-run.json',{'page_id':page_id,'status':result['status'],'full_run':False,'authorized_early':bool(early_allowed and not availability['can_fetch'])})
     return result
 
 
 
-def fetch_one(page_id, directory, *, current=None, state_path=STATE, fetcher=collect):
+def fetch_one(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False):
     lock_path=Path(state_path).with_suffix('.lock')
     lock_path.parent.mkdir(parents=True,exist_ok=True)
     fd=os.open(lock_path,os.O_CREAT|os.O_EXCL|os.O_WRONLY)
     try:
-        return _fetch_one_unlocked(page_id,directory,current=current,state_path=state_path,fetcher=fetcher)
+        return _fetch_one_unlocked(page_id,directory,current=current,state_path=state_path,fetcher=fetcher,authorized_early=authorized_early)
     finally:
         os.close(fd)
         lock_path.unlink()
@@ -103,6 +110,7 @@ def main():
     command=sub.add_parser('fetch')
     command.add_argument('page_id')
     command.add_argument('directory')
+    command.add_argument('--user-authorized-early-fetch',action='store_true')
     args=parser.parse_args()
     manifest=read(ROOT/'source_manifest.json')
     state=read(STATE) if STATE.exists() else None
@@ -115,7 +123,7 @@ def main():
         import json
         print(json.dumps(status(manifest,state,datetime.now(timezone.utc)),ensure_ascii=False))
     else:
-        print(fetch_one(args.page_id,args.directory))
+        print(fetch_one(args.page_id,args.directory,authorized_early=args.user_authorized_early_fetch))
 
 
 if __name__=='__main__':

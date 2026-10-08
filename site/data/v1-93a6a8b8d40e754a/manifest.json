@@ -1,0 +1,16 @@
+{
+  "dataset_version": "v1-93a6a8b8d40e754a",
+  "schema_version": "1.0",
+  "published_at": "2026-10-08T02:45:18+00:00",
+  "content_hash": "93a6a8b8d40e754a6eff7ec10426b3917c4d4cec1cb1645082852158b32c5913",
+  "input_hash": "a32ebd7eb0af5b1d7f2b007bffb617e9bc5a4492832e9ebb6a15fece4fb66971",
+  "count": 1466,
+  "files": {
+    "cards.csv": "bb1025671a128250d0dba259098be87e83c2297aeb8ef84200a1e3bd8ecf9c12",
+    "cards.json": "b85303870570f711c59115aa049a09ad0421a6351c1657180ac8a213a389b22c",
+    "cards.xlsx": "2439e12a30daf4119604212ae650e061a3135b765e264bc31fb88fb139c2390c",
+    "coverage.json": "6997fc3e3258d85add7b93f7e0eb30528812ad6b6b660b12c1bb1b2fca2bf92d",
+    "redirects.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "sources.json": "1d79115d379faf753b7272d8f5c242dcf25e03737ce4b0f75c42fd4f9d9d9c36"
+  }
+}

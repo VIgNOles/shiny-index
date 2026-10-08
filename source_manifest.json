@@ -4,7 +4,7 @@
   "single_page_collection_enabled": true,
   "single_page_cooldown_seconds": 86400,
   "public_distribution_enabled": true,
-  "reason": "2026-10-07 user explicitly authorizes public factual index; WIKIWIKI terms/rules reviewed; no article text, images, raw HTML or attachment copies in public bundle; source links retained; one-page recheck only after cooldown; full collection paused after HTTP 429",
+  "reason": "2026-10-07 user explicitly authorizes public factual index; WIKIWIKI terms/rules reviewed; no article text, images, raw HTML or attachment copies in public bundle; source links retained; one-page checks with 24-hour cooldown; one explicit user-authorized early W09 check on 2026-10-08, then normal cooldown; full collection paused after HTTP 429",
   "pages": [
     {
       "id": "W02",

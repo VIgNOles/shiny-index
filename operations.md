@@ -93,7 +93,7 @@ PagesでのHTML成果物の更新→元版への切戻しは実地検証済み�
 
 ### 現在の公開状態
 
-公開URLは https://vignoles.github.io/shiny-index/ 。データ版v1-ae32f82ff0a94d87、1,466件（P548/S918）、新旧2版19ファイル。2026-10-08にUIを更新し、明示公開run 37646437517がsuccess。続けて各カードの出典表示を改善したrun 37647591990もsuccess。匿名GETで19/19ファイルが検証済みsiteとバイト一致し、ログインなしのEdgeでPC幅とタッチ設定付き390px幅の検索・複数絞り込み・並べ替え・リセットを確認した。データ版と原本のカード内容は変更していない。
+公開URLは https://vignoles.github.io/shiny-index/ 。この段落に記す公開実績は2026-10-08 UI更新時点の履歴（データ版v1-ae32f82ff0a94d87、1,466件、2版19ファイル）。現行版は末尾の節で確認する。2026-10-08にUIを更新し、明示公開run 37646437517がsuccess。続けて各カードの出典表示を改善したrun 37647591990もsuccess。匿名GETで19/19ファイルが検証済みsiteとバイト一致し、ログインなしのEdgeでPC幅とタッチ設定付き390px幅の検索・複数絞り込み・並べ替え・リセットを確認した。データ版と原本のカード内容は変更していない。
 
 最初のPages失敗はGitの自動改行変換によるcards.csvハッシュ不一致であり、.gitattributesのsite/** -textで修正した。以後の更新ではsite生成・check_site・Git blobの一致を確認してpushし、main上の明示publish:コミットでPagesを起動する。実カード1件追加・1件修正の一般公開反映は未実施。coverageだけが異なるデータ版の公開切戻しと復帰、HTML成果物の更新と復旧は検証済み。
 
@@ -145,7 +145,7 @@ git commit --allow-empty -m "publish: validated site"
 git push origin main
 ```
 
-main上の明示公開コミットでActions実行成功、匿名URLの公開対象全ファイルが意図したsiteとバイト一致することを実地確認済みです。現行の新旧2版構成は19ファイルです。今後の更新でも、Actionsが成功し、匿名URLで公開対象全ファイルが意図したsiteと一致するまで更新完了扱いにしません。失敗時は原因を直した新コミットを作ってから別のpublish:コミットで再実行します。旧版へ戻す場合も、旧版を選ぶ検証済みsiteをmain上の新コミットにし、別のpublish:コミットで起動します。原本は戻しません。
+main上の明示公開コミットでActions実行成功、匿名URLの公開対象全ファイルが意図したsiteとバイト一致することを実地確認済みです。この記録時点の新旧2版構成は19ファイルでした。今後の更新でも、Actionsが成功し、匿名URLで公開対象全ファイルが意図したsiteと一致するまで更新完了扱いにしません。失敗時は原因を直した新コミットを作ってから別のpublish:コミットで再実行します。旧版へ戻す場合も、旧版を選ぶ検証済みsiteをmain上の新コミットにし、別のpublish:コミットで起動します。原本は戻しません。
 
 ## HTTP 429で取得が止まった場合
 
@@ -174,3 +174,10 @@ WIKIWIKIの[確認画面の案内](https://wikiwiki.jp/pp/security-check-guide)�
 ## 今回の完成条件の更新（2026-10-08）
 
 Wiki管理者・運営への問い合わせと回答取得は、ユーザーの明示指示により今回の必須工程から除外された。過去の問い合わせ案内は履歴であり、これを理由に作業を止めない。Wiki取得は429後の24時間待機を守り、次回可能時刻に単一ページから続ける。ユーザー本人がスマートフォンで基本動作を確認済み。未詳のUI不満点は後からの指摘に基づき直す。
+
+
+## 2026-10-08の確認結果と現行原本
+
+現在の編集原本は指定Googleアカウントの非公開native Sheet「enza P/S card master r7」。ローカル承認済みスナップショットはprivate/master.xlsx、revision 7、1,466件。r6 Sheetとr6 XLSXはバックアップとして保持する。現行の取得状態は `./.venv/Scripts/python.exe scripts/collect_one.py status` で確認し、W09の一度限りの期限前確認後は通常の24時間ゲートに戻った。同じ `--user-authorized-early-fetch` は状態記録により再使用できない。次回以降はstatusのcan_fetchがtrueになるまでWikiへ送信しない。既存の429 runはincompleteのまま保存し、二つの取得runを組み合わせた今回の候補はprivate/raw/composed-20261008-user-early、変換候補はprivate/candidates/composed-20261008-user-early-v2に隔離した。
+
+再実行する場合は既存runを上書きせず、`RAW_RUN_ROOT=private/raw/composed-20261008-user-early`、`TRANSFORM_OUTPUT_ROOT`に新しい保存先、`TRANSFORM_SEED_ROOT=private`、`TRANSFORM_SCOPE=full`を設定してscripts/full_transform.pyを実行し、review_batch.pyで原本と比較する。差分0ならカード行の変更を作らない。配布候補はrevision 7から生成したv1-93a6a8b8d40e754aで、カード・出典は前版と一致し、収録対象日の確認範囲のみ2026-10-08へ更新した。全ゲーム網羅のcompleteはfalseを維持する。

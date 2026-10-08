@@ -88,9 +88,52 @@ class LimitedCollectionTests(unittest.TestCase):
             with patch.object(limited,'ROOT',root):
                 self.assertEqual(limited.fetch_one('W09',target,current=current,state_path=state,fetcher=fake_fetch)['status'],'fetched')
             self.assertEqual(calls,[(url,True)])
-            self.assertEqual(indexer.read(target/'limited-run.json'),{'page_id':'W09','status':'fetched','full_run':False})
+            self.assertEqual(indexer.read(target/'limited-run.json'),{'page_id':'W09','status':'fetched','full_run':False,'authorized_early':False})
             self.assertEqual(indexer.read(state)['last_attempt_at'],current.isoformat(timespec='seconds'))
 
+    def test_explicit_early_fetch_is_single_page_and_keeps_retry_after(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            url='https://wikiwiki.jp/shinycolors/ガシャ'
+            indexer.write(root/'source_manifest.json',{
+                'single_page_collection_enabled':True,
+                'single_page_cooldown_seconds':86400,
+                'full_collection_enabled':False,
+                'pages':[],
+                'audit_pages':[{'id':'W09','url':url}]
+            })
+            start=datetime(2026,10,7,15,30,tzinfo=timezone.utc)
+            current=start+timedelta(hours=11)
+            state=root/'state.json'
+            indexer.write(state,{'last_attempt_at':start.isoformat(),'last_rate_limit_at':start.isoformat()})
+            calls=[]
+            def fake_fetch(received_url,directory,*,allow_limited):
+                calls.append((received_url,allow_limited))
+                directory.mkdir()
+                indexer.write(directory/'fetch.json',{'status':'fetched','sha256':'test'})
+            with patch.object(limited,'ROOT',root):
+                result=limited.fetch_one('W09',root/'raw',current=current,state_path=state,
+                                         fetcher=fake_fetch,authorized_early=True)
+            self.assertEqual(result['status'],'fetched')
+            self.assertEqual(calls,[(url,True)])
+            self.assertEqual(indexer.read(root/'raw'/'limited-run.json')['authorized_early'],True)
+            self.assertEqual(indexer.read(state)['last_early_authorized_at'],current.isoformat(timespec='seconds'))
+            self.assertFalse(limited.status(indexer.read(root/'source_manifest.json'),
+                                            indexer.read(state),current+timedelta(hours=1))['can_fetch'])
+            with patch.object(limited,'ROOT',root):
+                with self.assertRaisesRegex(RuntimeError,'unavailable until'):
+                    limited.fetch_one('W09',root/'second',current=current+timedelta(hours=2),
+                                      state_path=state,fetcher=fake_fetch,authorized_early=True)
+            self.assertEqual(len(calls),1)
+            blocked=root/'blocked'
+            indexer.write(state,{'last_attempt_at':start.isoformat(),
+                                 'server_not_before_at':(current+timedelta(hours=2)).isoformat()})
+            with patch.object(limited,'ROOT',root):
+                with self.assertRaisesRegex(RuntimeError,'unavailable until'):
+                    limited.fetch_one('W09',blocked,current=current,state_path=state,
+                                      fetcher=fake_fetch,authorized_early=True)
+            self.assertFalse(blocked.exists())
+            self.assertEqual(len(calls),1)
     def test_429_extends_cooldown_to_server_retry_after(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
