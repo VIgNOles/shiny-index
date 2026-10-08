@@ -241,3 +241,7 @@ scripts/update_drill.pyの手修正値に空欄のNoneを含める誤りがあ�
 ## 2026-10-08 中断runの6ページオフライン照合
 
 保存済みW02/W03/W04/W07/W08/W05を前回正常runの各同ページとscripts/compare_saved_page.pyで比較。6/6ページで本文可視テキストと本文リンクが順序を含め一致し、追加・削除は0。全バイトは各ページ異なる。結果はprivate/audits/six-page-offline-recheck-20261008.jsonに非公開保存。W09は429で失敗したため全7ページ確認済みとはしない。原本・公開版・固定IDは変更なし。今回Wikiへの追加通信なし。次はCLIのcan_fetch=true後、登録済みW09の単一ページだけを新しい保存先へ取得し、前回正常runのgachaとオフライン比較する。429等なら即停止して原本・公開版を維持する。
+
+## 2026-10-08 二次S一覧の限定照合
+
+GamesInkのS一覧236件を非公開で照合し、正規化一致229、近い表記差6、P-SSRをS表へ載せた1件を確認した。P/Sの誤採用はせず、正式原本と公開版を維持。詳細はdocs/verification.md末尾とprivate/audits/gamesink-s-audit-20261008.json。二次資料だけで新規カードを採用しない。
