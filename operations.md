@@ -82,7 +82,7 @@ PagesでのHTML成果物の更新→元版への切戻しは実地検証済み�
 ## GitHub Pages公開・更新手順
 
 1. ユーザー所有の公開リポジトリと無料の標準ランナーが使えることを確認する。
-2. sources-policy.mdの現行公開方針とWIKIWIKIの禁止事項を確認する。問い合わせはユーザーが別途行う。回答や条件変更が届いたら公開範囲・収集手順を再評価する。公式全網羅の限界を表示する。
+2. sources-policy.mdの現行公開方針とWIKIWIKIの禁止事項を確認する。問い合わせは今回の必須工程ではない。外部から条件変更が示された場合は公開範囲・収集手順を再評価し、公式全網羅の限界を表示する。
 3. コードの公開対象を明示的に選ぶ。private、node_modules、.venv、認証情報を含めない。
 4. `./.venv/Scripts/python.exe scripts/stage_release.py dist site`で初回の公開候補を新しい`site/`に作り、`./.venv/Scripts/python.exe scripts/check_site.py site`で検証する。`dist/`の過去の試作版は同梱しない。2回目以降は新しい`site-next/`へ`--previous-site site`を指定して作り、検証後に既存の`site/`をバックアップして入れ替える。ステージング先を既存フォルダーへ重ね書きしない。
 5. ユーザーの公開指示とsources-policy.mdの範囲で`source_manifest.json`の公開フラグをtrueにする。`check_site.py site`成功後、無視対象の`site/`を`git add -f site`で明示的に追跡対象へ加える。コードとともにコミット・pushし、リポジトリSettings → Pages → SourceをGitHub Actionsにして同梱pages.ymlを手動実行する。private/と生応答は追加しない。
@@ -170,3 +170,7 @@ WIKIWIKIの[確認画面の案内](https://wikiwiki.jp/pp/security-check-guide)�
     ./.venv/Scripts/python.exe scripts/compare_saved_page.py private/raw/recheck-20261007-2/gacha private/raw/limited-W09-YYYYMMDD
 
 この比較は応答ハッシュ、Wiki本文の可視テキスト・本文リンクの一致と、差分件数・最大10件の例を示す。差分0でもほかの6ページや公式全件が新たに確認されたことにはならない。
+
+## 今回の完成条件の更新（2026-10-08）
+
+Wiki管理者・運営への問い合わせと回答取得は、ユーザーの明示指示により今回の必須工程から除外された。過去の問い合わせ案内は履歴であり、これを理由に作業を止めない。Wiki取得は429後の24時間待機を守り、次回可能時刻に単一ページから続ける。ユーザー本人がスマートフォンで基本動作を確認済み。未詳のUI不満点は後からの指摘に基づき直す。
