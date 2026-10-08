@@ -210,3 +210,20 @@ Wiki管理者・運営への問い合わせと回答取得は、ユーザーの�
     ./.venv/Scripts/python.exe scripts/review_batch.py private/master.xlsx private/candidates/composed-replay-YYYYMMDD/full-batch.json private/candidates/composed-replay-YYYYMMDD/review.json
 
 保存済みページの日付が異なる場合、収録確認日には7ページの日本時間で最も古い取得日を使う。最新の1ページだけの日付で全件を確認済みと表示しない。レビューで新規・変更・消失・分類不明と件数異常がないか確認し、元runと既存原本を保持する。合成先・変換先・レビュー先は毎回未使用の名前にする。
+
+## UI版の保存と切り戻し（2026-10-08）
+
+UI初版はGitタグ `ui-v1-20261008` としてoriginにも保存済み。改訂版は `ui-v2` と表示し、カードデータ版とは別に扱う。UIだけの更新ではGoogle Sheets原本・カード行・データ版を変えない。調査根拠と変更点は [docs/ui-design.md](docs/ui-design.md) を参照する。
+
+公開中のUIに問題があれば、タグから**新しい候補ディレクトリ**を作る。スクリプトは `site/` と原本を変更せず、現在の公開データ版を保ったままタグ時点のUI4ファイルを復元する。既存の出力先を指定すると拒否する。
+
+```powershell
+./.venv/Scripts/python.exe scripts/build_ui_rollback.py --ref ui-v1-20261008 --source site --output private/audits/ui-rollback-YYYYMMDD
+./.venv/Scripts/python.exe scripts/check_site.py private/audits/ui-rollback-YYYYMMDD
+$env:UI_BROWSER_PATH = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+node tests/ui-smoke.mjs private/audits/ui-rollback-YYYYMMDD
+```
+
+検証後、`git status --short` で未関係の編集を確認する。公開を戻すと決めた場合だけ、候補の `index.html`、`style.css`、`app.mjs`、`search.mjs` を `site/` の同名ファイルへコピーし、`check_site.py site` と `tests/ui-smoke.mjs site` を再実行する。UI4ファイルだけをコミット・pushしてから、既存の手順どおりmainへ `publish: ` で始まる空コミットをpushする。Pages成功後、`check_public.py` と公開URLのPC・スマホ操作試験で確認する。公開検証が終わるまで切り戻し完了扱いにしない。
+
+改訂版へ復帰する場合も、同じCLIの `--ref` を改訂版のUIタグに変え、**別の未使用出力先**で候補を作る。データ構造が将来変わった場合は、過去UIと現行データの互換性を検証してから公開する。旧データを無断で巻き戻さない。

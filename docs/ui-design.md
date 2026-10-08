@@ -1,0 +1,32 @@
+# カード索引 UI設計・版管理
+
+## 現在の版
+
+- UI初版: `ui-v1-20261008` Gitタグ。改修前の `web/` と公開 `site/` を固定し、GitHubの同名タグにも保存した。
+- UI改訂版: `ui-v2`。カードデータ版 `v1-93a6a8b8d40e754a` とは独立した画面変更。正式Sheet、カード行、47件の個別Wikiリンク保留状態は変えない。
+- 画面下部にはUI版とデータ版を別々に表示する。公開データのCSV/JSON/XLSXは同じデータ版を参照する。
+
+## 調査で採用した指針
+
+| 一次資料 | 指針 | この索引での適用 |
+|---|---|---|
+| [USWDS Search](https://designsystem.digital.gov/components/search/) | 検索の目的を明確にし、検索語を結果に保持する | 視認できるラベルと検索ランドマークを設け、検索条件をURLに維持する |
+| [USWDS Collection](https://designsystem.digital.gov/components/collection/) | 一覧は見出し、短いメタデータ、原典リンクで走査しやすくする | カード名・人物・種別・日付を優先し、出典を各カードの末尾に置く。100件ずつ追加表示する |
+| [GOV.UK Details](https://design-system.service.gov.uk/components/details/) | 二次情報だけを折りたたみ、重要事項は隠さない | 収録件数、P/S内訳、確認範囲と公式全網羅未確認を常時表示し、欠損の内訳を詳細で表示する |
+| [W3C WAI Status Messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html) | 動的に変わる検索件数をフォーカス移動なしで通知する | 結果件数に `role=status` と `aria-live=polite` を指定する |
+| [W3C WCAG 2.2 Target Size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum) | タッチ対象を最低24×24 CSS px、または十分な間隔にする | 主なボタン・チェック選択領域・カードのWikiリンクを44px以上にする |
+| [MDN URLSearchParams](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams) | URLクエリを検索条件の表現に使える | 既存の検索・複数絞り込み・並べ替え・日付のURL保持を継続する |
+
+これらは設計上の根拠であり、本サイトがWCAGへ全面適合したという宣言ではない。スクリーンリーダー実機での検証は別途必要。
+
+## UI初版からの変更
+
+スマホ幅390pxの実画面撮影では、検索欄の上端が約635pxで、収録範囲の長文が先に画面を占めていた。改訂版では収録の重要な数字を短く残し、検索欄の上端を約343pxへ移した。対象期間・欠損・未確認範囲は開ける詳細欄へ置いた。P/Sとレアリティは即時選択、人物・入手区分などは追加条件とし、日付条件もそこにまとめた。並べ替えと検索結果CSVは結果見出しのそばへ移した。
+
+カード一覧はリストとして意味付けし、カード名・人物・日付・入手区分・Wikiリンク・出典を優先した。ロード派生の内部コードを読者向け名称に置換した。Wiki個別ページがない行はリンクを作らず、一覧収録だけを示す。0件時は条件を解除できる。検索結果の上限100件を追加表示する方式、全件CSVの内容、固定データ版の取得方法は維持する。
+
+## 検証と切り戻し
+
+開発中は `private/audits/ui-preview` に隔離した候補を作り、`scripts/check_site.py` で3データ版・各1,466件を検査した。検索のJS単体試験8件、PC 1280px・スマホ390px・320pxでの操作試験を通した。UI初版タグから `scripts/build_ui_rollback.py` で別の候補を作り、同じ画面試験で旧UIへの復元も確認した。タグの編集用 `web/` はGitの改行正規化で公開バイトと異なるため、CLIはタグ内の配信用 `site/` を復元する。修正後の初版候補は、改訂版をまだ公開していない時点の匿名公開URLと26/26ファイルでバイト一致した。公開URLでの改訂版検証結果は公開後に追記する。
+
+切り戻しCLIは現行の `site/` や原本を書き換えず、新規ディレクトリへタグ時点のUI4ファイルと現行データを組み合わせる。検証後の公開操作は [operations.md](../operations.md) を参照する。

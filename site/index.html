@@ -1,6 +1,76 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>enza カード索引</title><link rel="stylesheet" href="style.css"></head><body>
-<header><div class="eyebrow">SHINY COLORS / ENZA</div><h1>カードを探す。</h1><p>P・Sカードの非公式検索索引。詳しい情報は各カードのWikiへ。</p></header>
-<main><aside id="coverage">読み込み中…</aside><section class="controls" aria-label="検索条件"><label class="query">カード・アイドル・ユニット<input id="q" type="search" placeholder="例：櫻木真乃 ほわっと"></label><div id="filters"></div><details id="advanced-filters"><summary>詳細条件 <span id="advanced-count"></span></summary><div id="advanced-groups"></div></details><p id="active-filters" aria-live="polite">絞り込み条件なし</p><div class="dates"><label>実装日から<input id="from" type="date"></label><label>実装日まで<input id="to" type="date"></label><label><input id="missing" type="checkbox">不明項目あり</label></div><div class="sorting"><label>並べ替え<select id="sort"></select></label><label>順序<select id="direction"><option value="desc">降順</option><option value="asc">昇順</option></select></label><button id="reset">条件をリセット</button></div></section>
-<section class="results"><div class="toolbar"><h2 id="count" aria-live="polite">カード</h2><button id="export">検索結果CSV</button></div><div id="cards"></div></section>
-<footer><h2>データと収録範囲</h2><p id="version"></p><nav id="downloads" aria-label="全件データ取得"></nav><details><summary>出典・確認状況</summary><p>対象はenza版です。性能・画像・本文は収録しません。Wiki掲載情報は公式の独立照合を終えていません。不明項目を推測で補いません。編集原本の変更は、検証して新しい版を公開した時に反映します。</p><pre id="audit"></pre></details></footer></main>
-<script>window.DATA_VERSION='v1-93a6a8b8d40e754a';</script><script type="module" src="app.mjs"></script></body></html>
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="enza版シャイニーカラーズのP・Sカードを検索できる非公式索引。">
+  <title>enza カード索引</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="eyebrow">SHINY COLORS / ENZA</div>
+    <h1>カードを探す。</h1>
+    <p>P・Sカードの非公式検索索引。出典のWikiへ移動できます。</p>
+  </header>
+  <main>
+    <aside id="coverage" class="coverage-panel" aria-label="収録範囲">
+      <div class="coverage-glance">
+        <strong>収録範囲</strong>
+        <span id="coverage-summary">読み込み中…</span>
+      </div>
+      <details id="coverage-details">
+        <summary>欠損・未確認範囲を含む詳細を見る</summary>
+        <dl id="coverage-body"></dl>
+      </details>
+    </aside>
+
+    <section class="controls" role="search" aria-label="カード検索と絞り込み">
+      <label class="query" for="q">カード名・アイドル名・ユニット名で検索</label>
+      <input id="q" type="search" placeholder="例：櫻木真乃 ほわっと" autocomplete="off" aria-controls="cards">
+      <div id="filters" aria-label="主な絞り込み条件"></div>
+      <details id="advanced-filters">
+        <summary>ほかの絞り込み条件 <span id="advanced-count"></span></summary>
+        <div id="advanced-groups"></div>
+        <div class="dates">
+          <label for="from">実装日から<input id="from" type="date"></label>
+          <label for="to">実装日まで<input id="to" type="date"></label>
+          <label class="missing-filter"><input id="missing" type="checkbox">不明項目あり</label>
+        </div>
+      </details>
+      <div class="selected-row">
+        <p id="active-filters">絞り込み条件なし</p>
+        <button id="reset" type="button">条件をリセット</button>
+      </div>
+    </section>
+
+    <section class="results" aria-labelledby="results-heading">
+      <div class="toolbar">
+        <div class="result-heading">
+          <h2 id="results-heading">検索結果</h2>
+          <p id="count" role="status" aria-live="polite" aria-atomic="true">読み込み中…</p>
+        </div>
+        <div class="result-tools">
+          <label for="sort">並べ替え<select id="sort"></select></label>
+          <label for="direction">順序<select id="direction"><option value="desc">降順</option><option value="asc">昇順</option></select></label>
+          <button id="export" type="button">検索結果をCSVで取得</button>
+        </div>
+      </div>
+      <ul id="cards" class="cards-list"></ul>
+    </section>
+
+    <footer>
+      <h2>データと収録範囲</h2>
+      <p id="version"></p>
+      <nav id="downloads" aria-label="全件データ取得"></nav>
+      <details>
+        <summary>出典・確認状況</summary>
+        <p>対象はenza版です。性能・画像・本文は収録しません。Wiki掲載情報は公式の独立照合を終えていません。不明項目を推測で補いません。編集原本の変更は、検証して新しい版を公開した時に反映します。</p>
+        <pre id="audit"></pre>
+      </details>
+    </footer>
+  </main>
+  <script>window.DATA_VERSION='v1-93a6a8b8d40e754a';window.UI_VERSION='ui-v2';</script>
+  <script type="module" src="app.mjs"></script>
+</body>
+</html>
