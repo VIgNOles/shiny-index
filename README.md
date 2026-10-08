@@ -3,7 +3,7 @@
 現在は**全期間のWiki一覧から1,466索引行を収録した公開版**です。[公開サイト](https://vignoles.github.io/shiny-index/)をログインなしで閲覧・検索・取得できることを確認しました。
 一覧掲載1,410件＋ロード派生56件。個別Wikiページへのリンクがない47件も索引に収録済みで、リンクの現況確認・追加は一旦保留しています。
 公開中のデータ版はv1-93a6a8b8d40e754a（収録確認日2026-10-08、P548/S918）。カード内容は前版と同じで、確認範囲を更新しました。
-UI版はui-v2です。改修前のUI初版はGitタグ ui-v1-20261008 に保存し、[UI設計記録](docs/ui-design.md)と[切り戻し手順](operations.md)を用意しました。
+UI版はui-v3です。旧UIはGitタグ ui-v1-20261008 と ui-v2-20261008 に保存し、[UI設計記録](docs/ui-v3-spec.md)と[切り戻し手順](operations.md)を用意しました。
 ゲーム全網羅・公式照合は未完了です。P/S・分冊の重複・出典を監査しました。Wikiの凡例と補助ページで未確定だった入手分類21行を確認し、ローカル版へ反映しました。
 編集原本は指定アカウントの非公開Google Sheetsです。9タブ・1,466件を実エクスポートで照合済み。公開用のローカルXLSXは承認済みスナップショットとして保持し、更新手順はoperations.mdに記載しています。
 
@@ -20,7 +20,7 @@ XLSX生成にはCodex付属 `@oai/artifact-tool` が必要です。今回の依�
 `load_workspace_dependencies`でNodeパッケージの場所を取得し、このフォルダーの`node_modules`へジャンクションを作ります。
 Codex依存バンドルがない環境では `XLSX_BACKEND=stdlib` を設定するとPython標準ライブラリだけでXLSXを生成します。この経路も全1466件で各形式の読み戻し検証を通しました。通常環境ではArtifact Tool経路を使います。
 Python/JS検索テストと保存済み公開ファイルの検証は、それぞれrequirements.txtとNodeだけで実行できます。
-UI操作の再現試験はPlaywright 1.62.1を使います。通常のNode/npm環境では npm install と npx playwright install chromium を実行します。既存Edgeを使うWindows環境では UI_BROWSER_PATH に msedge.exe の絶対パスを指定して node tests/ui-smoke.mjs を実行できます。ブラウザ試験はローカルsiteを127.0.0.1の一時サーバーで開き、公開データを変更しません。
+UI操作の再現試験はPlaywright 1.62.1を使います。通常のNode/npm環境では npm install と npx playwright install chromium を実行します。既存Edgeを使うWindows環境では UI_BROWSER_PATH に msedge.exe の絶対パスを指定して node tests/ui-v3-smoke.mjs を実行できます。ブラウザ試験はローカルsiteを127.0.0.1の一時サーバーで開き、公開データを変更しません。
 
 
 別環境で全件版を再生成するには、上記依存関係の導入後、指定アカウントの非公開Google Sheets原本を「ファイル → ダウンロード → Microsoft Excel」から取り出し、Git対象外の `private/master.xlsx` に配置します。取得済み生応答やSheets原本のURL・IDは公開リポジトリに含まれません。新環境でSheetのURL・所有者を確認し、`private/sheets-connection.json` は安全な経路で移すか新しく作成してください。保存した原本を読み戻してから全件版を生成・検証します。
@@ -45,12 +45,12 @@ UI操作の再現試験はPlaywright 1.62.1を使います。通常のNode/npm�
 ./.venv/Scripts/python.exe -m unittest discover -s tests -v
 node --test tests/search.test.mjs
 $env:UI_BROWSER_PATH = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-node tests/ui-smoke.mjs
+node tests/ui-v3-smoke.mjs
 ./.venv/Scripts/python.exe scripts/update_drill.py
 ./.venv/Scripts/python.exe scripts/check_public.py site https://vignoles.github.io/shiny-index/
 ```
 
-公開URLのUIも確認する場合は、UI_BASE_URL を https://vignoles.github.io/shiny-index/ に設定して同じ node tests/ui-smoke.mjs を実行します。UI_BROWSER_PATH を設定しない場合は npx playwright install chromium でブラウザを導入します。
+公開URLのUIも確認する場合は、UI_BASE_URL を https://vignoles.github.io/shiny-index/ に設定して同じ node tests/ui-v3-smoke.mjs を実行します。UI_BROWSER_PATH を設定しない場合は npx playwright install chromium でブラウザを導入します。
 
 設計変更と制約はdesign.md 17章、操作はoperations.md、結果はdocs/verification.md。
 `private/`には原本・取得応答・バックアップを置きます。公開禁止です。
@@ -63,7 +63,7 @@ node tests/ui-smoke.mjs
 - XLSX原本、固定UUID、取得別名、項目単位出典、手修正優先
 - 同一run再適用、照合候補保留、型・日付・欠落・件数異常の停止
 - 不変版のJSON/CSV/XLSX、同一内容検証、版選択の復旧
-- レスポンシブ検索、複数選択、日付範囲、並べ替え、検索結果CSV
+- レスポンシブな縦一覧と詳細開閉、複数選択、階層人物・系列／入手区分、部分日付、公式順、検索結果CSV
 
 ユーザー指定アカウントの非公開Google Sheetsへの原本移行は完了しました。現行原本はrevision 7、1,466件、9タブで、実XLSXエクスポートとの往復一致を確認済みです。Sheetの自動読書き同期は未実装のため、XLSXエクスポートの検証・採用CLIと、取得値採用時の新Sheet切替手順をoperations.mdに記載しています。
 公開先は https://github.com/VIgNOles/shiny-index です。ユーザーの明示方針とsources-policy.mdに従い、検証済みの事実索引だけを配置します。Wikiへの問い合わせ回答は未取得です。

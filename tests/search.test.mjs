@@ -11,3 +11,33 @@ test('10,000 rows filter benchmark',()=>{const data=Array.from({length:10000},(_
 
 test('new and legacy Japanese series labels remain searchable',()=>{const rows=[{...cards[0],series_ids:['casting']}];for(const q of ['キャスコレ','キャスティング'])assert.equal(search(rows,new URLSearchParams('q='+q)).length,1)});
 test('removed missing marker does not hide cards',()=>assert.equal(search(cards,new URLSearchParams('missing=1')).length,2));
+
+test('partial dates include complete selected month and year',()=>{
+ const rows=[
+  {...cards[0],card_id:'m1',first_implemented_on:'2024-02-01'},
+  {...cards[0],card_id:'m2',first_implemented_on:'2024-02-29'},
+  {...cards[0],card_id:'m3',first_implemented_on:'2024-03-01'},
+  {...cards[0],card_id:'m4',first_implemented_on:null}
+ ];
+ assert.deepEqual(search(rows,new URLSearchParams('from=2024-02&to=2024-02')).map(c=>c.card_id),['m2','m1']);
+ assert.equal(search(rows,new URLSearchParams('to=2024')).length,3);
+});
+test('person tokens use OR and legacy person fields keep AND',()=>{
+ const rows=[
+  {...cards[0],card_id:'i1',unit_id:'unit_1',unit_name:'イルミネーションスターズ',idol_id:'idol_1',idol_name:'櫻木真乃'},
+  {...cards[0],card_id:'i2',unit_id:'unit_2',unit_name:'アンティーカ',idol_id:'idol_2',idol_name:'月岡恋鐘'},
+  {...cards[0],card_id:'i3',unit_id:null,unit_name:null,idol_id:'idol_3',idol_name:'七草はづき'}
+ ];
+ assert.equal(search(rows,new URLSearchParams('person=unit:unit_1&person=idol:idol_2')).length,2);
+ assert.equal(search(rows,new URLSearchParams('person=unit:none')).length,1);
+ assert.equal(search(rows,new URLSearchParams('unit_name=イルミネーションスターズ&idol_name=月岡恋鐘')).length,0);
+});
+test('official order and rarity priority',()=>{
+ const rows=[
+  {...cards[0],card_id:'c',idol_name:'斑鳩ルカ',unit_name:'コメティック',rarity:'UR'},
+  {...cards[0],card_id:'a',idol_name:'櫻木真乃',unit_name:'イルミネーションスターズ',rarity:'N'},
+  {...cards[0],card_id:'b',idol_name:'月岡恋鐘',unit_name:'アンティーカ',rarity:'SSR'}
+ ];
+ assert.deepEqual(search(rows,new URLSearchParams('sort=unit_official')).map(c=>c.card_id),['a','b','c']);
+ assert.deepEqual(search(rows,new URLSearchParams('sort=rarity_high')).map(c=>c.card_id),['c','b','a']);
+});

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="enza版シャイニーカラーズのP・Sカードを検索できる非公式索引。">
+  <meta name="description" content="enza版シャイニーカラーズのP・Sカードを条件から探せる非公式索引。">
   <title>enza カード索引</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -11,7 +11,7 @@
   <header class="site-header">
     <div class="eyebrow">SHINY COLORS / ENZA</div>
     <h1>カードを探す。</h1>
-    <p>P・Sカードの非公式検索索引。出典のWikiへ移動できます。</p>
+    <p>欲しいP・Sカードを、人物やシリーズなどから絞り込めます。</p>
   </header>
   <main>
     <aside id="coverage" class="coverage-panel" aria-label="収録範囲">
@@ -25,52 +25,86 @@
       </details>
     </aside>
 
-    <section class="controls" role="search" aria-label="カード検索と絞り込み">
-      <label class="query" for="q">カード名・アイドル名・ユニット名で検索</label>
-      <input id="q" type="search" placeholder="例：櫻木真乃 ほわっと" autocomplete="off" aria-controls="cards">
-      <div id="filters" aria-label="主な絞り込み条件"></div>
-      <div id="series-shortcuts" class="series-shortcuts" role="group" aria-label="シリーズ・企画の近道"><span class="series-shortcuts-label">シリーズから探す</span></div>
-      <details id="advanced-filters">
-        <summary>ほかの絞り込み条件 <span id="advanced-count"></span></summary>
-        <div id="advanced-groups"></div>
-        <div class="dates">
-          <label for="from">実装日から<input id="from" type="date"></label>
-          <label for="to">実装日まで<input id="to" type="date"></label>
+    <div class="search-layout">
+      <section class="controls" role="search" aria-label="カード検索と絞り込み">
+        <label class="query" for="q">カード名・アイドル名・シリーズ名で検索</label>
+        <input id="q" type="search" placeholder="例：櫻木真乃 トワコレ" autocomplete="off" aria-controls="cards">
+        <div id="filters" aria-label="主な絞り込み条件"></div>
+        <div id="series-shortcuts" class="series-shortcuts" role="group" aria-label="シリーズ・企画の近道">
+          <span class="series-shortcuts-label">シリーズから探す</span>
         </div>
-      </details>
-      <div class="selected-row">
-        <p id="active-filters">絞り込み条件なし</p>
-        <button id="reset" type="button">条件をリセット</button>
-      </div>
-    </section>
+        <details id="advanced-filters">
+          <summary>条件を追加 <span id="advanced-count"></span></summary>
+          <details id="people-filter" class="filter-group">
+            <summary>ユニット・アイドル <span id="people-count"></span></summary>
+            <p id="legacy-people-note" hidden>旧リンクの人物条件です。ここを変更すると新しい選択方式に切り替わります。</p>
+            <div id="people-groups"></div>
+          </details>
+          <div id="advanced-groups"></div>
+          <fieldset class="dates">
+            <legend>初回実装日</legend>
+            <div class="date-bound">
+              <h3>この日から</h3>
+              <label for="from-native">カレンダーで選ぶ
+                <input id="from-native" type="date">
+              </label>
+              <div class="date-selects" role="group" aria-label="実装日の下限を年月日から選ぶ">
+                <label for="from-year">年<select id="from-year"></select></label>
+                <label for="from-month">月<select id="from-month"></select></label>
+                <label for="from-day">日<select id="from-day"></select></label>
+              </div>
+              <output id="from-summary">指定なし</output>
+            </div>
+            <div class="date-bound">
+              <h3>この日まで</h3>
+              <label for="to-native">カレンダーで選ぶ
+                <input id="to-native" type="date">
+              </label>
+              <div class="date-selects" role="group" aria-label="実装日の上限を年月日から選ぶ">
+                <label for="to-year">年<select id="to-year"></select></label>
+                <label for="to-month">月<select id="to-month"></select></label>
+                <label for="to-day">日<select id="to-day"></select></label>
+              </div>
+              <output id="to-summary">指定なし</output>
+            </div>
+            <button id="date-apply" type="button">この期間で絞り込む</button>
+            <p id="date-error" role="alert" hidden></p>
+            <p id="date-hint" hidden></p>
+          </fieldset>
+        </details>
+        <div class="selected-row">
+          <div id="active-filters" aria-label="選択中の条件">絞り込み条件なし</div>
+          <button id="reset" type="button">条件をリセット</button>
+        </div>
+      </section>
 
-    <section class="results" aria-labelledby="results-heading">
-      <div class="toolbar">
-        <div class="result-heading">
-          <h2 id="results-heading">検索結果</h2>
-          <p id="count" role="status" aria-live="polite" aria-atomic="true">読み込み中…</p>
+      <section class="results" aria-labelledby="results-heading">
+        <div class="toolbar">
+          <div class="result-heading">
+            <h2 id="results-heading">検索結果</h2>
+            <p id="count" role="status" aria-live="polite" aria-atomic="true">読み込み中…</p>
+          </div>
+          <div class="result-tools">
+            <label for="sort">並べ替え<select id="sort"></select></label>
+            <button id="export" type="button">検索結果をCSVで取得</button>
+          </div>
         </div>
-        <div class="result-tools">
-          <label for="sort">並べ替え<select id="sort"></select></label>
-          <label for="direction">順序<select id="direction"><option value="desc">降順</option><option value="asc">昇順</option></select></label>
-          <button id="export" type="button">検索結果をCSVで取得</button>
-        </div>
-      </div>
-      <ul id="cards" class="cards-list"></ul>
-    </section>
+        <ul id="cards" class="cards-list"></ul>
+      </section>
+    </div>
 
     <footer>
       <h2>データと収録範囲</h2>
       <p id="version"></p>
       <nav id="downloads" aria-label="全件データ取得"></nav>
       <details>
-        <summary>出典・確認状況</summary>
+        <summary>データの確認状況</summary>
         <p>対象はenza版です。性能・画像・本文は収録しません。Wiki掲載情報は公式の独立照合を終えていません。不明項目を推測で補いません。編集原本の変更は、検証して新しい版を公開した時に反映します。</p>
         <pre id="audit"></pre>
       </details>
     </footer>
   </main>
-  <script>window.DATA_VERSION='__VERSION__';window.UI_VERSION='ui-v2';</script>
+  <script>window.DATA_VERSION='__VERSION__';window.UI_VERSION='ui-v3';</script>
   <script type="module" src="app.mjs"></script>
 </body>
 </html>

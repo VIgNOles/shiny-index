@@ -229,3 +229,20 @@ node tests/ui-smoke.mjs private/audits/ui-rollback-YYYYMMDD
 改訂版へ復帰する場合も、同じCLIの `--ref ui-v2-20261008` を指定し、**別の未使用出力先**で候補を作る。データ構造が将来変わった場合は、過去UIと現行データの互換性を検証してから公開する。旧データを無断で巻き戻さない。
 
 実績: UI v2はPages run 37739561660で公開成功し、匿名URLの26/26ファイルとPC・390px・320px操作を確認した。初版へ戻す隔離候補は改訂前の匿名公開URLと26/26バイト一致を確認済み。公開サイト自体のUI切り戻しは今回実行していない。
+
+## UI v3の再検証と切り戻し（2026-10-08）
+
+UI v3は4つの画面ファイルだけを変更し、カードデータ版 v1-93a6a8b8d40e754a と原本revision 7を維持した。別環境ではREADMEのPython・Node・Playwrightセットアップ後、以下を実行する。既存Edgeを使う場合はUI_BROWSER_PATHをmsedge.exeの絶対パスへ設定する。
+
+    ./.venv/Scripts/python.exe -m unittest discover -s tests -v
+    node --test tests/search.test.mjs
+    ./.venv/Scripts/python.exe scripts/check_site.py site
+    node tests/ui-v3-smoke.mjs site
+
+UI v3の表示が壊れた場合、公開siteや原本を直接戻さず、まずUI v2の隔離候補を新規ディレクトリへ生成する。出力先は毎回未使用にする。
+
+    ./.venv/Scripts/python.exe scripts/build_ui_rollback.py --ref ui-v2-20261008 --source site --output private/audits/ui-v2-rollback-YYYYMMDD
+    ./.venv/Scripts/python.exe scripts/check_site.py private/audits/ui-v2-rollback-YYYYMMDD
+    node tests/ui-smoke.mjs private/audits/ui-v2-rollback-YYYYMMDD
+
+検証が通った候補のindex.html、app.mjs、search.mjs、style.cssだけをsiteへコピーし、check_siteと旧UI試験を再実行する。mainへ画面4ファイルの復旧コミットをpushし、別のpublish:空コミットをpushする。Actions成功後、check_public.pyの26/26一致と匿名URLで旧UI試験を確認して完了とする。復帰時は同様にui-v3-20261008タグから新規候補を作り、UI v3試験を通す。原本やカードデータをUI切り戻しに巻き込まない。

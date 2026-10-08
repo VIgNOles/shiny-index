@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/search.test.mjs",
-    "test:ui": "node tests/ui-smoke.mjs"
+    "test:ui": "node tests/ui-smoke.mjs",
+    "test:ui-v3": "node tests/ui-v3-smoke.mjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"
