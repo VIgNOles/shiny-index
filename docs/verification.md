@@ -188,3 +188,9 @@ Wiki取得時はcanonical URLだけでなく本文領域の表とテキスト量
 指定アカウントのnative Sheet原本r6を直接読み取った。9タブ、revision 6、カード確認1,466行（P548/S918）、card_id重複0。_registryと_sourceも各1,466行でカード確認とID集合が一致し、_sourceのP/S件数も一致。個別Wiki URL空欄47、初回日空欄56、unit_id空欄21。新しいWiki取得や原本書き込みは行っていない。
 
 前回GitHub Internal Server Errorで送信できなかった4コミットをorigin/mainへpushし、8cf5380まで同期。既存.venvでscripts/check_public.pyを実行し、公開19/19ファイル一致。UI_BASE_URLを同公開URLに設定したEdge/Playwright試験はdesktop/mobileともPASS。実スマートフォン端末での確認ではない。システムPythonによる最初のcheck_publicはopenpyxl未導入で停止したが、プロジェクトの.venvによる検証は成功した。
+
+## 2026-10-08 欠損内訳の再監査と表示修正
+
+現行公開データv1-ae32f82ff0a94d87の1,466件をオフライン集計した。card_kind・rarity・card_title・idol_nameの表示キー重複は0。Wiki個別URL空欄47件はすべてSカード（SSR24、SR23）。初回実装日空欄56件はアイドルロードSR派生28・SSR派生28。ユニット欄空欄21件は七草はづき13件とコラボ登場人物8件（有馬かな2、MEMちょ2、ルビー3、黒川あかね1）だった。空欄の理由や公式全件性をこの集計だけから断定しない。
+
+ユニット欄空欄を画面で「所属未確認」と呼ぶと、実測より広い意味になるため「ユニット欄空欄」へ変更。web/app.mjsとsite/app.mjsのSHA-256一致、node --check成功、check_siteは現行・旧版各1,466件成功。Edge/PlaywrightのローカルPC/390px試験も成功。通常pushのPages run 37709242195はskipped、明示公開run 37709291966はsuccess。匿名公開URLで19/19ファイルがsiteと一致し、追加したユニット空欄表示を含むPC/390px試験は双方PASS。Google Sheets原本、カード件数、配布データ版は変更していない。実スマートフォン端末・スクリーンリーダーでの確認は未実施。
