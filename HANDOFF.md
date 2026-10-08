@@ -265,3 +265,5 @@ Codexアプリの同一タスクにheartbeat自動化「シャニマス索引の
 ## 2026-10-08 保存済み入力の再構成を追加
 
 scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scripts/full_transform.pyにURL・canonical再検査と7ページの最古JST日付採用を追加。実際の保存済み7ページからprivate/raw/composed-20261008-verified-v2へ再構成し、候補full-batch.jsonはr7採用時と完全一致、正式原本との差分0。合成試験4件PASS。Wiki通信、正式Sheet・公開サイトの変更なし。再利用手順はoperations.md末尾。公開済み版はv1-93a6a8b8d40e754aのまま。
+
+- この改善はPython全29件PASS、構文検査・差分検査PASS、コミット5edeab3としてorigin/mainへ保存。通常pushのPages runはskipped、公開26ファイルの版は変更なし。作業ツリーはクリーン。
