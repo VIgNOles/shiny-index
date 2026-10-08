@@ -70,7 +70,7 @@ function render(limit=100){
  if(!shown.length)$('cards').textContent='条件に一致するカードはありません。';
  for(const c of shown.slice(0,limit)){const card=document.createElement('article');card.className='card';
  const add=(tag,value,cls)=>{const el=document.createElement(tag);el.textContent=value;if(cls)el.className=cls;card.append(el);return el;};
- add('div',`${c.card_kind} / ${text(c.rarity)} · ${c.variant_kind==='base'?'通常':c.variant_kind}`,'badge');add('h3',c.card_title);add('p',`${c.idol_name} / ${text(c.unit_name)}`);add('p',`${text(c.first_implemented_on)} · ${text(c.acquisition_category)}`);add('p',c.series_ids.map(text).join('・')||'シリーズ未確認');
+ add('div',`${c.card_kind} / ${text(c.rarity)} · ${c.variant_kind==='base'?'通常':c.variant_kind}`,'badge');add('h3',c.card_title);add('p',`${c.idol_name} / ${c.unit_name??'ユニット欄空欄'}`);add('p',`${text(c.first_implemented_on)} · ${text(c.acquisition_category)}`);add('p',c.series_ids.map(text).join('・')||'シリーズ未確認');
  if(c.wiki_url){const a=add('a','Wiki個別ページ ↗');a.href=c.wiki_url;a.target='_blank';a.rel='noopener noreferrer';}else add('p','Wiki個別ページ未確認（一覧に収録）');
  add('p','確認状態：'+text(c.review_status));
  const refs=document.createElement('p');refs.className='sources';refs.append(document.createTextNode('出典：'));
@@ -98,7 +98,7 @@ coverageLine('対象期間',(coverage.target_from??coverage.min_date??'不明')+
 const gaps=[];
 if(coverage.missing?.wiki_url)gaps.push('Wiki個別ページなし '+coverage.missing.wiki_url+'件');
 if(coverage.missing?.first_implemented_on)gaps.push('初回実装日不明 '+coverage.missing.first_implemented_on+'件');
-if(coverage.missing?.unit_name)gaps.push('所属未確認 '+coverage.missing.unit_name+'件');
+if(coverage.missing?.unit_name)gaps.push('ユニット欄空欄 '+coverage.missing.unit_name+'件');
 coverageLine('欠損',gaps.join(' / ')||'主要項目の欠損なし');
 coverageLine('未確認',(coverage.unverified??[]).join('、')||'なし');
 $('version').textContent=`版 ${meta.dataset_version} / 生成日時 ${meta.published_at}`;

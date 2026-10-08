@@ -49,6 +49,13 @@ try{
   assert.ok(await page.locator('.card').first().locator('.sources a').count()>=1);
   assert.match(await page.locator('.card').first().textContent(),/確認状態：/);
   assert.match(await page.locator('#coverage').textContent(),new RegExp('P '+doc.coverage.by_kind.P+'件'));
+  const noUnit=cards.find(c=>!c.unit_name);
+  if(noUnit){
+   assert.match(await page.locator('#coverage').textContent(),/ユニット欄空欄/);
+   await page.locator('#q').fill(noUnit.idol_name);
+   assert.match(await page.locator('.card').first().textContent(),/ユニット欄空欄/);
+   await page.locator('#q').fill('');
+  }
   await page.locator('input[name="card_kind"][value="P"]').check();
   assert.equal(await count(),doc.coverage.by_kind.P+' / '+total+' 件');
   await page.locator('input[name="card_kind"][value="S"]').check();
