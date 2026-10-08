@@ -9,6 +9,8 @@ from urllib.error import HTTPError
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from src.indexer import ROOT, collect, read, write
+from src.card_details import wiki_key
+from scripts.transform_detail_html import load_cards
 
 STATE=ROOT/'private/raw/acquisition-state.json'
 
@@ -47,6 +49,24 @@ def retry_after_deadline(value, current):
     return parsed.astimezone(timezone.utc) if parsed.tzinfo else None
 
 
+def registered_pages(manifest):
+    items=manifest['pages']+manifest['audit_pages']+manifest.get('detail_pages',[])
+    if len({item['id'] for item in items})!=len(items):
+        raise ValueError('duplicate source page ID')
+    details=manifest.get('detail_pages',[])
+    if details:
+        cards=load_cards(ROOT,manifest['detail_base_dataset_version'])
+        by_id={card['card_id']:card for card in cards}
+        if len({item['card_id'] for item in details})!=len(details):
+            raise ValueError('duplicate detail card ID')
+        for item in details:
+            card=by_id.get(item['card_id'])
+            if not card or card['card_kind']!=item['kind'] or not card.get('wiki_url') or (
+                    wiki_key(card['wiki_url'])!=wiki_key(item['url'])):
+                raise ValueError('detail source card ID/kind/URL mismatch')
+    return {item['id']:item for item in items}
+
+
 def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False):
     manifest=read(ROOT/'source_manifest.json')
     current=current or datetime.now(timezone.utc)
@@ -59,9 +79,11 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
                     current>=as_utc(state['server_not_before_at'])))
     if not availability['can_fetch'] and not early_allowed:
         raise RuntimeError('Wiki single-page fetch unavailable until '+str(availability['next_allowed_at']))
-    pages={item['id']:item for item in manifest['pages']+manifest['audit_pages']}
+    pages=registered_pages(manifest)
     if page_id not in pages: raise ValueError('page ID outside source manifest')
     target=Path(directory)
+    if pages[page_id].get('card_id') and not target.resolve().is_relative_to((ROOT/'private/raw').resolve()):
+        raise ValueError('Detail raw inputs must stay under private/raw/')
     if target.exists(): raise FileExistsError('Use a fresh directory; saved inputs are immutable')
     stamp=current.isoformat(timespec='seconds')
     state['last_attempt_at']=stamp

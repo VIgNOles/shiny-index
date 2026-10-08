@@ -352,3 +352,17 @@ scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scr
 変更ファイル: scripts/transform_detail_sample.py、tests/test_detail_sample_transform.py、docs/card-details-pilot.md、docs/card-details-design.md、TASK.md、HANDOFF.md、README.md、design.md（Git対象外）。private/rawとprivate/auditsの試験入力・効果文はGit対象外。未検証: 現行Wiki HTMLの直接取得、4件の人手全項目照合、希少表、効果の完全な構造化、Sheetへの追加、Web検索・公開。Pステージスキル／適正、Sファイトスキルは指示どおり未収集。
 
 再開時: 既存の取得待機状態とWiki応答を確認し、必要最小限のページで原本HTMLとキャッシュ候補を照合する。429等なら止め、保存済み4件の入力からオフライン変換・検証を続ける。正式原本への採用前に項目別レビュー、手修正・固定ID、公開配布する効果表現の方針を確定する。
+
+## 2026-10-09 詳細取得継続・実HTMLのオフライン検証（最新）
+
+現在工程: ユーザーの「問題なければ取得を進めてください」に従い取得状態を確認。2026-10-09 05:01 JST時点では、前回429後のローカル24時間ゲートが11:28:50 JSTまで閉じている。新規Wiki通信は0。現在のWiki応答が429だと確認したわけではない。ゲートを変更・迂回せず、独立したHTML変換・検証を進めた。原本Sheet r7、公開UI v4、基礎索引v1-93a6a8b8d40e754aの1,466件は変更していない。
+
+完了: source_manifest.jsonにD01〜D04（前回のP2/S2）を登録し、collect_one.pyで不変の基本索引のcard_id・種別・URLと照合、private/rawへの保存、共通状態・排他ロック・待機期限を適用した。既存P【ほわっとスマイル】櫻木真乃のprivate/raw/run-c01の実HTMLを追加通信なしで処理し、ライブ2・パッシブ6・上限2・思い出Lv1–5をprivate/audits/detail-html-c01-20261009.jsonへ候補化。行／列結合を展開してSP・技能を対応付け、出典は原セルの表・行・列・節アンカーを保存。Link共有セルのLv対応を照合。これは新規取得したカードでもP2/S2の実HTML確認完了でもない。
+
+検証: .venvでPython全44テストPASS。HTML追加11件では入力改変、崩れた表・未分類・思い出Lv欠落の停止、MBタグ独立、クイック区別、重複アビリティ照合、非公開出力と異内容置換拒否、保存失敗、詳細取得の同じ待機期限を確認。複合上限を単一対象に誤抽出しない境界も追加11件で確認。実P候補の2回再変換ハッシュ90d5f4018d940d6e3ddd142d8d25fc6146f53fa94aa4a30d9c89b67f18a80561一致。既存のP/Sキャッシュ4件も再変換して前回件数を維持。登録D01〜D04の実設定をオフラインで照合済み。check_siteで既存3版各1,466件の整合性PASS。05:00 JST付近のプロセス調査で取得・変換実行中プロセスなし、取得ロックなし、今回候補の一時ファイル残留なし。取得状態のlast_attempt_atは2026-10-08T02:28:50+00:00のまま。テストの初回1失敗は例外文の期待不一致で、拒否処理自体は作動しており、テスト修正後はPASS。
+
+変更ファイル: src/card_details.py、scripts/transform_detail_html.py、tests/test_detail_html.py、scripts/collect_one.py、source_manifest.json、docs/card-details-acquisition.md、docs/card-details-design.md、README.md、TASK.md、HANDOFF.md。ローカル限定design.mdの17.34にも理由と影響を追記。非公開の実HTML候補JSON・キャッシュ再変換結果はGit対象外。新規依存はなく、requirements.txtと既存.venvを使用。完全に書いた一時候補を同一ファイルシステムのハードリンクで排他配置する方式にしたため、候補に半端なJSONを残さない。対応しないファイルシステムでは保存が失敗する。
+
+未完了: D01〜D04の現行HTML直接取得とキャッシュ候補の全項目照合、S実HTML変換、P-UR/MB/アビリティの実物確認（合成テスト段階）、複合上限など追加構造、詳細項目の固定IDと手修正維持、原本コピーへの採用、詳細バンドル・Web検索・公開、少数検証後の取得範囲拡大。Sの保存HTMLを確保するまでS実HTML変換は明示拒否し、前回のキャッシュ用S変換は維持する。Pステージ／適正・Sファイトは収集対象外。47件リンク保留、CSV直接URLの非公開範囲、元の基礎索引の未達項目も既存記録のまま。
+
+再開時の具体操作: docs/card-details-acquisition.mdに従い、まず ./.venv/Scripts/python.exe scripts/collect_one.py statusを確認する。can_fetch=trueの場合だけD01を新しいprivate/raw/detail-D01-実行日ディレクトリへ1ページ取得する。fetch.jsonとresponse.htmlの成功・ハッシュを確認し、scripts/transform_detail_html.pyでcard_id 6b98f267-3dd0-4e4b-9c25-edce2801b211の新規候補を作り、キャッシュ版との差分と実HTML全項目を照合する。429/503/確認画面等なら再試行せず記録し、正常な原本と公開版を保持する。D02、D03、D04は同じゲートが再び開いてから順次保存する。Sの表が保存できた段階で実物に基づいてS変換を実装・試験する。生HTML・効果原文は公開しない。今回、待機する長時間ジョブ・自動取得・自動公開は起動していない。

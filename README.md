@@ -104,3 +104,5 @@ $env:XLSX_BACKEND = 'stdlib'
 
 
 P/S各2件の詳細情報の非公開試験は [試験結果](docs/card-details-pilot.md) に記録しています。保存済みのキャッシュ表示から再変換するには python scripts/transform_detail_sample.py、分類の単体検証には python -m unittest tests.test_detail_sample_transform を実行します。試験用の入力・効果文・出力は private/ 内に置き、Gitや公開サイトには含めません。
+
+詳細の直接取得対象と実HTML再変換手順は [詳細取得の手順](docs/card-details-acquisition.md) に記載しています。4件の取得は既存の共通待機期限を守って1ページずつ行います。実HTML変換は現在Pに対応し、既存の保存HTMLからの候補生成を検証済みです。Sの実HTML対応、正式原本への採用、Web詳細表示・公開は後続工程です。

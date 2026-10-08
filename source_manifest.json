@@ -47,5 +47,32 @@
   ],
   "concurrency": 1,
   "interval_seconds": 15,
-  "request_limit": 20
+  "request_limit": 20,
+  "detail_base_dataset_version": "v1-93a6a8b8d40e754a",
+  "detail_pages": [
+    {
+      "id": "D01",
+      "kind": "P",
+      "card_id": "6b98f267-3dd0-4e4b-9c25-edce2801b211",
+      "url": "https://wikiwiki.jp/shinycolors/%E3%80%90%E3%82%A2%E3%83%9E%E3%83%86%E3%83%A9%E3%82%B9%E3%80%91%E6%A8%8B%E5%8F%A3%E5%86%86%E9%A6%99"
+    },
+    {
+      "id": "D02",
+      "kind": "P",
+      "card_id": "9793b6b2-b10a-434d-9429-42baef1bd47e",
+      "url": "https://wikiwiki.jp/shinycolors/%E3%80%90%E5%88%87%E3%82%8A%E6%8B%93%E3%81%84%E3%81%A6%E3%83%BB%E8%8C%A8%E3%80%91%E6%A1%91%E5%B1%B1%E5%8D%83%E9%9B%AA"
+    },
+    {
+      "id": "D03",
+      "kind": "S",
+      "card_id": "00a533b4-3644-4eca-8237-c34bfaf2c8a0",
+      "url": "https://wikiwiki.jp/shinycolors/%E3%80%90My%20Christmas%E3%80%91%E9%83%81%E7%94%B0%E3%81%AF%E3%82%8B%E3%81%8D"
+    },
+    {
+      "id": "D04",
+      "kind": "S",
+      "card_id": "1e457013-9c18-4d2e-bd33-e8483fdda5a9",
+      "url": "https://wikiwiki.jp/shinycolors/%E3%80%90HoP%20PoP%20%E3%82%89%E3%81%B3%E3%81%A3%E3%81%A4%E3%80%91%E4%B8%89%E5%B3%B0%E7%B5%90%E8%8F%AF"
+    }
+  ]
 }
