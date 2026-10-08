@@ -181,3 +181,8 @@ Wiki管理者・運営への問い合わせと回答取得は、ユーザーの�
 現在の編集原本は指定Googleアカウントの非公開native Sheet「enza P/S card master r7」。ローカル承認済みスナップショットはprivate/master.xlsx、revision 7、1,466件。r6 Sheetとr6 XLSXはバックアップとして保持する。現行の取得状態は `./.venv/Scripts/python.exe scripts/collect_one.py status` で確認し、W09の一度限りの期限前確認後は通常の24時間ゲートに戻った。同じ `--user-authorized-early-fetch` は状態記録により再使用できない。次回以降はstatusのcan_fetchがtrueになるまでWikiへ送信しない。既存の429 runはincompleteのまま保存し、二つの取得runを組み合わせた今回の候補はprivate/raw/composed-20261008-user-early、変換候補はprivate/candidates/composed-20261008-user-early-v2に隔離した。
 
 再実行する場合は既存runを上書きせず、`RAW_RUN_ROOT=private/raw/composed-20261008-user-early`、`TRANSFORM_OUTPUT_ROOT`に新しい保存先、`TRANSFORM_SEED_ROOT=private`、`TRANSFORM_SCOPE=full`を設定してscripts/full_transform.pyを実行し、review_batch.pyで原本と比較する。差分0ならカード行の変更を作らない。配布候補はrevision 7から生成したv1-93a6a8b8d40e754aで、カード・出典は前版と一致し、収録対象日の確認範囲のみ2026-10-08へ更新した。全ゲーム網羅のcompleteはfalseを維持する。
+
+
+### r7公開後の確認
+
+2026-10-08に公開した現行版はv1-93a6a8b8d40e754a、編集原本は非公開Sheet r7。旧2版を残した3版構成で公開ファイルは26件。準備コミットea51e0dの通常pushはPages skipped、明示公開コミットd2cdd55のrun 37720130993はsuccess。`./.venv/Scripts/python.exe scripts/check_public.py site https://vignoles.github.io/shiny-index/` は26/26一致。公開URL指定のUI試験はPC・390px幅ともPASS。カード行の追加・変更はなく、確認範囲だけ2026-10-08に更新。次の実カード差分が見つかったときも、Sheet手編集→XLSXレビュー、または取得候補レビュー→新Sheet昇格→配布生成→公開URL照合という順を守る。

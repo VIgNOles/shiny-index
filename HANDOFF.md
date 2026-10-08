@@ -249,3 +249,14 @@ GamesInkのS一覧236件を非公開で照合し、正規化一致229、近い�
 ## 2026-10-08 取得待機後の自動フォローアップ
 
 Codexアプリの同一タスクにheartbeat自動化「シャニマス索引のWiki限定再確認」を作成し、結果はautomationId=wiki、status=ACTIVE。日次実行時は必ずscripts/collect_one.py statusを先に確認し、can_fetch=trueの場合だけW09の単一ページを未使用の保存先へ取得する。429/403/503/確認画面なら再試行なしで中止し、原本・公開版を保持。W09の一回の確認後は自動化を一時停止するようプロンプトに指定した。スケジューラの時刻解釈に依存せず取得ゲートを優先する。CodexアプリとローカルPCが稼働し、無人実行に必要なネットワーク権限があるかは未検証なので、自動実行の成功はまだ確認されていない。
+
+
+## 2026-10-08 W09確認・原本r7・公開版の現在位置
+
+- ユーザーの明示指示でW09を一度だけ期限前に取得。HTTP 200、無再試行。保存先 `private/raw/limited-W09-20261008-user-early`、取得SHA-256 `6e65ac65de3de396a537177963b7eb4d8436564ca944275ceea5abbf86a31981`。旧W09と可視本文7,500行・リンク543件が一致。先の6ページ保存応答と組み合わせた隔離入力 `private/raw/composed-20261008-user-early` をオフライン変換。新規0・変更0・欠落0、P548/S918、計1,466件。原本への架空カード追加・訂正なし。
+- 変換器の未確認範囲文言を取得日連動へ変更。指定アカウントの正式非公開Google Sheetをr7へ昇格し、9タブ・1,466件・保護8タブ・固定ID・手修正のXLSX往復差分0、所有者のみ、Asia/Tokyoを確認。現行URL/IDはGit対象外 `private/sheets-connection.json`。r6 Sheetと `private/backups/master-r6-before-20261008-coverage.xlsx` を保管。ローカル `private/master.xlsx` はr7、SHA-256 `97e7978763efd62ef7c7d2d38cd1e34cb1fcc2d6ee7d011a27d3d4e8c0b968c4`。
+- 新版 `v1-93a6a8b8d40e754a` はカード・出典不変で確認範囲を2026-10-08へ更新。準備コミットea51e0d、明示公開コミットd2cdd55をorigin/mainへpush。Pages run 37720130993 success、匿名URL `https://vignoles.github.io/shiny-index/` の26/26ファイルがsiteとバイト一致。公開PC/390px UI試験PASS。公開版の `published_at=2026-10-08T02:45:18+00:00`、1,466件、P548/S918、complete=false。
+- 実施済み検証: Python25件PASS、JS8件PASS、ローカル/公開のPC・390px UI PASS、check_siteで新旧3版PASS、原本1件追加・1件修正の隔離演習PASS、公開26/26一致。CUAによるSheet画面の視覚確認は起動障害のため不可。セル値・書式のAPI読戻しで代替確認。実カード1件追加・1件訂正の一般公開反映、公式の全件独立照合、個別Wikiページ未作成47件の現況、ロード派生初回日56件は未完了。
+- 変更ファイル: `scripts/collect_one.py`、`scripts/full_transform.py`、`tests/test_limited_collection.py`、`source_manifest.json`、`README.md`、`TASK.md`、`operations.md`、`docs/verification.md`、`site/index.html`、`site/data/latest.json`、新しいsite/data/v1-93a6a8b8d40e754a/の7ファイル。`design.md`はローカル文書、HANDOFF.mdはGitにも保存する。生応答・正式原本・接続情報・候補/監査はprivateでGit対象外。
+- Wiki取得の自動化 `wiki` は、手動W09確認を完了したためPAUSED。`scripts/collect_one.py status` は次回可能時刻 `2026-10-09T02:28:50+00:00`、can_fetch=false。`last_early_authorized_at` により同じ早期フラグの再使用を拒否。全件連続取得フラグはfalse。取得ロック、実行中Pythonプロセスなし。
+- 次の具体操作: 公式またはWikiの新しい根拠から実在する追加・訂正候補が現れたら、対象を最小限確認し、保存済み入力から変換→差分レビュー→指定Sheet原本の更新と往復照合→配布生成→公開URLとデータ版一致まで実行する。次のWiki通信はstatusとサーバー制限を確認してから単一ページで行い、429等なら再試行せず停止する。現在は差分0のため実カード1件追加・修正の本番実証を捏造しない。UIの具体的不満点はユーザーからの指摘待ちで、問い合わせは今回の要件外。
