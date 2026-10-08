@@ -200,3 +200,8 @@ Wiki取得時はcanonical URLだけでなく本文領域の表とテキスト量
 非公開の保存済みW02/P一覧、W03/S一覧、W04/S分冊を再読込し、各response.htmlのSHA-256が取得時のfetch.jsonと一致することを確認した。公開カードのWiki個別URL空欄47件は全件W03の表内「noexists」（ページ未作成表示）に対応し、同じカード名・人物名の通常リンクはW02/W03/W04の表内に0件。W04に重複掲載された23件も同じ「noexists」表示だった。保存済み入力の範囲では、47件のURL空欄はパーサーのリンク取りこぼしではない。現在のWikiでページがなお未作成かは未確認であり、新しいWiki通信は行っていない。
 
 ユニット欄空欄21件を元一覧の表行へ一対一で対応づけた。元ラベルは七草はづき13件が「２８３プロ」、コラボ登場人物8件が「コラボ」で、8ユニットの名称ではないため現行のunit_nameはnull。個別初回日空欄56件は公開データ上のロードSR派生28・SSR派生28。監査の件数、取得応答ハッシュ、未対応IDはGit対象外のprivate/audits/gap-source-audit-20261008.jsonに保存した。この監査はゲーム全件性を証明しない。
+## 2026-10-08 公式P-SSR投票対象323件との独立照合
+
+[公式P-SSRアイドルコミュ総選挙の特設サイト](https://campaign-shinycolors.idolmaster.jp/idol-commu-vote-2026/)が読み込む公開JSON（assets/data/event.json）を1回保存し、人物名とカード名をNFKC正規化して現行公開版v1-ae32f82ff0a94d87のP-SSRと照合した。公式323行は同一キー重複0で、323/323件が索引に一意に存在した。索引のP-SSRは378件で、投票対象外55件の内訳はアイドルロードSSR派生28件、2026-03-09〜09-29初出の22件、2026-02-28以前のコラボ5件。[公式告知](https://idolmaster-official.jp/news/01_18348)では対象を2026年2月末までの「約320」件と説明しており、この323件一致は当該投票範囲の強い裏付けになる。ただし公式JSONの選定条件はコード上の突合だけで完全には確定できず、Sカード、投票期間後、全ゲームカードの網羅を証明しない。
+
+取得済みJSONと監査結果はGit対象外のprivate/audits/official-vote-event-2026.json、official-vote-audit-20261008.jsonに保存。入力SHA-256はcf69be7f6fb03e642456683a87e10a630199672726ecf80b87a9485aae787e46。`./.venv/Scripts/python.exe scripts/audit_official_vote.py private/audits/official-vote-event-2026.json site/data/v1-ae32f82ff0a94d87/cards.json private/audits/official-vote-audit-replay-20261008.json` で保存済み入力からオフライン再実行し、323件・未収録0件・索引側だけ55件を再現した。公式照合で実際の収録漏れ・訂正は見つからず、正式原本と公開データは変更していない。
