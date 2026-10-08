@@ -48,12 +48,14 @@ try{
    await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-results.png'),fullPage:false});
   }
   assert.equal(await count(),total+' / '+total+' 件');
-  assert.match(await page.locator('#version').textContent(),/ui-v3/);
-  assert.equal(await page.locator('#downloads a').count(),6);
+  assert.match(await page.locator('#version').textContent(),/ui-v4/);
+  assert.equal(await page.locator('#downloads a').count(),5);
+  assert.equal(await page.locator('#export').count(),0);
+  assert.equal(await page.locator('#downloads a[href$="cards.csv"]').count(),0);
   assert.deepEqual(await page.locator('input[name="rarity"]').evaluateAll(items=>items.map(item=>item.value)),
    ['UR','SSR','SR','R','N']);
   assert.deepEqual(await page.locator('#series-shortcuts button').allTextContents(),
-   ['トワコレ','キャスコレ','マイコレ','パラコレ','プレコレ','誕生日']);
+   ['プレコレ','キャスコレ','パラコレ','トワコレ','マイコレ','期間限定','恒常','その他']);
   assert.equal(await page.locator('.card').count(),100);
   assert.equal(await page.locator('.card-detail').first().isHidden(),true);
   const first=page.locator('.card').first();
@@ -74,10 +76,19 @@ try{
   await page.locator('#reset').click();
 
   const twilights=cards.filter(card=>card.series_ids.includes('twilights')).length;
-  const quick=page.locator('[data-series-shortcut="twilights"]');
+  const limited=cards.filter(card=>card.acquisition_category==='limited_gacha').length;
+  const other=cards.filter(card=>!['prelude','casting','parallel','twilights','mysongs']
+   .some(id=>card.series_ids.includes(id))&&!['limited_gacha','permanent_gacha']
+   .includes(card.acquisition_category)).length;
+  assert.equal(twilights,58);assert.equal(limited,323);assert.equal(other,651);
+  const quick=page.locator('[data-browse-shortcut="twilights"]');
+  const limitedButton=page.locator('[data-browse-shortcut="limited_gacha"]');
   await quick.click();
   assert.equal(await count(),twilights+' / '+total+' 件');
-  assert.equal(new URL(page.url()).searchParams.get('series_ids'),'twilights');
+  assert.equal(new URL(page.url()).searchParams.get('browse'),'twilights');
+  await limitedButton.click();
+  assert.equal(await count(),(twilights+limited)+' / '+total+' 件');
+  await limitedButton.click();
   await page.reload({waitUntil:'networkidle'});
   assert.equal(await quick.getAttribute('aria-pressed'),'true');
   await quick.click();
@@ -85,14 +96,23 @@ try{
   await page.goBack({waitUntil:'networkidle'});
   assert.equal(await count(),twilights+' / '+total+' 件');
   assert.equal(await quick.getAttribute('aria-pressed'),'true');
-  const downloadWait=page.waitForEvent('download');
-  await page.locator('#export').click();
-  const download=await downloadWait;
-  assert.equal(download.suggestedFilename(),'cards-'+latest.dataset_version+'-search.csv');
-  const csvText=await readFile(await download.path(),'utf8');
-  assert.equal(csvText.split('\r\n').length,twilights+1);
   await page.goForward({waitUntil:'networkidle'});
   assert.equal(await count(),total+' / '+total+' 件');
+  await page.goto(base+'?series_ids=twilights',{waitUntil:'networkidle'});
+  assert.equal(await count(),twilights+' / '+total+' 件');
+  await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('[data-browse-shortcut="other"]').click();
+  assert.equal(await count(),other+' / '+total+' 件');
+  await page.locator('#reset').click();
+  await limitedButton.click();
+  if(!await page.locator('#advanced-filters').evaluate(el=>el.open))
+   await page.locator('#advanced-filters > summary').click();
+  const seriesGroup=page.locator('details.filter-group').filter({has:page.locator('input[name="series_ids"]')});
+  if(!await seriesGroup.evaluate(el=>el.open))await seriesGroup.locator('summary').click();
+  await page.locator('input[name="series_ids"][value="birthday"]').check();
+  const birthday=cards.filter(card=>card.series_ids.includes('birthday')).length;
+  assert.equal(await count(),birthday+' / '+total+' 件');
+  await page.locator('#reset').click();
 
   if(!await page.locator('#advanced-filters').evaluate(el=>el.open))await page.locator('#advanced-filters > summary').click();
   if(!await page.locator('#people-filter').evaluate(el=>el.open))await page.locator('#people-filter > summary').click();
@@ -102,8 +122,8 @@ try{
   assert.equal(await count(),unitCards+' / '+total+' 件');
   assert.equal(new URL(page.url()).searchParams.get('person'),'unit:unit_1');
   const group=page.locator('.people-unit').filter({has:unit});
-  await group.locator('.people-unit-header button').click();
   const child=group.locator('input[data-person-idol="idol_1"]');
+  assert.equal(await child.isVisible(),true);
   assert.equal(await child.isChecked(),true);
   await child.uncheck();
   assert.equal(await unit.evaluate(el=>el.indeterminate),true);

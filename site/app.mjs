@@ -1,4 +1,4 @@
-import {search,csv,seriesNames,officialUnits,parseDatePart} from './search.mjs';
+import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
 const labels={
@@ -119,17 +119,16 @@ try{
   filterGroups.set(field,group);
   $(primary?'filters':'advanced-groups').append(group);
  }
- const shortcutValues=['twilights','casting','mysongs','parallel','prelude','birthday']
-  .filter(value=>cards.some(card=>card.series_ids.includes(value)));
- for(const value of shortcutValues){
-  const button=add($('series-shortcuts'),'button',text(value));
-  button.type='button';button.dataset.seriesShortcut=value;
+ for(const [value,label] of browseOptions){
+  const button=add($('series-shortcuts'),'button',label);
+  button.type='button';button.dataset.browseShortcut=value;
   button.setAttribute('aria-pressed','false');
   button.addEventListener('click',()=>{
-   const input=[...filterGroups.get('series_ids').querySelectorAll('input')]
-    .find(item=>item.value===value);
-   input.checked=!input.checked;
-   input.dispatchEvent(new Event('change',{bubbles:true}));
+   const selected=params.getAll('browse');
+   params.delete('browse');
+   for(const item of selected.filter(item=>item!==value))params.append('browse',item);
+   if(!selected.includes(value))params.append('browse',value);
+   commitParams();
   });
  }
 
@@ -181,12 +180,7 @@ try{
   all.type='checkbox';all.dataset.personUnit=group.id;
   allLabel.append(all,document.createTextNode('ユニット全員'));
   const state=add(header,'span','','people-unit-state');
-  const childrenId='people-'+group.id;
-  const toggle=add(header,'button','アイドルを選ぶ');
-  toggle.type='button';toggle.setAttribute('aria-controls',childrenId);
-  toggle.setAttribute('aria-expanded','false');
   const children=add(fieldset,'div','','people-children');
-  children.id=childrenId;children.hidden=true;
   const childInputs=new Map();
   for(const idol of group.idols){
    const label=add(children,'label','','filter-option');
@@ -217,11 +211,7 @@ try{
    if(all.checked)tokens.add('unit:'+group.id);
    savePeopleTokens(tokens);
   });
-  toggle.addEventListener('click',()=>{
-   children.hidden=!children.hidden;
-   toggle.setAttribute('aria-expanded',String(!children.hidden));
-  });
-  peopleControls.set(group.id,{all,state,toggle,children,childInputs});
+  peopleControls.set(group.id,{all,state,childInputs});
  }
  const renderPeople=()=>{
   const tokens=new Set(params.getAll('person'));
@@ -246,13 +236,6 @@ try{
   const count=tokens.size||params.getAll('unit_name').length+params.getAll('idol_name').length;
   $('people-count').textContent=count?'（'+count+'件選択）':'';
  };
- for(const group of peopleGroups){
-  if(group.idols.some(idol=>params.getAll('person').includes('idol:'+idol.id)||
-   params.getAll('idol_name').includes(idol.name))){
-   const control=peopleControls.get(group.id);
-   control.children.hidden=false;control.toggle.setAttribute('aria-expanded','true');
-  }
- }
 
  const sortOptions=[
   ['date_new','初回実装日：新しい順'],['date_old','初回実装日：古い順'],
@@ -383,6 +366,10 @@ try{
  const renderActive=()=>{
   active.replaceChildren();
   let count=0;
+  for(const value of params.getAll('browse')){
+   const label=browseOptions.find(([id])=>id===value)?.[1]??value;
+   addChip('区分：'+label,'browse',value);count++;
+  }
   for(const field of filterFields.concat(['collab_work','review_status'])){
    for(const value of params.getAll(field)){
     addChip(labels[field]+'：'+(field==='series_ids'?seriesText(value):text(value)),field,value);count++;
@@ -418,7 +405,7 @@ try{
     input.checked=selected.includes(input.value);
   }
   for(const button of $('series-shortcuts').querySelectorAll('button'))
-   button.setAttribute('aria-pressed',String(params.getAll('series_ids').includes(button.dataset.seriesShortcut)));
+   button.setAttribute('aria-pressed',String(params.getAll('browse').includes(button.dataset.browseShortcut)));
   renderPeople();renderActive();
   if($('q').value!==(params.get('q')??''))$('q').value=params.get('q')??'';
   $('sort').value=sortFromParams();
@@ -530,12 +517,6 @@ try{
   $('advanced-filters').open=false;
   commitParams();
  });
- $('export').addEventListener('click',()=>{
-  const link=document.createElement('a');
-  link.href=URL.createObjectURL(new Blob([csv(shown,meta)],{type:'text/csv;charset=utf-8'}));
-  link.download='cards-'+meta.dataset_version+'-search.csv';
-  link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);
- });
 
  $('advanced-filters').open=!!(
   params.getAll('person').length||params.getAll('unit_name').length||params.getAll('idol_name').length||
@@ -581,7 +562,7 @@ try{
  $('version').textContent='UI版 '+window.UI_VERSION+' / データ版 '+
   meta.dataset_version+' / 生成日時 '+meta.published_at;
  for(const [file,label] of [
-  ['cards.json','全件 JSON'],['cards.csv','全件 CSV'],['cards.xlsx','全件 Excel'],
+  ['cards.json','全件 JSON'],['cards.xlsx','全件 Excel'],
   ['manifest.json','版情報'],['coverage.json','収録範囲'],['sources.json','項目別出典']
  ]){
   const link=add($('downloads'),'a',label);
@@ -594,5 +575,4 @@ try{
   'データを読み込めませんでした。再読み込みしてください。 '+error.message;
  $('coverage-details').hidden=true;
  $('count').textContent='読み込み失敗';
- $('export').disabled=true;
 }

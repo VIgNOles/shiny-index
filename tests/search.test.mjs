@@ -41,3 +41,19 @@ test('official order and rarity priority',()=>{
  assert.deepEqual(search(rows,new URLSearchParams('sort=unit_official')).map(c=>c.card_id),['a','b','c']);
  assert.deepEqual(search(rows,new URLSearchParams('sort=rarity_high')).map(c=>c.card_id),['c','b','a']);
 });
+test('browse buckets use OR and remain distinct from detailed facets',()=>{
+ const rows=[
+  {...cards[0],card_id:'p',series_ids:['prelude'],acquisition_category:'collection_gacha'},
+  {...cards[0],card_id:'t',series_ids:['twilights'],acquisition_category:'collection_gacha'},
+  {...cards[0],card_id:'l',series_ids:['birthday'],acquisition_category:'limited_gacha'},
+  {...cards[0],card_id:'c',series_ids:[],acquisition_category:'permanent_gacha'},
+  {...cards[0],card_id:'o',series_ids:[],acquisition_category:'event_reward'}
+ ];
+ assert.deepEqual(search(rows,new URLSearchParams('browse=prelude&browse=limited_gacha'))
+  .map(card=>card.card_id),['l','p']);
+ assert.deepEqual(search(rows,new URLSearchParams('browse=other'))
+  .map(card=>card.card_id),['o']);
+ assert.deepEqual(search(rows,new URLSearchParams('browse=limited_gacha&series_ids=birthday'))
+  .map(card=>card.card_id),['l']);
+ assert.equal(search(rows,new URLSearchParams('series_ids=twilights')).length,1);
+});

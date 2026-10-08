@@ -248,3 +248,15 @@ UI v3の表示が壊れた場合、公開siteや原本を直接戻さず、ま�
 検証が通った候補のindex.html、app.mjs、search.mjs、style.cssだけをsiteへコピーし、check_siteと旧UI試験を再実行する。mainへ画面4ファイルの復旧コミットをpushし、別のpublish:空コミットをpushする。Actions成功後、check_public.pyの26/26一致と匿名URLで旧UI試験を確認して完了とする。復帰時は同様にui-v3-20261008タグから新規候補を作り、UI v3試験を通す。原本やカードデータをUI切り戻しに巻き込まない。
 
 UI v3の公開実績: 通常pushのrun 37796618732はskipped、明示公開run 37796666483はsuccess。公開26/26ファイル一致と匿名ブラウザのPC・390px・320px試験PASS。タグui-v3-20261008がUIの固定点であり、切り戻し時は上記の候補生成を再実行する。
+
+## UI v4の検証とUI v3への切り戻し
+
+新しい8区分と詳細2軸の使い分けはdocs/ui-v4-spec.md。UI v4の試験は次を実行する。既存Edge利用時はUI_BROWSER_PATHを設定する。
+
+    node --test tests/search.test.mjs
+    ./.venv/Scripts/python.exe scripts/check_site.py site
+    node tests/ui-v4-smoke.mjs site
+
+問題時はui-v3-20261008タグからscripts/build_ui_rollback.pyで新規隔離候補を作り、check_siteで3データ版の整合を検証する。UI v3タグの4画面ファイルと候補の生バイト一致も確認する。検証した4画面ファイルだけをsiteへ戻してmainにコミットし、別のpublish:空コミットでPagesへ反映する。公開26ファイル一致と旧画面の検索操作を確認するまで復旧完了としない。過去のUI v3試験はui-v3-20261008タグに保存されている。現行のtests/ui-smoke.mjsはUI v2向けなので、UI v3切り戻し候補へそのまま適用しない。
+
+UI v4で外すのは画面上のCSV取得導線。既存の版付きCSVファイルは公開URLに残る。ファイルそのものを削除する場合は過去版の直接URL、manifest、バンドル検証、元の配布要件への影響を別途確認してから新しいデータ版・公開手順を設計する。

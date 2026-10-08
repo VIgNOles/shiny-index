@@ -3,6 +3,21 @@ export const seriesNames={
  mysongs:'マイコレ',prelude:'プレコレ',birthday:'誕生日',
  expansion:'エクスパンション',axe8:'AXE8',vote_selection:'投票企画選出'
 };
+export const browseOptions=[
+ ['prelude','プレコレ'],['casting','キャスコレ'],['parallel','パラコレ'],
+ ['twilights','トワコレ'],['mysongs','マイコレ'],
+ ['limited_gacha','期間限定'],['permanent_gacha','恒常'],['other','その他']
+];
+const browseSeries=new Set(browseOptions.slice(0,5).map(([value])=>value));
+export function matchesBrowse(card,value){
+ if(browseSeries.has(value))return card.series_ids.includes(value);
+ if(value==='limited_gacha'||value==='permanent_gacha')
+  return card.acquisition_category===value;
+ if(value==='other')return !card.series_ids.some(id=>browseSeries.has(id))&&
+  card.acquisition_category!=='limited_gacha'&&
+  card.acquisition_category!=='permanent_gacha';
+ return false;
+}
 const seriesAliases={
  casting:'キャスティング',twilights:'トワイライツ',parallel:'パラレル',
  mysongs:'マイソングス',prelude:'プレリュード'
@@ -56,6 +71,7 @@ function compareCards(a,b,sort,direction){
 export function search(cards,params){
  const terms=norm(params.get('q')).split(' ').filter(Boolean);
  const fields=['card_kind','rarity','acquisition_category','series_ids','collab_work','review_status'];
+ const browse=params.getAll('browse');
  const people=params.getAll('person');
  const legacyUnits=params.getAll('unit_name'),legacyIdols=params.getAll('idol_name');
  const from=parseDatePart(params.get('from')),to=parseDatePart(params.get('to'));
@@ -66,6 +82,7 @@ export function search(cards,params){
    ...card.series_ids.flatMap(id=>[id,seriesNames[id],seriesAliases[id]])
   ].join(' ');
   if(!terms.every(term=>norm(searchable).includes(term)))return false;
+  if(browse.length&&!browse.some(value=>matchesBrowse(card,value)))return false;
   if(!fields.every(field=>!params.getAll(field).length||params.getAll(field).some(value=>
    value==='unknown'?card[field]==null||card[field]==='unknown':
    Array.isArray(card[field])?card[field].includes(value):card[field]===value)))return false;

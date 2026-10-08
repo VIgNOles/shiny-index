@@ -30,8 +30,9 @@
         <label class="query" for="q">カード名・アイドル名・シリーズ名で検索</label>
         <input id="q" type="search" placeholder="例：櫻木真乃 トワコレ" autocomplete="off" aria-controls="cards">
         <div id="filters" aria-label="主な絞り込み条件"></div>
-        <div id="series-shortcuts" class="series-shortcuts" role="group" aria-label="シリーズ・企画の近道">
-          <span class="series-shortcuts-label">シリーズから探す</span>
+        <div id="series-shortcuts" class="series-shortcuts" role="group" aria-label="シリーズ・入手区分の近道">
+          <span class="series-shortcuts-label">シリーズ・入手から探す</span>
+          <p class="filter-help">複数選択は「いずれかに一致」。その他はイベント報酬・特典など、上記以外です。</p>
         </div>
         <details id="advanced-filters">
           <summary>条件を追加 <span id="advanced-count"></span></summary>
@@ -40,6 +41,7 @@
             <p id="legacy-people-note" hidden>旧リンクの人物条件です。ここを変更すると新しい選択方式に切り替わります。</p>
             <div id="people-groups"></div>
           </details>
+          <p class="advanced-help">上の近道は大きな区分です。ここではシリーズ・企画と入手区分を個別に、近道と組み合わせて絞り込めます。</p>
           <div id="advanced-groups"></div>
           <fieldset class="dates">
             <legend>初回実装日</legend>
@@ -86,7 +88,6 @@
           </div>
           <div class="result-tools">
             <label for="sort">並べ替え<select id="sort"></select></label>
-            <button id="export" type="button">検索結果をCSVで取得</button>
           </div>
         </div>
         <ul id="cards" class="cards-list"></ul>
@@ -104,7 +105,7 @@
       </details>
     </footer>
   </main>
-  <script>window.DATA_VERSION='__VERSION__';window.UI_VERSION='ui-v3';</script>
+  <script>window.DATA_VERSION='__VERSION__';window.UI_VERSION='ui-v4';</script>
   <script type="module" src="app.mjs"></script>
 </body>
 </html>
