@@ -296,3 +296,9 @@ scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scr
 - ユーザーの小分け実装指示により codex/ui-v3-incremental を作成。web/search.mjs、web/app.mjs、web/index.htmlで系列表示名をトワコレ・キャスコレ等へ変更し、旧名検索も維持。レアリティ選択肢をUR→SSR→SR→R→N、系列選択肢を優先順へ変更。現行全1,466件に一致していた「不明項目あり」はUIと検索から削除し、旧URLのmissingを読込時に除去。検索結果のカード表示、原本、site、公開データは変更しない。
 - tests/search.test.mjsを9件PASS。隔離候補 private/audits/ui-v3-slice1-20261008-01 をsiteコピー＋web候補で作り、Edge/PlaywrightでPC1280px・スマホ幅390px/320pxがPASS。Playwright同梱Chromiumは未導入のためEdge実行に切替。Git差分検査後、開発ブランチへ保存する。
 - 次工程: 近道のシリーズ選択（詳細条件と同一状態）を追加し、URL・結果件数の回帰を取る。その次に階層人物、日付、一覧展開を独立工程に分ける。UI v3を公開したと扱わず、全工程と受け入れ検証の完了後にタグ・明示公開する。
+
+## 2026-10-08 UI次版の第2工程（近道、未公開）
+
+- 開発ブランチ codex/ui-v3-incremental で web/index.html・web/app.mjs・web/style.css にトワコレ、キャスコレ、誕生日の近道ボタンを追加。詳細条件の series_ids チェックボックスを同じ状態として操作し、URL・選択表示・aria-pressedを同期する。データに存在する系列だけを表示。main、site、原本、公開URLは変更しない。
+- tests/ui-smoke.mjs に近道→チェックボックス・URL、再読込、詳細条件→近道、解除の操作試験を追加。隔離候補 private/audits/ui-v3-slice2-20261008-01 と現行siteの双方でEdge/PlaywrightのPC1280px・390px・320pxがPASS。検索単体9件PASS。初回の試験は詳細条件の開閉状態を誤認して30秒タイムアウトしたが、試験のみ修正し全幅で再実行成功。
+- 残りの次期UI: マイコレ・パラコレ・プレコレの近道、ユニット／人物統合、年月日選択、スマホ一覧／詳細開閉、出典表示の整理、全体回帰・実機確認・明示公開。次の小工程は階層人物選択に着手する前に、仕様上の残りの近道を追加するか、スマホ一覧の骨格を優先する。

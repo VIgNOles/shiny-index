@@ -54,6 +54,25 @@ try{
    assert.equal(await count(),total+' / '+total+' 件');
    assert.equal(new URL(page.url()).searchParams.has('missing'),false);
   }
+  if(await page.locator('#series-shortcuts').count()){
+   const shortcut=page.locator('[data-series-shortcut="twilights"]');
+   const twilights=cards.filter(c=>c.series_ids.includes('twilights')).length;
+   assert.equal(await shortcut.getAttribute('aria-pressed'),'false');
+   await shortcut.click();
+   assert.equal(await count(),twilights+' / '+total+' 件');
+   assert.equal(await page.locator('input[name="series_ids"][value="twilights"]').isChecked(),true);
+   assert.equal(new URL(page.url()).searchParams.get('series_ids'),'twilights');
+   await page.reload({waitUntil:'networkidle'});
+   assert.equal(await shortcut.getAttribute('aria-pressed'),'true');
+   await shortcut.click();
+   assert.equal(await count(),total+' / '+total+' 件');
+   if(!await page.locator('#advanced-filters').evaluate(el=>el.open))await page.locator('#advanced-filters > summary').click();
+   const seriesGroup=page.locator('#advanced-groups details').filter({has:page.locator('input[name="series_ids"]')});
+   if(!await seriesGroup.evaluate(el=>el.open))await seriesGroup.locator('summary').click();
+   await seriesGroup.locator('input[value="casting"]').check();
+   assert.equal(await page.locator('[data-series-shortcut="casting"]').getAttribute('aria-pressed'),'true');
+   await page.locator('#reset').click();
+  }
   if(label==='desktop'){
    const summary=page.locator('#advanced-filters > summary');
    await summary.focus();await page.keyboard.press('Enter');

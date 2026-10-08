@@ -98,6 +98,20 @@ try {
   'unit_name','acquisition_category','series_ids'
  ])$('sort').add(new Option(labels[field],field));
 
+ const shortcutValues=['twilights','casting','birthday'].filter(value=>cards.some(card=>card.series_ids.includes(value)));
+ for(const value of shortcutValues){
+  const button=document.createElement('button');
+  button.type='button';
+  button.dataset.seriesShortcut=value;
+  button.textContent=text(value);
+  button.setAttribute('aria-pressed','false');
+  button.addEventListener('click',()=>{
+   const input=[...document.querySelectorAll('input[name="series_ids"]')].find(item=>item.value===value);
+   input.checked=!input.checked;
+   input.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  $('series-shortcuts').append(button);
+ }
  const controls=[...document.querySelectorAll('.controls input,.controls select,.result-tools select')];
  function restore(){
   for(const element of controls){
@@ -138,6 +152,7 @@ try {
  function render(limit=100){
   shown=search(cards,params);
   updateFilterSummary();
+  for(const button of $('series-shortcuts').querySelectorAll('button'))button.setAttribute('aria-pressed',String(params.getAll('series_ids').includes(button.dataset.seriesShortcut)));
   $('count').textContent=`${shown.length} / ${cards.length} 件`;
   $('cards').replaceChildren();
   if(!shown.length){
