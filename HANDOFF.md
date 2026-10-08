@@ -205,3 +205,11 @@ scripts/update_drill.pyの手修正値に空欄のNoneを含める誤りがあ�
 ## 2026-10-08 GitHub送信の一時障害
 
 限定取得のコード・手順はコミット846d2f7としてorigin/mainへpush済み。公式4件照合と表現訂正のコミット1e86f81はローカルmainに保存したが、GitHubが3回（16:54 UTCに2回、16:58 UTCに1回）Internal Server Errorを返しpushを拒否。ls-remoteでorigin/mainが846d2f7のままを確認した。この後のローカルコミットも含めmainはorigin/mainより4件先行し、siteのデータ版やGitHub Pagesの内容は変更していない。GitHub側が復旧したら、まずls-remoteとローカル差分を確認してからpushする。無期限の反復再試行はしない。
+
+## 2026-10-08 送信復旧と原本の読取監査
+
+- GitHubのorigin/mainが846d2f7のままと確認後、保留中の4コミットをpushし、origin/mainは8cf5380へ進んだ。送信後のgit statusは差分なし。公開siteのデータは変更していない。
+- 指定Googleアカウントの非公開native Sheet原本r6を読取監査。9タブ、レビュー表1,466行、P548/S918、固定card_idの重複0。_registryと_sourceも各1,466行でID集合がレビュー表と一致。欠損は個別Wiki URL47、初回日56、unit_id21で、前回監査と同数。これは原本内部の整合性確認であり、ゲーム全件性を証明しない。
+- collect_one.py statusはnext_allowed_at=2026-10-08T15:30:00+00:00、can_fetch=false。今回Wikiへの新規取得リクエストなし。関連取得プロセスの残存なし。全7ページ取得は引き続き無効。
+- 通常サンドボックスと画面操作はhelper_unknown_error: setup refresh had errorsで起動失敗。承認済みの拡張実行でローカル状態を読み取り、意図的な環境・権限変更なし。システムPythonはopenpyxl不足でcheck_publicが停止したが、既存.venvで再実行し公開19/19ファイル一致。公開URLのEdge/Playwright試験はdesktop/mobileともPASS。
+- 未完了: 実在カードの正式Sheetへの1件追加・1件修正から一般公開への反映、ゲーム全網羅の独立照合、個別Wikiリンク未確認47件・初回日56件・ユニット21件の解消、実スマホ端末・スクリーンリーダー検証、Wiki管理者・運営の回答。取得待機解除後もstatusを確認し、許可リストのW09単一ページだけを隔離保存。429/403/確認画面なら即停止し、保存応答をオフライン比較して採否を決める。

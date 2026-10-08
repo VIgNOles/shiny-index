@@ -182,3 +182,9 @@ Wiki取得時はcanonical URLだけでなく本文領域の表とテキスト量
 ## 2026-10-08 公式enza告知との限定照合
 
 [公式アイドルマスターポータルのソロライブ告知](https://idolmaster-official.jp/news/01_19898.html)の「enza対応ゲーム」節に明記されたP-SSR これも可能性／白瀬咲耶、P-SSR Hug？／樋口円香、S-SSR Heavy,Heavy Rain／小宮果穂、S-SSR Master ShowPiece／西城樹里を現行siteデータと照合。名称・人物・P/S・レアリティは4/4一致し、各1件だけ収録済み。後半のSong for Prism告知は対象外。告知の開催予定期間をカードの実際の初回実装日と同一視せず、日付の独立確定には使わない。公式総カード数も同ページからは得られないため、ゲーム全網羅の証明ではない。
+
+## 2026-10-08 原本読取と公開URLの再検証
+
+指定アカウントのnative Sheet原本r6を直接読み取った。9タブ、revision 6、カード確認1,466行（P548/S918）、card_id重複0。_registryと_sourceも各1,466行でカード確認とID集合が一致し、_sourceのP/S件数も一致。個別Wiki URL空欄47、初回日空欄56、unit_id空欄21。新しいWiki取得や原本書き込みは行っていない。
+
+前回GitHub Internal Server Errorで送信できなかった4コミットをorigin/mainへpushし、8cf5380まで同期。既存.venvでscripts/check_public.pyを実行し、公開19/19ファイル一致。UI_BASE_URLを同公開URLに設定したEdge/Playwright試験はdesktop/mobileともPASS。実スマートフォン端末での確認ではない。システムPythonによる最初のcheck_publicはopenpyxl未導入で停止したが、プロジェクトの.venvによる検証は成功した。
