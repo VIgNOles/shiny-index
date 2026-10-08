@@ -341,3 +341,14 @@ scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scr
 未実施・未確認: カード詳細の取得、パーサー、原本タブ追加、詳細バンドル、UI検索、全カードの表構造・欠損・抽出精度の検証、公開。ステージスキル・適正・ファイトスキルはユーザー指定で収集対象外。個別Wikiページなし47件の追加は既存の保留指示を維持。詳細文の公開範囲は現行の事実索引のみという方針に合わせて構造化を提案したが、実カードでの可能率は未検証。
 
 変更ファイル: docs/card-details-design.md（新規）、TASK.md、HANDOFF.md、design.md（ローカルでGit対象外）、README.md（新設計へのリンク）。今回の検証は文書とGit差分のみ。データ取得・変換・公開ジョブは起動していない。次回、詳細収集の開始が指示されたら、まず仕様の機械検証化と保存済み／最小限の個別ページ入力を使う変換器・少数例の一気通貫試験から進む。個別ページを1,466件連続取得する運用は始めない。以前から残るCSV直接URLの非公開範囲は未回答であり、今回の詳細設計とは独立した保留事項。
+
+
+## 2026-10-09 詳細P/S各2件の非公開試験
+
+現在工程: ユーザーの後続指示でP/S各2件の試験取得を実施。既存の直接Wiki取得ゲートは 2026-10-09T02:28:50+00:00 まで can_fetch=false だったため、直接取得CLIを使わず、Wiki検索サービスのキャッシュ表示4件を private/raw/detail-sample-20261009-cache/ に行番号付きで保存した。manifest.jsonにURL・保存時刻・SHA-256を記録。これは原本HTMLでも現在のWiki内容の証明でもない。
+
+完了: 既存card_idとWiki URLを照合し、scripts/transform_detail_sample.pyでP-URアマテラス、P-SSR切り拓いて・茨、S-SSR My Christmas、S-UR HoP PoP らびっつの詳細候補を private/audits/detail-sample-20261009.json に生成。入力ハッシュ・連続行番号・P2/S2・パネル未分類0、4件のユニット試験、既存.venvでのPython全33件、2回の再変換ハッシュ一致、公開siteへの出力拒否を確認。既定Pythonでの全件試験は依存パッケージ不足で7件エラーとなり、.venvで再実行して解消した。P通常Link/MB Plus、S-URクイックスキル、P思い出のチャージ列、Sサポートの最大列、固有アビリティの重複掲載を設計へ反映。詳細は docs/card-details-pilot.md。原本Sheet r7、公開UI v4、カードデータ版v1-93a6a8b8d40e754aは変更していない。
+
+変更ファイル: scripts/transform_detail_sample.py、tests/test_detail_sample_transform.py、docs/card-details-pilot.md、docs/card-details-design.md、TASK.md、HANDOFF.md、README.md、design.md（Git対象外）。private/rawとprivate/auditsの試験入力・効果文はGit対象外。未検証: 現行Wiki HTMLの直接取得、4件の人手全項目照合、希少表、効果の完全な構造化、Sheetへの追加、Web検索・公開。Pステージスキル／適正、Sファイトスキルは指示どおり未収集。
+
+再開時: 既存の取得待機状態とWiki応答を確認し、必要最小限のページで原本HTMLとキャッシュ候補を照合する。429等なら止め、保存済み4件の入力からオフライン変換・検証を続ける。正式原本への採用前に項目別レビュー、手修正・固定ID、公開配布する効果表現の方針を確定する。

@@ -101,3 +101,6 @@ $env:XLSX_BACKEND = 'stdlib'
 
 
 カードのライブスキル等の詳細情報は未収録です。P/S別の項目、MB・所持スキルとの区別、今後の検索・検証手順は [詳細データの収集前設計](docs/card-details-design.md) を参照してください。今回の設計では原本・公開データを変更していません。
+
+
+P/S各2件の詳細情報の非公開試験は [試験結果](docs/card-details-pilot.md) に記録しています。保存済みのキャッシュ表示から再変換するには python scripts/transform_detail_sample.py、分類の単体検証には python -m unittest tests.test_detail_sample_transform を実行します。試験用の入力・効果文・出力は private/ 内に置き、Gitや公開サイトには含めません。
