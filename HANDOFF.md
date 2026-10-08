@@ -320,3 +320,13 @@ scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scr
 未完了: 実スマートフォン端末とスクリーンリーダーでのUI v3操作確認、ゲーム全件の独立照合、実在する新規1件・修正1件の正式Sheetから本番公開までの反映実証、初回日なし56件の個別根拠。47件の個別Wikiリンクはユーザーが保留を指示。取得については既存の429後制御を守り、UIのためにWikiへ通信していない。
 
 再開時の次の操作: UIへの具体的な不満点があればsiteとwebの4画面ファイルへ反映し、同じcheck_site・UI v3試験・公開URL照合を行う。新しい実在カード差分が見つかった場合はoperations.mdの取得済み入力レビュー、Sheet往復確認、配布生成、公開URLでの版一致と切り戻しの順に進む。公開UIに問題があればui-v2-20261008タグから新しい切り戻し候補を生成し、旧UI試験後にmainの明示publish手順で復旧する。作業ツリーの状態はgit statusで再確認する。
+
+## 2026-10-09 UI v4公開後の最新状態
+
+ユーザー質問への回答: 283ステージ関連の性能・スキル情報は取得・公開していない。公開cards.jsonの全キーに該当項目なし。UI v4はui-v4-20261009タグと実装7b5a7eb、明示公開c6b472b。匿名URLは https://vignoles.github.io/shiny-index/ 。カードデータ版v1-93a6a8b8d40e754a、1,466件、非公開Sheet revision 7は不変。
+
+変更ファイル: webとsiteのindex.html、app.mjs、search.mjs、style.css、tests/search.test.mjs、ui-v4-smoke.mjs、package.json、README.md、TASK.md、docs/ui-v4-spec.md、docs/ui-design.md、docs/verification.md、operations.md、HANDOFF.md。ローカル限定design.mdも追記。8区分を大きな探索の入口、追加条件のシリーズ・企画と入手区分を精密なAND条件として分離。各ユニットのアイドルは常時表示。画面上の検索結果CSVと全件CSVの取得導線は撤去した。
+
+検証: Python29件、JS13件、隔離候補・site・匿名公開URLのPC1280px・390px・320px操作PASS。check_siteは3版各1,466件PASS。Pages run 37800969481 success、公開26/26ファイル一致。UI v3切り戻し候補はcheck_siteとタグ画面4ファイルの生バイト一致。公開サイト自体の切り戻しは未実施。元のデータ要件の未達（実在カード追加・修正の本番反映、公式全網羅、初回日空欄56件、保留中の個別Wikiリンク47件）は維持する。
+
+未解決の判断: ユーザーのCSV『非公開』が画面導線だけを指すか、既存の版付きCSVファイル直接URLも止めるか確認中。現行版CSV直接URLはHTTP 200であり、ファイル自体の非公開は未実施。後者を要するなら過去版URL、manifestと不変データ版、元の配布要件への影響を先に設計し直す。ユーザー回答が届けばその範囲に合わせて続行する。次のUI改修時はdocs/ui-v4-spec.mdとoperations.mdの試験・公開手順を使用する。作業ツリーは再開時にgit statusで確認する。
