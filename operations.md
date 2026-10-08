@@ -246,3 +246,5 @@ UI v3の表示が壊れた場合、公開siteや原本を直接戻さず、ま�
     node tests/ui-smoke.mjs private/audits/ui-v2-rollback-YYYYMMDD
 
 検証が通った候補のindex.html、app.mjs、search.mjs、style.cssだけをsiteへコピーし、check_siteと旧UI試験を再実行する。mainへ画面4ファイルの復旧コミットをpushし、別のpublish:空コミットをpushする。Actions成功後、check_public.pyの26/26一致と匿名URLで旧UI試験を確認して完了とする。復帰時は同様にui-v3-20261008タグから新規候補を作り、UI v3試験を通す。原本やカードデータをUI切り戻しに巻き込まない。
+
+UI v3の公開実績: 通常pushのrun 37796618732はskipped、明示公開run 37796666483はsuccess。公開26/26ファイル一致と匿名ブラウザのPC・390px・320px試験PASS。タグui-v3-20261008がUIの固定点であり、切り戻し時は上記の候補生成を再実行する。

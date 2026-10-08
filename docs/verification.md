@@ -234,3 +234,11 @@ revision 7から作成したv1-93a6a8b8d40e754aのcheck_siteは1,466件PASS。�
 ## 2026-10-08 中断runのオフライン再構成試験
 
 新しいscripts/compose_saved_run.pyで保存済みW02/W03/W04/W07/W08/W05/W09の7ページを private/raw/composed-20261008-verified-v2 へ合成した。Wiki通信なし。URL・canonical・ハッシュ・取得状態を検査し、7ページの共通確認日を2026-10-08と算出。新入力を private/candidates/composed-20261008-verified-v2 へ再変換すると1,466候補のfull-batch.jsonがrevision 7採用時の候補と完全一致。原本r7とのレビューは新規0・変更0・消失0・分類不明0。合成の単体試験4件は正常系、誤URL/破損、欠損、公開フォルダー誤配置を確認してPASS。さらにprivate/raw限定を加えた最終CLIで別の新規保存先に再構成し、composition.jsonの一致を確認。正式原本、Google Sheet、公開版に変更なし。
+
+## 2026-10-08 UI v3の実装・公開・切り戻し検証
+
+UI v3を画面4ファイルと検索試験として実装した。スマホとPCを縦一覧・任意開閉の詳細に統一し、出典は詳細の二段目へ移した。系列と入手区分の独立フィルター、6つの系列近道、URからNの順、公式ユニット・人物順の親子選択、年・月・日の部分期間とネイティブ日付選択、旧人物URLのAND互換、新人物URLの固定ID、ブラウザ履歴の戻る操作を確認。CSVは表示中100件でなく該当全件を取得する。カードデータ版v1-93a6a8b8d40e754a、1,466件、正式Sheet revision 7は変更していない。個別Wikiページなし47件はカード行を残し、詳細に未確認と表示する。
+
+隔離候補と公開候補siteのcheck_siteは3版各1,466件でPASS。Python単体29件、JS検索12件PASS。Edge/PlaywrightでPC1280px・タッチエミュレーション390px・320pxの一覧、詳細と出典、100件追加、6系列近道、人物親子、日付、レアリティ・公式順、検索結果CSV、URL再読込と戻る、0件、個別Wikiなし、横はみ出し・JavaScript例外なしを確認。Enter/Spaceで詳細開閉も確認。実スマートフォン端末とスクリーンリーダーのUI v3操作は未検証。隔離したUI v2切り戻し候補 private/audits/ui-v2-rollback-20261008-v3 は現行データを保ったままcheck_siteと旧UIのPC・390px・320px試験を通した。実際の公開切り戻しは行っていない。
+
+UI v3タグ ui-v3-20261008 はコミット4862ed4。通常main pushのPages run 37796618732はskipped。明示公開コミットe508509のPages run 37796666483はsuccess。匿名公開URL https://vignoles.github.io/shiny-index/ の26/26ファイルはローカルsiteとバイト一致。匿名ブラウザでPC・390px・320pxのUI v3試験がすべてPASSした。公開URLのデータ版と1,466件は不変。ゲーム全件の独立照合、実カード1件追加・1件修正を正式Sheetから本番公開まで反映する実証、保留中の47件個別Wikiリンク、初回実装日なし56件は今回のUI改修では解決していない。

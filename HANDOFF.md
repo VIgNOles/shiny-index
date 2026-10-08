@@ -308,3 +308,15 @@ scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scr
 - 前工程の共通処理を使い、web/app.mjsの近道をマイコレ・パラコレ・プレコレまで拡張。既存3件と合わせて6種類。編集原本、site、公開URL、データ版は変更しない。
 - tests/ui-smoke.mjsで6種類の表示順とプレコレ9件の結果を確認。隔離候補 private/audits/ui-v3-slice3-20261008-01 をEdge/PlaywrightでPC1280px・390px・320px操作試験PASS、横切れなし。検索単体と公開UI v2の試験は前工程でPASS済みで、この工程では検索ロジック・公開siteを変更していない。
 - 次の候補: ユニット／アイドル統合、日付選択、スマホ一覧／詳細展開をそれぞれ別の工程にする。現行UI v2は公開維持、UI v3全体は未完成・未公開。
+
+## 2026-10-08 UI v3公開後の最新状態
+
+現在工程: ユーザーの小分け制限解除によりUI v3の全残工程を実装・公開・検証済み。mainのUI実装は4862ed4、明示公開コミットはe508509、タグはui-v3-20261008。公開URLは https://vignoles.github.io/shiny-index/ 。カードデータ版v1-93a6a8b8d40e754a、1,466件（P548/S918）、編集原本は指定Googleアカウントの非公開Sheet revision 7のまま。個別Wikiページなし47件のリンク追加はユーザー指示で保留。
+
+主な変更: webとsiteのindex.html、app.mjs、search.mjs、style.css、tests/search.test.mjs、tests/ui-v3-smoke.mjs、package.json、README.md、operations.md、TASK.md、docs/ui-v3-spec.md、docs/ui-design.md、docs/verification.md、HANDOFF.md。ローカル限定design.mdにも設計変更を記録。private/auditsのプレビュー・画面画像・UI v2切り戻し候補はGit対象外で、正式原本と配布データは変更していない。
+
+検証: Python29件、JS検索12件PASS。check_siteは3版各1,466件PASS。隔離候補、site、匿名公開URLでEdge/PlaywrightのPC1280px・390px・320pxのUI v3試験PASS。旧UI v2切り戻し候補のcheck_siteと旧UI試験もPASS。Actions run 37796666483 success、公開URL26/26ファイル一致。現時点で実行中の取得・変換・公開ジョブなし。GitHub公開ジョブの成功後に匿名URLの反映を確認した。
+
+未完了: 実スマートフォン端末とスクリーンリーダーでのUI v3操作確認、ゲーム全件の独立照合、実在する新規1件・修正1件の正式Sheetから本番公開までの反映実証、初回日なし56件の個別根拠。47件の個別Wikiリンクはユーザーが保留を指示。取得については既存の429後制御を守り、UIのためにWikiへ通信していない。
+
+再開時の次の操作: UIへの具体的な不満点があればsiteとwebの4画面ファイルへ反映し、同じcheck_site・UI v3試験・公開URL照合を行う。新しい実在カード差分が見つかった場合はoperations.mdの取得済み入力レビュー、Sheet往復確認、配布生成、公開URLでの版一致と切り戻しの順に進む。公開UIに問題があればui-v2-20261008タグから新しい切り戻し候補を生成し、旧UI試験後にmainの明示publish手順で復旧する。作業ツリーの状態はgit statusで再確認する。
