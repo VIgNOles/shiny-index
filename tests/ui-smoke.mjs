@@ -44,6 +44,16 @@ try{
   assert.match(await page.locator('#version').textContent(),new RegExp(latest.dataset_version));
   assert.equal(await page.locator('#downloads a').count(),6);
   assert.equal(await page.getByRole('checkbox',{name:'P',exact:true}).count(),1);
+  if(await page.locator('#missing').count()===0){
+   assert.deepEqual(await page.locator('input[name="rarity"]').evaluateAll(els=>els.map(el=>el.value)),['UR','SSR','SR','R','N']);
+   assert.match(await page.locator('input[name="series_ids"][value="twilights"]').locator('..').textContent(),/トワコレ/);
+   const twilights=cards.filter(c=>c.series_ids.includes('twilights')).length;
+   for(const q of ['トワコレ','トワイライツ']){await page.locator('#q').fill(q);assert.equal(await count(),twilights+' / '+total+' 件');}
+   await page.locator('#q').fill('');
+   await page.goto(url+'?missing=1',{waitUntil:'networkidle'});
+   assert.equal(await count(),total+' / '+total+' 件');
+   assert.equal(new URL(page.url()).searchParams.has('missing'),false);
+  }
   if(label==='desktop'){
    const summary=page.locator('#advanced-filters > summary');
    await summary.focus();await page.keyboard.press('Enter');

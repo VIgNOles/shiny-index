@@ -289,3 +289,10 @@ scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scr
 - 変更ファイルは docs/ui-v3-spec.md（新規）、TASK.md、HANDOFF.md、docs/ui-design.md、design.md（Git対象外のローカル設計文書）。web/、site/、scripts/、原本・配布カードデータは変更しない。Git statusで変更は文書4件のみ（design.mdはGit対象外）、git diff --check は問題なし。シリーズ実数・誕生日SSR40・unknown_fields全1,466を再計算して仕様の例と一致。UI自動試験は今回コード変更がないため未実施。
 - 未実施: 次版UIの実装・操作試験・公開、実スマートフォンとスクリーンリーダーでの次版検証。従来の実カード1件追加／修正の本番公開実証、ゲーム全件の独立証明、日付欠損56件などの元の残件は残る。個別Wikiページなし47件のリンク追加はユーザー指示で保留。
 - 再開時: docs/ui-v3-spec.md の設計判断をユーザーと確認後に、既存UI v2タグと公開データを固定したまま、別候補で検索ロジック→画面→PC/スマホ試験→明示公開の順に進む。ユーザーが今回の設計段階を延長するなら画面コードに着手しない。
+
+
+## 2026-10-08 UI次版の第1工程（開発ブランチ、未公開）
+
+- ユーザーの小分け実装指示により codex/ui-v3-incremental を作成。web/search.mjs、web/app.mjs、web/index.htmlで系列表示名をトワコレ・キャスコレ等へ変更し、旧名検索も維持。レアリティ選択肢をUR→SSR→SR→R→N、系列選択肢を優先順へ変更。現行全1,466件に一致していた「不明項目あり」はUIと検索から削除し、旧URLのmissingを読込時に除去。検索結果のカード表示、原本、site、公開データは変更しない。
+- tests/search.test.mjsを9件PASS。隔離候補 private/audits/ui-v3-slice1-20261008-01 をsiteコピー＋web候補で作り、Edge/PlaywrightでPC1280px・スマホ幅390px/320pxがPASS。Playwright同梱Chromiumは未導入のためEdge実行に切替。Git差分検査後、開発ブランチへ保存する。
+- 次工程: 近道のシリーズ選択（詳細条件と同一状態）を追加し、URL・結果件数の回帰を取る。その次に階層人物、日付、一覧展開を独立工程に分ける。UI v3を公開したと扱わず、全工程と受け入れ検証の完了後にタグ・明示公開する。

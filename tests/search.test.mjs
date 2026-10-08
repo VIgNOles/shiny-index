@@ -9,4 +9,5 @@ test('CSV formula safety',()=>assert.ok(csv([{card_title:'=1+1'}],{}).includes("
 
 test('10,000 rows filter benchmark',()=>{const data=Array.from({length:10000},(_,i)=>({...cards[i%2],card_id:String(i)}));const start=performance.now();const out=search(data,new URLSearchParams('card_kind=P&q=Hug'));assert.equal(out.length,5000);console.log('10k search ms',Math.round(performance.now()-start));});
 
-test('Japanese series label search',()=>assert.equal(search([{...cards[0],series_ids:['casting']}],new URLSearchParams('q=キャスティング')).length,1));
+test('new and legacy Japanese series labels remain searchable',()=>{const rows=[{...cards[0],series_ids:['casting']}];for(const q of ['キャスコレ','キャスティング'])assert.equal(search(rows,new URLSearchParams('q='+q)).length,1)});
+test('removed missing marker does not hide cards',()=>assert.equal(search(cards,new URLSearchParams('missing=1')).length,2));

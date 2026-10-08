@@ -82,8 +82,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .selection-count,#advanced-count{font-weight:400;color:#285b96}
 .dates{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:14px 0 8px}
 .dates label,.result-tools label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:700}
-.missing-filter{flex-direction:row!important;align-items:center;min-height:44px;cursor:pointer}
-.missing-filter input{width:20px;min-height:20px;margin:0;accent-color:#2869ad}
 .selected-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px}
 #active-filters{margin:0;color:#40546d;font-size:13px;overflow-wrap:anywhere}
 #reset{flex:none}

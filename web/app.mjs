@@ -3,14 +3,14 @@ import {search,csv,seriesNames} from './search.mjs';
 const $=id=>document.getElementById(id);
 const labels={
  card_kind:'P／S',rarity:'レアリティ',idol_name:'アイドル',unit_name:'ユニット',
- acquisition_category:'入手区分',series_ids:'シリーズ',collab_work:'コラボ作品',
+ acquisition_category:'入手区分',series_ids:'シリーズ・企画',collab_work:'コラボ作品',
  review_status:'確認状態',card_title:'カード名',first_implemented_on:'初回実装日'
 };
 const display={
  permanent_gacha:'恒常ガシャ',limited_gacha:'期間限定',collection_gacha:'コレクション',
  collaboration_gacha:'コラボガシャ',event_reward:'イベント報酬',initial:'初期所持',
  unknown:'不明',wiki_only:'Wikiのみ確認',needs_review:'要確認',
- casting:'キャスティング',birthday:'誕生日',
+ birthday:'誕生日',
  ...seriesNames,gacha_bonus:'ガシャ特典',other_bonus:'その他特典',
  mission:'ミッション',campaign:'キャンペーン・配布',exchange:'交換',
  other:'その他',official_checked:'公式照合済み',
@@ -26,6 +26,7 @@ try {
  if(doc.meta.dataset_version!==window.DATA_VERSION)throw Error('版不一致');
  const {cards,meta,coverage}=doc;
  let params=new URLSearchParams(location.search);
+ if(params.has('missing')){params.delete('missing');history.replaceState(null,'',params.size?'?'+params:location.pathname);}
  let shown=[];
  const sourceNames={
   W02:'Pカード一覧',W03:'Sカード一覧',W04:'Sカード分冊',
@@ -46,6 +47,7 @@ try {
   'series_ids','collab_work','review_status'
  ];
  const advancedFields=filterFields.slice(2);
+ const filterOrder={rarity:['UR','SSR','SR','R','N'],series_ids:['twilights','casting','mysongs','parallel','prelude','birthday','vote_selection','expansion','axe8']};
  const filterGroups=new Map();
  const selectionCounts=new Map();
  for(const field of filterFields){
@@ -67,7 +69,14 @@ try {
   }
   const options=document.createElement('div');
   options.className='filter-options';
-  const values=[...new Set(cards.flatMap(card=>Array.isArray(card[field])?card[field]:[card[field]??'unknown']))].sort();
+  const order=filterOrder[field];
+  const values=[...new Set(cards.flatMap(card=>Array.isArray(card[field])?card[field]:[card[field]??'unknown']))].sort((a,b)=>{
+   if(order){
+    const ai=order.indexOf(a),bi=order.indexOf(b);
+    if(ai!==bi)return (ai<0?order.length:ai)-(bi<0?order.length:bi);
+   }
+   return text(a).localeCompare(text(b),'ja');
+  });
   for(const [index,value] of values.entries()){
    const label=document.createElement('label');
    label.className='filter-option';
@@ -96,7 +105,7 @@ try {
    else if(element.type==='checkbox')element.checked=!!params.get(element.id);
    else element.value=params.get(element.id)??(element.id==='sort'?'first_implemented_on':element.id==='direction'?'desc':'');
   }
-  $('advanced-filters').open=advancedFields.some(field=>params.getAll(field).length)||!!(params.get('from')||params.get('to')||params.get('missing'));
+  $('advanced-filters').open=advancedFields.some(field=>params.getAll(field).length)||!!(params.get('from')||params.get('to'));
   for(const field of advancedFields)filterGroups.get(field).open=!!params.getAll(field).length;
  }
  function updateFilterSummary(){
@@ -107,13 +116,12 @@ try {
    if(selected.length)parts.push(labels[field]+'：'+selected.map(text).join('・'));
   }
   const advancedCount=advancedFields.reduce((sum,field)=>sum+params.getAll(field).length,0)
-   +Number(!!params.get('from'))+Number(!!params.get('to'))+Number(!!params.get('missing'));
+   +Number(!!params.get('from'))+Number(!!params.get('to'));
   $('advanced-count').textContent=advancedCount?'（'+advancedCount+'条件）':'';
   if(params.get('q'))parts.push('検索：'+params.get('q'));
   if(params.get('from'))parts.push('実装日から：'+params.get('from'));
   if(params.get('to'))parts.push('実装日まで：'+params.get('to'));
-  if(params.get('missing'))parts.push('不明項目あり');
-  $('active-filters').textContent=parts.length?'選択中：'+parts.join(' / '):'絞り込み条件なし';
+ $('active-filters').textContent=parts.length?'選択中：'+parts.join(' / '):'絞り込み条件なし';
  }
 
  const more=document.createElement('button');
