@@ -280,3 +280,12 @@ scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scr
 - UI改訂準備コミット `792a9b5` とUI v2タグをoriginへpush。明示公開コミット `d1e2d3b` のPages run `37739561660` はsuccess。匿名URL `https://vignoles.github.io/shiny-index/` で26/26ファイルがローカルsiteとバイト一致し、公開PC/390px/320pxのUI操作試験PASS。データ版は `v1-93a6a8b8d40e754a`、1,466件（P548/S918）、complete=falseのまま。検索JS試験8件、check_site 3版、ローカルUI新旧各3画面もPASS。
 - 今回の変更ファイル: `web/index.html`、`web/style.css`、`web/app.mjs`、`site/` の同名3ファイル、`tests/ui-smoke.mjs`、`scripts/build_ui_rollback.py`、`docs/ui-design.md`、`README.md`、`operations.md`、`TASK.md`、`HANDOFF.md`。ローカル設計文書 `design.md` にも根拠と結果を追記。privateの撮影・演習候補はGit対象外。
 - 残る事項: 実スマートフォンでの新UIの細かな使い勝手はユーザーから具体的な指摘を受けて調整する。スクリーンリーダー実機での全面確認とWCAG適合判定は未実施。元のデータ完成条件（実カード1件追加・1件修正の本番公開反映、全ゲーム網羅の独立証明など）はUI更新によって達成した扱いにしない。47件の個別Wikiリンク追加・現況確認はユーザー指示で当面保留。
+
+## 2026-10-08 UI次版の設計段階（今回）
+
+- ユーザーはスマホの一覧→詳細展開、トワコレ・キャスコレ等、入手区分との分離、年月日のカレンダー／年月日ドロップダウン、UR→N順、公式人物順、ユニット・人物統合、不要なコラボ独立項目・「不明項目あり」の整理、将来のスキル検索を求めた。今回は「実装一歩手前」までで、UIコード変更・公開は指示されていない。原文はTASK.md末尾。
+- 現行公開データ v1-93a6a8b8d40e754a の cards.json を読取集計。1,466件、UR12/SSR929/SR465/R56/N4、トワコレ相当58・キャスコレ相当22、コレクションガシャ147、ユニット空欄21。unknown_fieldsが1つ以上あるカードは1,466/1,466で、現行の「不明項目あり」は絞り込みとして無効。Wikiへの新規取得なし。
+- GOV.UK Dates、USWDS Date picker、W3C WAI Disclosure、MDN date input、enza公式のユニット・人物順を調査。シリーズと入手区分の2軸、階層人物フィルター、日付の部分指定とネイティブカレンダー、スマホの折りたたみ一覧、出典の二段目開閉、URL互換・版・切り戻しまで docs/ui-v3-spec.md に提案として記録した。
+- 変更ファイルは docs/ui-v3-spec.md（新規）、TASK.md、HANDOFF.md、docs/ui-design.md、design.md（Git対象外のローカル設計文書）。web/、site/、scripts/、原本・配布カードデータは変更しない。Git statusで変更は文書4件のみ（design.mdはGit対象外）、git diff --check は問題なし。シリーズ実数・誕生日SSR40・unknown_fields全1,466を再計算して仕様の例と一致。UI自動試験は今回コード変更がないため未実施。
+- 未実施: 次版UIの実装・操作試験・公開、実スマートフォンとスクリーンリーダーでの次版検証。従来の実カード1件追加／修正の本番公開実証、ゲーム全件の独立証明、日付欠損56件などの元の残件は残る。個別Wikiページなし47件のリンク追加はユーザー指示で保留。
+- 再開時: docs/ui-v3-spec.md の設計判断をユーザーと確認後に、既存UI v2タグと公開データを固定したまま、別候補で検索ロジック→画面→PC/スマホ試験→明示公開の順に進む。ユーザーが今回の設計段階を延長するなら画面コードに着手しない。
