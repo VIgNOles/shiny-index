@@ -132,3 +132,14 @@ P【Could Be】ルカの3行型生成表は通常/MBの表見出しを区別し�
 現行UI v7、基礎v1-93a6a8b8d40e754a/1466、詳細d1-471997dafba126df/256(P126/S130)/3685、詳細原本r8。指定Driveの原本は所有者のみで、最終更新時刻が検証済みエクスポートより前であり、その後の編集がないことも確認。原本/site/接続のSHAと保存済み入力状態は停止時から不変。公開監査はprivate/audits/detail256-public-verification-20261009.json、画像はprivate/audits/ui-v7-details256-public-20261009。
 
 今回の256件版の登録・保存・公開確認は完了。全件版の完成ではない。取得は224ページ・残1139で停止したまま、STOP保持・ロックなし・進行中リクエストなし。256超の追加採用や取得再起動を行っていない。全件詳細・効果条件の全面構造化・基礎新規カード本番追加実証・公式全網羅等は引き続き未完了。
+
+
+## 2026-10-09 256件上限解除・282件原本/公開候補
+
+ユーザーが256件上限を明示解除したため、取得workflow011を残1139ページの有限予算で再開。成功済み224ページを再送せず保持。通常60秒以上/1ページずつ・共通ロック・実HTTP失敗/Retry-After停止は継続。実worker23128（launcher24800）、ログstdout/stderr-workflow-011.log。旧STOPは正規の--clear-stopで解除した。二重起動しない。
+
+frozen state684の保存226ページから282カードP136/S146・4138項目、構造保留0・入力待ち1137・リンク保留47を変換。2回のオフライン変換はcontent_hash55b4c77e29efbb47f22b994859eb859a1d9987df42c88f9519c14ea7e2303707で全値一致。指定Driveの256原本のfresh exportとactive原本も全値一致。そのnative全コピーへ21バッチ（元70バッチと同じ順序のrequestsを90KB未満で再編成）を適用し、原本r9の全値読戻し一致、基礎9タブ差分0、3685固定ID/手修正維持を確認後切替。旧256原本は最終更新時刻07:12:32.541UTC不変、XLSX/接続/siteバックアップを保存。現在IDはprivate/sheets-connection.json。原本・HTML・接続・監査はGit非公開。
+
+追加453出典URLの表示値とnativeリンクの一致、全書込範囲の書式/validation/chips、フィルターの全使用行をAPIで確認。Google画面のCUAはsandbox setup refreshエラーで起動不可、native画面の外観は未確認。Web候補はPC1280/390/320基本/詳細操作PASS、320px画像を視認。基礎v1-93a6a8b8d40e754a不変、UI v7、詳細d1-6595cad90a13ca0b、全42ファイル。tests/ui-v4/v5-smoke.mjsは空UI_BASE_URLを未指定と扱うよう修正。最初の空URL試験失敗は試験設定の問題で、修正後全幅PASS。成果物index.htmlの改行は旧LFへ揃えた。新依存なし。
+
+証拠: private/audits/detail-native-282-roundtrip-20261009.json、native282-format-and-links-20261009.json、ui-v7-details282-local-20261009、private/details/sheet-write-after256-checkpoint-20261009.json。取得は並行継続し、この原本/公開候補への自動採用はない。公開Actions・匿名URLの結果は後続に追記する。全件詳細/発動条件等の全面構造化/基礎新規カード本番追加実証/公式独立網羅、日付56・個別リンク47保留、実機/スクリーンリーダー全面検証は未完了。

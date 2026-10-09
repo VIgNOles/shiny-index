@@ -541,3 +541,14 @@ Git保存と公開: 準備583eb58、停止記録99d49d3、制限解除864dcac、
 未完了: 全件詳細取得/原本採用/公開、条件/複合効果全面構造化、公式全網羅、基礎新規実在カード1追加/修正の本番反映実証、日付不明56・個別リンク47ユーザー保留、実スマホ/スクリーンリーダー全面検証。256件版の公開完了をプロジェクト全体/全件版の完成と扱わない。
 
 次回の再開地点: まず256超の追加採用/取得再開の範囲指示を確認。許可があればTASK・最新HANDOFF・原本接続・STOP/state/ロック/PID・Git差分を照合し、既存224入力を保持する。保存入力だけの変換は新しいprivate候補へ、採用計画は最新native exportから作る。取得再開は旧jobなし・共通待機/失敗条件を確認して新ログ番号で残数1139以下の有限workflow --clear-stopを実行。許可されるまではSTOPを維持し自動再開しない。前節の『256公開承認待ち』から再開する必要はない。
+
+
+## 2026-10-09 256件上限解除・282件原本/公開候補
+
+ユーザーが256件上限を明示解除したため、取得workflow011を残1139ページの有限予算で再開。成功済み224ページを再送せず保持。通常60秒以上/1ページずつ・共通ロック・実HTTP失敗/Retry-After停止は継続。実worker23128（launcher24800）、ログstdout/stderr-workflow-011.log。旧STOPは正規の--clear-stopで解除した。二重起動しない。
+
+frozen state684の保存226ページから282カードP136/S146・4138項目、構造保留0・入力待ち1137・リンク保留47を変換。2回のオフライン変換はcontent_hash55b4c77e29efbb47f22b994859eb859a1d9987df42c88f9519c14ea7e2303707で全値一致。指定Driveの256原本のfresh exportとactive原本も全値一致。そのnative全コピーへ21バッチ（元70バッチと同じ順序のrequestsを90KB未満で再編成）を適用し、原本r9の全値読戻し一致、基礎9タブ差分0、3685固定ID/手修正維持を確認後切替。旧256原本は最終更新時刻07:12:32.541UTC不変、XLSX/接続/siteバックアップを保存。現在IDはprivate/sheets-connection.json。原本・HTML・接続・監査はGit非公開。
+
+追加453出典URLの表示値とnativeリンクの一致、全書込範囲の書式/validation/chips、フィルターの全使用行をAPIで確認。Google画面のCUAはsandbox setup refreshエラーで起動不可、native画面の外観は未確認。Web候補はPC1280/390/320基本/詳細操作PASS、320px画像を視認。基礎v1-93a6a8b8d40e754a不変、UI v7、詳細d1-6595cad90a13ca0b、全42ファイル。tests/ui-v4/v5-smoke.mjsは空UI_BASE_URLを未指定と扱うよう修正。最初の空URL試験失敗は試験設定の問題で、修正後全幅PASS。成果物index.htmlの改行は旧LFへ揃えた。新依存なし。
+
+証拠: private/audits/detail-native-282-roundtrip-20261009.json、native282-format-and-links-20261009.json、ui-v7-details282-local-20261009、private/details/sheet-write-after256-checkpoint-20261009.json。取得は並行継続し、この原本/公開候補への自動採用はない。公開Actions・匿名URLの結果は後続に追記する。全件詳細/発動条件等の全面構造化/基礎新規カード本番追加実証/公式独立網羅、日付56・個別リンク47保留、実機/スクリーンリーダー全面検証は未完了。

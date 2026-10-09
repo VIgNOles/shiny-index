@@ -307,3 +307,10 @@ UI v6と詳細d1-d3a4bf450390442b、基礎版はv1-93a6a8b8d40e754a。切り戻�
 ローカル保存制限はユーザーが明示解除済み。現行公開はUI v7・詳細256件/3685項目/d1-471997dafba126df、基礎1466/v1-93a6a8b8d40e754a不変。公開010f5b7/Actions37910476569成功、匿名40ファイル・PC/390/320操作を確認。切り戻しタグui-v7-details256-20261009はorigin保存済み。旧UI v6へはui-v6-details206-20261009とbuild_ui_rollback.pyで現行データを維持する。
 
 取得は224保存/残1139で停止しSTOP保持。公開許可の解除によって取得や256件超の採用を自動再開しない。次回は採用上限/取得再開の指示を確認してからHANDOFF末尾の状態照合を行う。
+
+
+## 256件上限解除後の原本（2026-10-09）
+
+最新指示で256件上限を解除し、正式原本は基礎r7/1466不変・詳細r9/282P136S146/4138へ更新。現在の原本URLはprivate/sheets-connection.json。旧256原本とXLSX/接続/siteバックアップは保持。取得011は残1139を有限予算で継続し、成功済みは再送しない。60秒以上、実HTTP失敗/Retry-After停止、単一workerと共通ロックは維持。取得中の原本への自動採用はない。
+
+次の採用は新しいstate凍結と候補監査、現在native原本のfresh export、prepare_detail_adoption.py、native全コピー、全値照合を繰り返す。今回の旧256計画を再適用しない。書込結果不明時はprivate/details/sheet-write-after256-checkpoint-20261009.jsonを確認し実値を読んでから判断する。空のUI_BASE_URLはローカルブラウザ試験として動作する。公開URL確認の最新結果はdocs/verification.mdとHANDOFF.md末尾。

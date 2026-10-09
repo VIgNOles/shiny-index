@@ -1,0 +1,9 @@
+{
+  "detail_schema": "1.0",
+  "detail_version": "d1-6595cad90a13ca0b",
+  "base_dataset_version": "v1-93a6a8b8d40e754a",
+  "published_at": "2026-10-09T09:53:36+00:00",
+  "files": {
+    "details.json": "fe600502150f005f0afbbf16538d10367500e9ee157452c9b55b59427ffd63b1"
+  }
+}

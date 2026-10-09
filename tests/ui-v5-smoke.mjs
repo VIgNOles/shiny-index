@@ -10,7 +10,7 @@ const root=path.resolve(process.argv[2]??path.join(project,'site'));
 const latest=JSON.parse(await readFile(path.join(root,'data/latest.json'),'utf8'));
 const doc=JSON.parse(await readFile(path.join(root,'data',latest.dataset_version,'cards.json'),'utf8'));
 const cards=doc.cards,total=cards.length;
-const publicUrl=process.env.UI_BASE_URL;
+const publicUrl=process.env.UI_BASE_URL||undefined;
 const server=publicUrl?null:createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://127.0.0.1');
