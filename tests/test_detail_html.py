@@ -128,6 +128,19 @@ class DetailHtmlTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Unknown MB random-effect explanation'):
             extract_html(fixture(extra=mb+note.replace('未構造化の選択肢 (Refrain)','')),CARD)
 
+    def test_mb_explanation_header_footnote_is_not_a_stage_or_effect(self):
+        mb='<table><tr><th>メモリーブースト</th></tr><tr><th>[MB]root(2/5)</th></tr><tr><td style="background-color:gainsboro">Dance4倍(Refrain)</td></tr></table>'
+        marker='<a class="note_super tooltip" id="notetext_1">*1</a>'
+        note='<table><tr><th>[MB]ランダム効果付与'+marker+'</th></tr><tr><td>未構造化の説明</td></tr></table>'
+        card=extract_html(fixture(extra=mb+note),CARD)
+        self.assertEqual(len(card['mb_live']),1)
+        self.assertEqual(card['mb_live'][0]['mechanics'],['refrain'])
+        self.assertEqual(card['skill_notes_private'][0]['name'],'[MB]ランダム効果付与')
+        self.assertEqual(card['skill_notes_private'][0]['effect_private'],'未構造化の説明')
+        for old,new in [('note_super','ordinary'),('notetext_1','other'),('*1','literal')]:
+            with self.subTest(new=new),self.assertRaisesRegex(ValueError,'MB stage/effect missing'):
+                extract_html(fixture(extra=mb+note.replace(old,new)),CARD)
+
     def test_random_options_attach_to_exact_parent_and_preserve_evidence(self):
         from src.card_details import attach_random_options
         html='<table><tr><th colspan="2">ランダム効果付与</th></tr><tr><td colspan="2">以下の中からランダムで効果が付与される</td></tr><tr><th>root A</th><th>root B</th></tr><tr><td>・Vocal5%UP[3ターン] ・Vocal50%UP[3ターン]</td><td>・Dance100%UP[4ターン]</td></tr></table>'

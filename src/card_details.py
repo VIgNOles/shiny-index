@@ -32,6 +32,15 @@ def text(tag: Tag) -> str:
     return re.sub(r"\s+", " ", clone.get_text()).strip()
 
 
+def label_text(tag: Tag) -> str:
+    """Remove only actual Wiki footnote markers from a label, preserving its raw cell."""
+    label = BeautifulSoup(str(tag), "html.parser")
+    for note in label.select("a.note_super[id]"):
+        if re.fullmatch(r"notetext_\d+", note.get("id", "")) and re.fullmatch(r"\*\d+", text(note)):
+            note.decompose()
+    return text(label)
+
+
 def mechanics(effect: str) -> list[str]:
     aliases = {"growup": "grow", "reflain": "refrain"}
     return sorted({aliases.get(m[1].lower(), m[1].lower()) for m in MECHANIC.finditer(effect)})
@@ -180,7 +189,7 @@ def parse_generated_live(number, table, anchor, panel_nodes):
 
 def parse_compact_generated(number, table, anchor, parents, *, memory_boost=False):
     grid=table_grid(table);header='[MB]生成されるライブスキル' if memory_boost else '生成されるライブスキル'
-    if (len(grid)!=3 or grid[0][0].value!=header or grid[0][0].tag.name!='th'
+    if (len(grid)!=3 or label_text(grid[0][0].tag)!=header or grid[0][0].tag.name!='th'
             or grid[0][0].colspan!=len(grid[0])):
         raise ValueError('Unknown compact generated-live table')
     key=lambda value: re.sub(r'\s+','',normalize('NFKC',value))
@@ -191,11 +200,7 @@ def parse_compact_generated(number, table, anchor, parents, *, memory_boost=Fals
                 or effect.row!=2 or effect.column!=c or effect.tag.name!='td' or not background_gray(effect.tag)):
             raise ValueError('Compact generated-live name/effect mismatch')
         # A Wiki footnote marker belongs to the cell's evidence, not the skill name.
-        label=BeautifulSoup(str(name.tag),'html.parser')
-        for note in label.select('a.note_super[id]'):
-            if re.fullmatch(r'notetext_\d+',note.get('id','')) and re.fullmatch(r'\*\d+',text(note)):
-                note.decompose()
-        name_value=text(label)
+        name_value=label_text(name.tag)
         if memory_boost != name_value.startswith('[MB]'):
             raise ValueError('Generated-live MB context mismatch')
         target=key(name_value.removeprefix('[MB]'))
@@ -323,7 +328,7 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
     for number, table, anchor in tables:
         if table is panels[0][1]:
             continue
-        header=table_grid(table)[0][0].value
+        header=label_text(table_grid(table)[0][0].tag)
         if header in ('生成されるライブスキル','[MB]生成されるライブスキル'):
             compact.append((number,table,anchor,header.startswith('[MB]')));continue
         if header=='ランダム効果付与' and len(table_grid(table))==4:
