@@ -34,6 +34,35 @@ def fixture(panel=PANEL, memory=MEMORY, extra=''):
 
 class DetailHtmlTests(unittest.TestCase):
 
+    def test_legacy_cap_up_plus_requires_matching_heading(self):
+        panel=PANEL.replace('Vocal上限+100','Vocal上限UP+100')
+        node=extract_html(fixture(panel=panel),CARD)['panel_nodes'][1]
+        self.assertEqual((node['kind'],node['cap_targets'],node['cap_delta']),('cap_increase',['Vocal'],100))
+        self.assertEqual(node['effect_private'],'Vocal上限UP+100')
+        for invalid in ('Dance上限UP+100','Vocal上限UP++100','Vocal上限UP+100 extra'):
+            with self.subTest(invalid=invalid),self.assertRaises(ValueError):
+                extract_html(fixture(panel=PANEL.replace('Vocal上限+100',invalid)),CARD)
+
+    def test_mb_random_options_attach_only_to_matching_mb_skills(self):
+        mb='<table><tr><th>メモリーブースト</th></tr><tr><th>[MB]技能甲(2/5)</th></tr><tr><td style="background-color:gainsboro">Vocal3倍/ランダム効果3個付与(Plus)</td></tr></table>'
+        supplement='<table><tr><th>[MB]ランダム効果付与</th></tr><tr><td>以下の中からランダムで効果が付与される<br>複数付与する場合、同一の効果が付与される場合もあり</td></tr><tr><th>技能甲</th></tr><tr><td>・Vocal20%UP[5ターン]<br>・Vocal40%UP[5ターン]</td></tr></table>'
+        card=extract_html(fixture(extra=mb+supplement),CARD)
+        self.assertNotIn('random_effect_options',card['panel_nodes'][0])
+        self.assertEqual(card['panel_nodes'][0]['mechanics'],['link'])
+        node=card['mb_live'][0]
+        self.assertEqual(node['mechanics'],['plus'])
+        self.assertEqual([v['value'] for v in node['random_effect_options']],[20,40])
+        self.assertEqual(node['random_effect_options'][0]['turns'],5)
+        self.assertEqual(len(node['source_positions']),4)
+        for altered in (supplement.replace('<th>技能甲</th>','<th>別技能</th>'),
+                        supplement.replace('同一の効果が付与される場合もあり','未知の条件'),
+                        supplement.replace('・Vocal40%UP[5ターン]','・未知効果'),
+                        supplement.replace('・Vocal40%UP[5ターン]','・Vocal20%UP[5ターン]')):
+            with self.subTest(altered=altered),self.assertRaises(ValueError):
+                extract_html(fixture(extra=mb+altered),CARD)
+        with self.assertRaisesRegex(ValueError,'ambiguous'):
+            extract_html(fixture(extra=mb+mb+supplement),CARD)
+
     def test_cap_line_break_requires_independent_heading_agreement(self):
         panel = PANEL.replace('Vocal上限UP (☆3)', 'Vocal & Dance & Visual上限UP (☆3)').replace('Vocal上限+100', 'Vocal & Dance<br>Visual 上限+25')
         cap = extract_html(fixture(panel=panel), CARD)['panel_nodes'][1]
@@ -148,6 +177,9 @@ class DetailHtmlTests(unittest.TestCase):
                      {'kind':'panel_live','name':'root B','effect_private':'ランダム効果1個付与','source_positions':[]}]
         nodes=make();attach_random_options(8,BeautifulSoup(html,'html.parser').table,'panel',nodes)
         self.assertEqual([x['value'] for x in nodes[0]['random_effect_options']],[5,50])
+        repeated=html.replace('以下の中からランダムで効果が付与される','以下の中からランダムで効果が付与される<br>複数付与する場合、同一の効果が付与される場合もあり')
+        repeated_nodes=make();attach_random_options(8,BeautifulSoup(repeated,'html.parser').table,'panel',repeated_nodes)
+        self.assertEqual(repeated_nodes[0]['random_effect_options'],nodes[0]['random_effect_options'])
         self.assertEqual(nodes[1]['random_effect_options'][0]['turns'],4)
         self.assertEqual(nodes[0]['source_positions'][0]['row'],3)
         for old,new,error in [('root B','unknown','parent ambiguous'),('Dance100%UP','未対応効果','Unknown random-effect option')]:

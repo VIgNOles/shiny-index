@@ -132,7 +132,7 @@ def node_kind(effect: Cell) -> str:
         return "quick_skill"
     if "(アビリティ)" in value or "（アビリティ）" in value:
         return "unique_ability"
-    if "上限+" in value:
+    if re.search(r"上限(?:UP)?\+", value):
         return "cap_increase"
     if "[条件:" in value and "[確率:" in value:
         return "panel_passive"
@@ -225,22 +225,31 @@ def parse_compact_generated(number, table, anchor, parents, *, memory_boost=Fals
     return records
 
 
-def attach_random_options(number, table, anchor, nodes):
+def attach_random_options(number, table, anchor, nodes, *, memory_boost=False):
     grid=table_grid(table)
-    if (len(grid)!=4 or grid[0][0].value!='ランダム効果付与'
+    header='[MB]ランダム効果付与' if memory_boost else 'ランダム効果付与'
+    intro='以下の中からランダムで効果が付与される'
+    allowed_intro={intro,intro+' 複数付与する場合、同一の効果が付与される場合もあり'}
+    if (len(grid)!=4 or label_text(grid[0][0].tag)!=header
+            or grid[0][0].tag.name!='th' or grid[1][0].tag.name!='td'
             or grid[0][0].colspan!=len(grid[0]) or grid[1][0].colspan!=len(grid[0])
-            or grid[1][0].value!='以下の中からランダムで効果が付与される'):
+            or grid[1][0].value not in allowed_intro):
         raise ValueError('Unknown random-effect supplement')
-    key=lambda value: re.sub(r'\s+','',normalize('NFKC',re.sub(r'\s*[（(]☆\d+[)）]','',value)))
+    def key(value):
+        value=normalize('NFKC',re.sub(r'\s*[（(]☆\d+[)）]','',value))
+        if memory_boost:
+            value=re.sub(r'\(\d+/\d+\)\s*$','',value).strip()
+            value=value.removeprefix('[MB]').removesuffix('[MB]')
+        return re.sub(r'\s+','',value)
     seen=set()
     for c,name in enumerate(grid[2]):
         effect=grid[3][c]
-        if name.tag.name!='th' or name.column!=c or name.row!=2 or effect.row!=3 or effect.column!=c:
+        if name.tag.name!='th' or name.column!=c or name.row!=2 or effect.tag.name!='td' or effect.row!=3 or effect.column!=c:
             raise ValueError('Random-effect name/effect mismatch')
-        matches=[n for n in nodes if n['kind']=='panel_live' and key(n['name'])==key(name.value)]
-        if len(matches)!=1 or key(name.value) in seen or 'ランダム効果' not in matches[0]['effect_private']:
+        matches=[n for n in nodes if n['kind']==('mb_live' if memory_boost else 'panel_live') and key(n['name'])==key(label_text(name.tag))]
+        if len(matches)!=1 or key(label_text(name.tag)) in seen or 'ランダム効果' not in matches[0]['effect_private']:
             raise ValueError('Random-effect parent ambiguous or missing')
-        seen.add(key(name.value));options=[]
+        seen.add(key(label_text(name.tag)));options=[]
         pieces=effect.value.split('・')
         if pieces[0].strip():raise ValueError('Random-effect bullet layout mismatch')
         for piece in pieces[1:]:
@@ -255,9 +264,14 @@ def attach_random_options(number, table, anchor, nodes):
 
 def cap_values(name: Cell, effect: Cell) -> dict:
     attribute = r"(?:Vocal|Dance|Visual|メンタル)"
-    pattern = rf"({attribute}(?:\s*&\s*{attribute})*)\s*上限\+(\d+)"
+    pattern = rf"({attribute}(?:\s*&\s*{attribute})*)\s*上限(?:UP)?\+(\d+)"
     match = re.fullmatch(pattern, effect.value)
     repaired = False
+    if match and '上限UP+' in effect.value:
+        heading = re.fullmatch(rf"({attribute}(?:\s*&\s*{attribute})*)\s*上限UP(?:\s*[（(]☆\d+[)）])?", name.value)
+        targets = lambda value: [part.strip() for part in value.split("&")]
+        if not heading or targets(match[1]) != targets(heading[1]):
+            raise ValueError("Unparsed cap increase; UP+ heading mismatch")
     if not match and effect.tag.find("br"):
         # Some Wiki cells omit an ampersand at a line break. Accept only when
         # the independently labelled panel heading confirms the identical targets.
@@ -324,7 +338,7 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
             nodes.append(node)
     if not nodes:
         raise ValueError("Empty panel")
-    mb = []; compact=[]; random_tables=[]
+    mb = []; compact=[]; random_tables=[]; mb_random_tables=[]
     for number, table, anchor in tables:
         if table is panels[0][1]:
             continue
@@ -340,6 +354,8 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
             continue
         if header=='[MB]ランダム効果付与':
             explanation=table_grid(table)
+            if len(explanation)==4:
+                mb_random_tables.append((number,table,anchor));continue
             if (notes is None or len(explanation)!=2 or any(len(row)!=1 for row in explanation)
                     or explanation[0][0].tag.name!='th' or explanation[1][0].tag.name!='td'
                     or not explanation[1][0].value):
@@ -379,6 +395,7 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
         generated.extend(parse_compact_generated(number,table,anchor,mb if is_mb else [n for n in nodes if n['kind']=='panel_live'],memory_boost=is_mb))
     if generated and len({n['name'] for n in generated})!=len(generated):raise ValueError('Duplicate generated-live name across tables')
     for number,table,anchor in random_tables:attach_random_options(number,table,anchor,nodes)
+    for number,table,anchor in mb_random_tables:attach_random_options(number,table,anchor,mb,memory_boost=True)
     return nodes, mb
 
 

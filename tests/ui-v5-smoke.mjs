@@ -171,6 +171,28 @@ try{
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-shared-generation.png')});
    await page.locator('#reset').click();
   }
+  const kite=details.cards.find(card=>card.card_id==='cd191d49-a396-4b8d-864c-37cc36d9c29d');
+  if(kite){
+   const baseCard=cards.find(card=>card.card_id===kite.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   await page.locator('#skill-kind').selectOption('mb_live');
+   await page.locator('#skill-q').fill('ランダム 100%');
+   await page.locator('input[name="mechanic"][value="plus"]').check();
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   const mbSection=page.locator('.performance details').filter({has:page.locator('summary',{hasText:'MBライブスキル'})});
+   await mbSection.locator('summary').click();
+   const mbText=await mbSection.textContent();
+   assert.ok(mbText.includes('Vocal 100% UP [5ターン]'));
+   assert.ok(mbText.includes('Vocal 140% UP [5ターン]'));
+   assert.ok(!mbText.includes('Vocal 10% UP [5ターン]'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-mb-random.png')});
+   await page.locator('#skill-kind').selectOption('panel_live');
+   assert.equal(await page.locator('#count').textContent(),'0 / '+total+' 件');
+   await page.locator('#skill-q').fill('ランダム 10%');
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('#reset').click();
+  }
   const missing=details.cards.find(card=>card.max_status?.missing_fields?.length);
   if(missing){
    const baseCard=cards.find(card=>card.card_id===missing.card_id);
