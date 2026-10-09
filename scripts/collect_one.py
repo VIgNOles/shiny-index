@@ -21,14 +21,18 @@ def as_utc(value):
 
 def status(manifest, state, current):
     cooldown=manifest['single_page_cooldown_seconds']
-    if not isinstance(cooldown,int) or cooldown<86400:
-        raise ValueError('single-page cooldown must be at least 24 hours')
+    if not isinstance(cooldown,int) or isinstance(cooldown,bool) or cooldown<60:
+        raise ValueError('single-page cooldown must be at least 60 seconds')
+    backoff=manifest.get('single_page_failure_backoff_seconds',86400)
+    if not isinstance(backoff,int) or isinstance(backoff,bool) or backoff<86400:
+        raise ValueError('failure backoff must be at least 24 hours')
     if state is None or not state.get('last_attempt_at'):
         return {'initialized':False,'single_page_enabled':manifest.get('single_page_collection_enabled') is True,
                 'full_collection_enabled':manifest.get('full_collection_enabled') is True,
                 'next_allowed_at':None,'can_fetch':False}
-    times=[as_utc(state[key])+timedelta(seconds=cooldown)
-           for key in ('last_attempt_at','last_rate_limit_at') if state.get(key)]
+    times=[as_utc(state['last_attempt_at'])+timedelta(seconds=cooldown)]
+    times.extend(as_utc(state[key])+timedelta(seconds=backoff)
+                 for key in ('last_rate_limit_at','last_failure_at') if state.get(key))
     if state.get('server_not_before_at'):
         times.append(as_utc(state['server_not_before_at']))
     next_allowed=max(times) if times else current
@@ -74,6 +78,8 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
     availability=status(manifest,state,current)
     early_allowed=(authorized_early and availability['initialized'] and
                    availability['single_page_enabled'] and not state.get('last_early_authorized_at') and
+                   (not state.get('last_failure_at') or
+                    current>=as_utc(state['last_failure_at'])+timedelta(seconds=manifest.get('single_page_failure_backoff_seconds',86400))) and
                    current>=as_utc(state['last_attempt_at'])+timedelta(hours=1) and
                    (not state.get('server_not_before_at') or
                     current>=as_utc(state['server_not_before_at'])))
@@ -94,15 +100,20 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
     try:
         fetcher(pages[page_id]['url'],target,allow_limited=True)
     except HTTPError as error:
+        state['last_failure_at']=stamp
+        state['last_failure_reason']='HTTP '+str(error.code)
         if error.code in (429,503):
             if error.code==429: state['last_rate_limit_at']=stamp
             deadline=retry_after_deadline(error.headers.get('Retry-After') if error.headers else None,current)
             if deadline: state['server_not_before_at']=deadline.isoformat(timespec='seconds')
-            write(state_path,state)
+        write(state_path,state)
         if target.is_dir():
             write(target/'limited-run.json',{'page_id':page_id,'status':'failed','full_run':False,'authorized_early':bool(early_allowed and not availability['can_fetch'])})
         raise
-    except Exception:
+    except Exception as error:
+        state['last_failure_at']=stamp
+        state['last_failure_reason']=type(error).__name__+': '+str(error)
+        write(state_path,state)
         if target.is_dir():
             write(target/'limited-run.json',{'page_id':page_id,'status':'failed','full_run':False,'authorized_early':bool(early_allowed and not availability['can_fetch'])})
         raise
@@ -139,7 +150,7 @@ def main():
     if args.command=='init':
         if STATE.exists(): raise FileExistsError('Acquisition state already exists')
         stamp=datetime.now(timezone.utc).isoformat(timespec='seconds')
-        write(STATE,{'last_attempt_at':stamp,'initialized_at':stamp,'note':'Fresh environment starts with a 24-hour cooldown'})
+        write(STATE,{'last_attempt_at':stamp,'initialized_at':stamp,'note':'Fresh environment starts with the configured local cooldown'})
         state=read(STATE)
     if args.command in ('status','init'):
         import json

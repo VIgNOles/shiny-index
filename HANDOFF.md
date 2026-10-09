@@ -366,3 +366,29 @@ scripts/compose_saved_run.pyとtests/test_compose_saved_run.pyを追加し、scr
 未完了: D01〜D04の現行HTML直接取得とキャッシュ候補の全項目照合、S実HTML変換、P-UR/MB/アビリティの実物確認（合成テスト段階）、複合上限など追加構造、詳細項目の固定IDと手修正維持、原本コピーへの採用、詳細バンドル・Web検索・公開、少数検証後の取得範囲拡大。Sの保存HTMLを確保するまでS実HTML変換は明示拒否し、前回のキャッシュ用S変換は維持する。Pステージ／適正・Sファイトは収集対象外。47件リンク保留、CSV直接URLの非公開範囲、元の基礎索引の未達項目も既存記録のまま。
 
 再開時の具体操作: docs/card-details-acquisition.mdに従い、まず ./.venv/Scripts/python.exe scripts/collect_one.py statusを確認する。can_fetch=trueの場合だけD01を新しいprivate/raw/detail-D01-実行日ディレクトリへ1ページ取得する。fetch.jsonとresponse.htmlの成功・ハッシュを確認し、scripts/transform_detail_html.pyでcard_id 6b98f267-3dd0-4e4b-9c25-edce2801b211の新規候補を作り、キャッシュ版との差分と実HTML全項目を照合する。429/503/確認画面等なら再試行せず記録し、正常な原本と公開版を保持する。D02、D03、D04は同じゲートが再び開いてから順次保存する。Sの表が保存できた段階で実物に基づいてS変換を実装・試験する。生HTML・効果原文は公開しない。今回、待機する長時間ジョブ・自動取得・自動公開は起動していない。
+
+## 2026-10-09 09:27 JST 詳細の直接取得中（後の最新記録を優先）
+
+ユーザーが「待機期限を解除して進めて」と明示したため、通常のローカル待機を24時間から60秒へ変更した。source_manifest.jsonのfailure_backoffは24時間、Retry-Afterと排他制御は維持。状態ファイルの過去の取得・429記録は消さず、local_wait_changesに原文と変更日時を追記した。D01（アマテラス）09:25:10、D02（切り拓いて・茨）09:26:53 JSTにHTTP200で実HTMLを保存し、非公開候補を生成した。直接取得の生入力はprivate/raw/detail-D01-20261009-user-waiverとdetail-D02-20261009-user-waiver。D03/D04はまだ取得前。
+
+D01で複合上限があり、対象を配列cap_targetsとしてすべて保存するよう変更した。pilot_schema0.3。D01はライブ3/パッシブ2/上限4/固有アビリティ1/思い出6。D02はライブ2/パッシブ3/上限5/MB2/思い出5とチャージ5。通常LinkとMB Plusが実HTMLでも確認できた。新しい通常間隔、サーバー期限、新規失敗後の停止を22テストで確認し、複合上限を含むHTML12テストPASS。正式原本・公開版への採用はまだ行わず、入力保存とオフライン変換を先行している。詳細は本工程終了時の追記を優先する。
+
+## 2026-10-09 09:40 JST 詳細4件の直接取得・照合完了（最新）
+
+適用した最新指示: 「待機期限を解除して進めて」。通常のローカル待機を60秒へ変更済み。サーバーのRetry-After、新規取得失敗後の24時間停止、排他制御、許可URL、非公開入力は維持。過去の取得・429時刻を削除せず、private/raw/acquisition-state.jsonのlocal_wait_changesに原文・変更時刻・旧値と新値を保存。全件取得フラグはfalse。
+
+今回の完了: D01アマテラス（P-UR）、D02切り拓いて・茨（P-SSR）、D03 My Christmas（S-SSR）、D04 HoP PoP らびっつ（S-UR）の実HTMLを直接保存した。すべてHTTP200。09:25:10、09:26:53、09:28:05、09:29:34 JST、間隔103/72/89秒。今回の通信に429・503・403・確認画面なし。原HTML・fetch.json・limited-run.jsonはprivate/raw/detail-D01〜D04-20261009-user-waiver/、4入力のハッシュ付き一覧はprivate/raw/detail-pilot-20261009/manifest.json。更新時刻は取得時刻で、Wikiの最終編集日時は未確認。
+
+実装・設計変更: src/card_details.pyをP/S両対応にした。Sのアイデア・ひらめき・熟練度複数・最大Lv/☆/Vo/Da/Vi/Me、所持ライブ、サポートLv対応を追加。SSR80とUR90、サポートの特殊「最大」列と数値90列を区別。複合上限をcap_targets配列で全対象保持するpilot_schema0.3へ変更。Pの通常Link/MB Plus（2/5・4/5）、思い出チャージ5、固有アビリティ二重掲載を実HTMLで確認。Pステージ／適正・Sファイトは候補に含めない。基礎card_idは継承するが固定detail_idは未発行。
+
+検証: Python全56テストPASS。短い通常待機と新規失敗／サーバー期限、P/S区別、複合上限、S特殊列・最大Lv・未記載値を推測しない拒否、技能の由来とタグ独立、入力ハッシュと保存失敗・上書き拒否、全パネル照合を検証した。キャッシュ表示のリンクラベル内の角括弧の処理を修正し、PukiWikiの結合末尾列とHTMLの開始列を同じ座標とみなしていた比較を修正。修正後キャッシュの共通504フィールドが表示上の空白正規化後に実HTMLと一致。表の各ノードをすべて比較しており、列番号不一致でノードをスキップしないことも回帰テストで確認。原入力・旧候補・旧比較監査は保持し、修正後キャッシュはprivate/audits/detail-sample-20261009-v2.json、4件の実HTML候補・監査はprivate/audits/detail-pilot-html-20261009-v2.jsonに保存。再変換2回で内容ハッシュf25c72e9017c9db2df312e57519dd395753aef99a4c5c7a3c15bd3551ba67651一致。
+
+途中で解消した事項: 初回D01は未対応の複合上限で変換を拒否し、原HTMLを再取得せず対応後に変換した。D02を60秒の到達前に指定した呼出はローカル制御で通信・保存先作成前に拒否され、期限後に初回の実通信を行った。比較保存先の指定修正中に異内容の旧監査の上書きが拒否されたため、新しいv2監査へ保存した。いずれも正式原本・公開データへの影響なし。既存C01の再変換も新スキーマで成功し、private/audits/detail-html-c01-20261009-v2.jsonへ別保存した。旧schema0.2の候補とハッシュは履歴で、新スキーマによる内容ハッシュの変更は中断による破損ではない。
+
+変更ファイル: scripts/collect_one.py、source_manifest.json、src/card_details.py、scripts/transform_detail_html.py、scripts/transform_detail_sample.py、scripts/verify_detail_pilot.py、tests/test_detail_html.py、tests/test_detail_sample_transform.py、tests/test_limited_collection.py、tests/test_support_detail_html.py、tests/test_detail_pilot_audit.py、docs/card-details-acquisition.md、docs/card-details-pilot.md、docs/card-details-design.md、README.md、operations.md、TASK.md、HANDOFF.md。design.mdの17.35もローカル追記（Git対象外）。生HTML・効果原文・候補・監査はGit対象外。新規依存なし、requirements.txtの既存依存を.venvから使用。公開siteファイル・正式Sheet r7・基本索引1,466件・UI v4は未変更。
+
+未完了: 詳細項目の固定detail_idと手修正・再取得統合、原本コピーへの採用とSheet往復、公開用効果の構造化、Web詳細表示・技能検索・詳細バンドル版管理／配布／公開、原本追加・修正の少数一気通貫検証、全件詳細の取得・件数・欠損・例外検証。今回の4カードはLink/Plusの実例で、Change/Grow/RefrainやGrowの別表は実データ検証が残る。4件のレビュー状態はneeds_reviewで、キャッシュ一致だけをゲーム内独立確認や正式採用済みと扱わない。Wiki最終編集日時・全ゲーム網羅も未確認。既存47件のリンク追加保留、CSV直接URLの非公開範囲と基礎索引の未達項目は維持。
+
+再開時の具体操作: git statusとscripts/collect_one.py statusを読み、待機解除の現行設定60秒を旧引き継ぎの24時間へ戻さない。取得済みのD01〜D04は再取得せず、 ./.venv/Scripts/python.exe scripts/verify_detail_pilot.py で4件入力のハッシュ・P2/S2・変換・比較を再検証できる。同じ結果なら既存v2監査を保持。変換変更時は--outputで新規候補へ出力する。次工程はこの4件を使い、固定detail_id台帳・手修正優先・原本コピー、構造化公開値、詳細バンドルとWebの少数一気通貫を順に作る。追加取得が必要な例外は基本索引の固定ID・種別・URLを許可一覧へ登録し、正常時60秒以上空けて単一ページ取得する。新規429等なら後続通信を止めて保存入力の工程へ移る。問い合わせを新しい必須条件として追加しない。
+
+09:40 JSTの状態確認で取得・変換実行中プロセスなし、取得ロックなし、候補*.tmp残留なし。長時間ジョブ・自動再取得・自動公開は起動していない。今回の4件取得試験の完了を全件詳細版の完成と報告しない。

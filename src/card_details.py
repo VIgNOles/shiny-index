@@ -163,10 +163,14 @@ def parse_panel(tables) -> tuple[list[dict], list[dict]]:
                     "effect_private": value, "mechanics": mechanics(value) if kind == "panel_live" else [],
                     "source_positions": [evidence(number, name, anchor), evidence(number, effect, anchor)]}
             if kind == "cap_increase":
-                match = re.fullmatch(r"(Vocal|Dance|Visual|メンタル)上限\+(\d+)", value)
+                attribute = r"(?:Vocal|Dance|Visual|メンタル)"
+                match = re.fullmatch(rf"({attribute}(?:\s*&\s*{attribute})*)\s*上限\+(\d+)", value)
                 if not match:
                     raise ValueError("Unparsed cap increase")
-                node.update(cap_target=match[1], cap_delta=int(match[2]))
+                targets = [x.strip() for x in match[1].split("&")]
+                if len(set(targets)) != len(targets):
+                    raise ValueError("Duplicate cap target")
+                node.update(cap_targets=targets, cap_delta=int(match[2]))
             if kind == "quick_skill":
                 match = re.search(r"\[コスト\s*:\s*(\d+)\]", value)
                 if not match:
@@ -252,10 +256,123 @@ def match_abilities(nodes, tables):
         ability["second_section_confirmed"] = True
 
 
+def parse_s_traits(content: Tag) -> dict:
+    table = content.find("table")
+    if table is None:
+        raise ValueError("Missing S basic-information table")
+    values, sources = {}, {}
+    for cells in table_grid(table):
+        label = cells[0].value
+        if label not in ("アイデア", "ひらめき", "楽曲熟練度"):
+            continue
+        if label in values:
+            raise ValueError("Duplicate S trait")
+        entries = [cell for c, cell in enumerate(cells[1:], 1) if cell.column == c]
+        if not entries or any(not cell.value for cell in entries):
+            raise ValueError("Missing S trait value")
+        values[label] = [cell.value for cell in entries]
+        sources[label] = [evidence(1, cell, None) for cell in entries]
+    if set(values) != {"アイデア", "ひらめき", "楽曲熟練度"} or any(
+            len(values[label]) != 1 for label in ("アイデア", "ひらめき")):
+        raise ValueError("Missing or ambiguous S traits")
+    return {"idea": values["アイデア"][0], "inspiration": values["ひらめき"][0],
+            "music_proficiencies": values["楽曲熟練度"], "source_positions": sources}
+
+
+def parse_s_status(tables) -> dict:
+    if len(tables) != 1:
+        raise ValueError("Expected one S status table")
+    number, table, anchor = tables[0]
+    grid = table_grid(table)
+    labels = [cell.value for cell in grid[0]]
+    expected = {"Lv", "Vo", "Da", "Vi", "メンタル"}
+    if set(labels) != expected or len(labels) != len(expected):
+        raise ValueError("Unknown S status columns")
+    columns = {label: labels.index(label) for label in labels}
+    records = []
+    for cells in grid[1:]:
+        lv = cells[columns["Lv"]]
+        match = re.fullmatch(r"(\d+)(?:[（(]☆(\d+)[）)])?", lv.value.replace(" ", ""))
+        if not match:
+            raise ValueError("Unknown S status level")
+        record = {"level": int(match[1]), "limit_break": int(match[2]) if match[2] else None,
+                  "source_positions": [evidence(number, lv, anchor)]}
+        for label, field in (("Vo", "vocal"), ("Da", "dance"), ("Vi", "visual"), ("メンタル", "mental")):
+            cell = cells[columns[label]]
+            if not cell.value.isdecimal():
+                raise ValueError("Missing S status value")
+            record[field] = int(cell.value)
+            record["source_positions"].append(dict(evidence(number, cell, anchor), field=field))
+        records.append(record)
+    if not records or len({record["level"] for record in records}) != len(records):
+        raise ValueError("Missing or duplicate S status levels")
+    return max(records, key=lambda record: record["level"])
+
+
+def parse_possessed_live(tables) -> list[dict]:
+    if len(tables) != 1:
+        raise ValueError("Expected one possessed-live table")
+    number, table, anchor = tables[0]
+    grid = table_grid(table)
+    labels = [cell.value for cell in grid[0]]
+    if set(labels) != {"スキル名", "効果", "取得Lv"} or len(labels) != 3:
+        raise ValueError("Unknown possessed-live columns")
+    columns = {label: labels.index(label) for label in labels}
+    records = []
+    for cells in grid[1:]:
+        name, effect, level = [cells[columns[label]] for label in ("スキル名", "効果", "取得Lv")]
+        if not name.value or not effect.value or not (level.value == "初期" or level.value.isdecimal()):
+            raise ValueError("Invalid possessed-live row")
+        records.append({"kind": "possessed_live", "name": name.value, "effect_private": effect.value,
+                        "acquired_at_level": level.value, "mechanics": mechanics(effect.value),
+                        "source_positions": [evidence(number, cell, anchor) for cell in (name, effect, level)]})
+    if not records or len({(x["name"], x["acquired_at_level"]) for x in records}) != len(records):
+        raise ValueError("Empty or duplicate possessed-live skills")
+    return records
+
+
+def parse_support_skills(tables) -> list[dict]:
+    if len(tables) != 1:
+        raise ValueError("Expected one support-skill table")
+    number, table, anchor = tables[0]
+    grid = table_grid(table)
+    if len(grid) < 3 or grid[0][0].value != "スキル名" or grid[0][1].value != "スキル効果":
+        raise ValueError("Unknown support-skill headers")
+    labels = [cell.value for cell in grid[1][2:]]
+    numeric = [int(value) for value in labels if value.isdecimal()]
+    if (not numeric or len(set(labels)) != len(labels) or numeric != sorted(numeric) or
+            any(not value.isdecimal() and value != "最大" for value in labels) or
+            ("最大" in labels and labels[-1] != "最大")):
+        raise ValueError("Unknown support-skill level columns")
+    records = []
+    for cells in grid[2:]:
+        name, effect = cells[:2]
+        if not name.value or not effect.value:
+            raise ValueError("Missing support-skill name or effect")
+        progression = []
+        for c, label in enumerate(labels, 2):
+            cell = cells[c]
+            if not cell.value:
+                continue
+            if not cell.value.isdecimal():
+                raise ValueError("Unparsed support-skill progression")
+            progression.append({"support_level": label, "skill_level": int(cell.value),
+                                "source_positions": [evidence(number, grid[1][c], anchor),
+                                                     evidence(number, cell, anchor)]})
+        if not progression:
+            raise ValueError("Support skill has no progression")
+        records.append({"kind": "support_skill", "name": name.value, "effect_private": effect.value,
+                        "progression": progression,
+                        "source_positions": [evidence(number, name, anchor), evidence(number, effect, anchor)]})
+    if not records or len({record["name"] for record in records}) != len(records):
+        raise ValueError("Empty or duplicate support skills")
+    return records
+
+
 def extract_html(raw: bytes, card: dict) -> dict:
-    """Only P HTML is enabled until S tables have a saved real HTML fixture."""
-    if card["card_kind"] != "P":
-        raise ValueError("S HTML parser not verified yet; keep input for offline replay")
+    """Extract P/S facts without article commentary or excluded skill sections."""
+    if card["card_kind"] not in ("P", "S"):
+        raise ValueError("Unknown card kind")
     soup = BeautifulSoup(raw, "html.parser")
     links = soup.select('link[rel="canonical"]')
     if len(links) != 1 or wiki_key(links[0].get("href", "")) != wiki_key(card["wiki_url"]):
@@ -263,21 +380,33 @@ def extract_html(raw: bytes, card: dict) -> dict:
     content = soup.select_one("#content")
     if not content or not soup.title or not text(soup.title).startswith(card["card_title"] + card["idol_name"]):
         raise ValueError("Missing Wiki content or wrong card title")
-    if tables_in(content, "所持スキル", optional=True):
-        raise ValueError("P/S section mismatch")
     nodes, mb = parse_panel(tables_in(content, "スキルパネル"))
-    abilities = tables_in(content, "アビリティ", optional=True)
-    match_abilities(nodes, abilities)
-    memory = parse_memory(tables_in(content, "思い出アピール"))
-    return {"card_id": card["card_id"], "card_kind": "P", "card_title": card["card_title"],
-            "wiki_url": card["wiki_url"], "source_kind": "saved_wiki_html",
-            "source_sha256": hashlib.sha256(raw).hexdigest(), "panel_nodes": nodes,
-            "mb_live": mb, "memory_appeals": memory,
-            "coverage": {"skill_panel": "extracted", "memory_appeal": "extracted",
-                         "memory_boost": "extracted" if mb else "no_entry_confirmed",
-                         "unique_ability": "extracted" if any(n["kind"] == "unique_ability" for n in nodes) else "no_entry_confirmed",
-                         "stage_skill": "not_collected", "aptitude": "not_collected",
-                         "review": "needs_review"}}
+    record = {"card_id": card["card_id"], "card_kind": card["card_kind"], "card_title": card["card_title"],
+              "wiki_url": card["wiki_url"], "source_kind": "saved_wiki_html",
+              "source_sha256": hashlib.sha256(raw).hexdigest(), "panel_nodes": nodes,
+              "coverage": {"skill_panel": "extracted", "review": "needs_review"}}
+    if card["card_kind"] == "P":
+        if tables_in(content, "所持スキル", optional=True):
+            raise ValueError("P/S section mismatch")
+        match_abilities(nodes, tables_in(content, "アビリティ", optional=True))
+        record["mb_live"] = mb
+        record["memory_appeals"] = parse_memory(tables_in(content, "思い出アピール"))
+        record["coverage"].update({
+            "memory_appeal": "extracted", "memory_boost": "extracted" if mb else "no_entry_confirmed",
+            "unique_ability": "extracted" if any(n["kind"] == "unique_ability" for n in nodes) else "no_entry_confirmed",
+            "stage_skill": "not_collected", "aptitude": "not_collected"})
+    else:
+        if tables_in(content, "思い出アピール", optional=True) or mb:
+            raise ValueError("P/S section mismatch")
+        record["traits"] = parse_s_traits(content)
+        record["max_status"] = parse_s_status(tables_in(content, "ステータス"))
+        record["possessed_live"] = parse_possessed_live(tables_in(content, "ライブスキル"))
+        record["support_skills"] = parse_support_skills(tables_in(content, "サポートスキル"))
+        record["coverage"].update({"traits": "extracted", "max_status": "extracted",
+                                   "possessed_live": "extracted", "support_skills": "extracted",
+                                   "quick_skill": "extracted" if any(n["kind"] == "quick_skill" for n in nodes) else "no_entry_confirmed",
+                                   "fight_skill": "not_collected"})
+    return record
 
 
 def transform_run(directory: Path, card: dict, base_version: str) -> dict:
@@ -297,7 +426,7 @@ def transform_run(directory: Path, card: dict, base_version: str) -> dict:
         raise ValueError("Invalid acquisition timestamp") from error
     record = extract_html(raw, card)
     record["fetched_at"] = report["fetched_at"]
-    result = {"pilot_schema": "0.2", "base_dataset_version": base_version,
+    result = {"pilot_schema": "0.3", "base_dataset_version": base_version,
               "input_kind": "saved_wiki_html", "cards": [record]}
     stable = json.dumps(result, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     result["content_hash"] = hashlib.sha256(stable.encode("utf-8")).hexdigest()

@@ -2,9 +2,9 @@
   "schema_version": "1.0",
   "full_collection_enabled": false,
   "single_page_collection_enabled": true,
-  "single_page_cooldown_seconds": 86400,
+  "single_page_cooldown_seconds": 60,
   "public_distribution_enabled": true,
-  "reason": "2026-10-07 user explicitly authorizes public factual index; WIKIWIKI terms/rules reviewed; no article text, images, raw HTML or attachment copies in public bundle; source links retained; one-page checks with 24-hour cooldown; one explicit user-authorized early W09 check on 2026-10-08, then normal cooldown; full collection paused after HTTP 429",
+  "reason": "2026-10-09 user explicitly cancels the local 24-hour wait. Sequential allowlisted single-page requests, at least 60 seconds between attempts; stop on acquisition failure and preserve server Retry-After. Full batch remains disabled. Public factual index excludes article text, images and raw HTML.",
   "pages": [
     {
       "id": "W02",
@@ -46,7 +46,7 @@
     }
   ],
   "concurrency": 1,
-  "interval_seconds": 15,
+  "interval_seconds": 60,
   "request_limit": 20,
   "detail_base_dataset_version": "v1-93a6a8b8d40e754a",
   "detail_pages": [
@@ -74,5 +74,6 @@
       "card_id": "1e457013-9c18-4d2e-bd33-e8483fdda5a9",
       "url": "https://wikiwiki.jp/shinycolors/%E3%80%90HoP%20PoP%20%E3%82%89%E3%81%B3%E3%81%A3%E3%81%A4%E3%80%91%E4%B8%89%E5%B3%B0%E7%B5%90%E8%8F%AF"
     }
-  ]
+  ],
+  "single_page_failure_backoff_seconds": 86400
 }

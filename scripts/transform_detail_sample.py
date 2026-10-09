@@ -20,7 +20,7 @@ MECHANIC = re.compile(r"\((Link|Plus|Change|GrowUp|Grow|Refrain|Reflain)\)", re.
 BG = re.compile(r"BGCOLOR\([^)]*\):")
 COLOR = re.compile(r"&color\([^)]*\)\{([^{}]*)\};")
 NOBR = re.compile(r"&nobr\{([^{}]*)\};")
-LINK = re.compile(r"\[+([^\[\]>]+)>[^\]]+\]+")
+LINK = re.compile(r"\[\[((?:(?!\]\]).)*?)>[^\[\]]+\]\]")
 
 
 def clean(value: str) -> str:

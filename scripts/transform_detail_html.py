@@ -60,7 +60,10 @@ def main():
     card = document["cards"][0]
     print(json.dumps({"card_id": card["card_id"], "card_kind": card["card_kind"],
                       "panel_counts": Counter(n["kind"] for n in card["panel_nodes"]),
-                      "memory_levels": len(card["memory_appeals"]),
+                      "memory_levels": len(card.get("memory_appeals", [])),
+                      "possessed_live": len(card.get("possessed_live", [])),
+                      "support_skills": len(card.get("support_skills", [])),
+                      "max_level": card.get("max_status", {}).get("level"),
                       "content_hash": document["content_hash"], "review": "needs_review"}, ensure_ascii=False))
 
 

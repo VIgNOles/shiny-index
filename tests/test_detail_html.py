@@ -48,6 +48,14 @@ class DetailHtmlTests(unittest.TestCase):
         self.assertEqual(card['coverage']['stage_skill'], 'not_collected')
         self.assertEqual(card['coverage']['review'], 'needs_review')
 
+    def test_multi_cap_keeps_every_target_on_one_node(self):
+        panel=PANEL.replace('Vocal上限+100','Dance & メンタル 上限+150')
+        node=extract_html(fixture(panel=panel),CARD)['panel_nodes'][1]
+        self.assertEqual(node['cap_targets'],['Dance','メンタル'])
+        self.assertEqual(node['cap_delta'],150)
+        with self.assertRaisesRegex(ValueError,'Duplicate cap target'):
+            extract_html(fixture(panel=PANEL.replace('Vocal上限+100','Vocal & Vocal 上限+100')),CARD)
+
     def test_mb_has_own_mechanics_and_stage_not_star(self):
         mb = '''<table><tr><th colspan="2">メモリーブースト</th></tr>
         <tr><th colspan="2">技能甲[MB] (2/5)</th></tr>
@@ -82,18 +90,18 @@ class DetailHtmlTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Unclassified'):
             extract_html(fixture(panel=PANEL.replace('Vocal上限+100', '未対応の構造')), CARD)
         with self.assertRaisesRegex(ValueError, 'Unparsed cap increase'):
-            extract_html(fixture(panel=PANEL.replace('Vocal上限+100', 'Dance&Vocal上限+100')), CARD)
+            extract_html(fixture(panel=PANEL.replace('Vocal上限+100', '未対応上限+100')), CARD)
         for markup in ('<table><tr><td>A</td><td>B</td></tr><tr><td>C</td></tr></table>',
                        '<table><tr><td rowspan="3">A</td></tr></table>'):
             with self.assertRaises(ValueError):
                 table_grid(BeautifulSoup(markup, 'html.parser').table)
 
-    def test_wrong_card_and_unverified_s_are_rejected(self):
+    def test_wrong_card_and_wrong_p_s_sections_are_rejected(self):
         with self.assertRaisesRegex(ValueError, 'Wiki URL|canonical'):
             extract_html(fixture().replace(URL.encode(), b'https://wikiwiki.jp/pp/security-check-guide'), CARD)
         with self.assertRaisesRegex(ValueError, 'wrong card title'):
             extract_html(fixture().replace('【試験】試験アイドル - Wiki'.encode(), '【別人】 - Wiki'.encode()), CARD)
-        with self.assertRaisesRegex(ValueError, 'S HTML parser not verified'):
+        with self.assertRaisesRegex(ValueError, 'P/S section mismatch'):
             extract_html(fixture(), dict(CARD, card_kind='S'))
 
     def test_missing_or_duplicate_memory_level_is_rejected(self):

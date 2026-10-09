@@ -163,6 +163,45 @@ class LimitedCollectionTests(unittest.TestCase):
             self.assertEqual(availability['next_allowed_at'],(current+timedelta(days=2)).isoformat(timespec='seconds'))
             self.assertEqual(indexer.read(target/'limited-run.json')['status'],'failed')
 
+    def test_released_local_wait_keeps_spacing_and_server_deadline(self):
+        current=datetime(2026,10,9,0,0,tzinfo=timezone.utc)
+        manifest={'single_page_cooldown_seconds':60,'single_page_failure_backoff_seconds':86400,
+                  'single_page_collection_enabled':True,'full_collection_enabled':False}
+        state={'last_attempt_at':(current-timedelta(hours=2)).isoformat(),
+               'last_rate_limit_at':(current-timedelta(days=2)).isoformat()}
+        self.assertTrue(limited.status(manifest,state,current)['can_fetch'])
+        state['last_attempt_at']=current.isoformat()
+        self.assertFalse(limited.status(manifest,state,current+timedelta(seconds=59))['can_fetch'])
+        self.assertTrue(limited.status(manifest,state,current+timedelta(seconds=60))['can_fetch'])
+        state['server_not_before_at']=(current+timedelta(hours=3)).isoformat()
+        self.assertFalse(limited.status(manifest,state,current+timedelta(hours=1))['can_fetch'])
+        state.pop('server_not_before_at')
+        state['last_failure_at']=current.isoformat()
+        self.assertFalse(limited.status(manifest,state,current+timedelta(hours=23))['can_fetch'])
+
+    def test_failure_with_short_spacing_stops_following_page(self):
+        for failure in (HTTPError('test',503,'Unavailable',None,None),ValueError('security interstitial')):
+            with self.subTest(failure=failure),tempfile.TemporaryDirectory() as temp:
+                root=Path(temp)
+                manifest={'pages':[{'id':'W09','url':'https://wikiwiki.jp/shinycolors/ガシャ'}],
+                          'audit_pages':[],'single_page_cooldown_seconds':60,
+                          'single_page_failure_backoff_seconds':86400,'single_page_collection_enabled':True}
+                indexer.write(root/'source_manifest.json',manifest)
+                state=root/'state.json'
+                current=datetime(2026,10,9,0,0,tzinfo=timezone.utc)
+                indexer.write(state,{'last_attempt_at':(current-timedelta(days=2)).isoformat()})
+                calls=[]
+                def fail_once(*args,**kwargs):
+                    calls.append(args[0])
+                    raise failure
+                with patch.object(limited,'ROOT',root):
+                    with self.assertRaises(type(failure)):
+                        limited.fetch_one('W09',root/'failed',current=current,state_path=state,fetcher=fail_once)
+                    with self.assertRaisesRegex(RuntimeError,'unavailable until'):
+                        limited.fetch_one('W09',root/'next',current=current+timedelta(minutes=2),state_path=state,fetcher=fail_once,authorized_early=True)
+                self.assertEqual(len(calls),1)
+                self.assertEqual(indexer.read(state)['last_failure_at'],current.isoformat(timespec='seconds'))
+
     def test_security_page_is_not_accepted_as_card_source(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)

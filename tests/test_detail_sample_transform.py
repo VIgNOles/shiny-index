@@ -1,11 +1,16 @@
 """Meaningful boundaries for the four-card offline detail pilot."""
 import unittest
 from scripts.transform_detail_sample import (
-    mechanics, panel_nodes, s_max_status, support_skills
+    clean, mechanics, panel_nodes, s_max_status, support_skills
 )
 
 
 class DetailPilotTests(unittest.TestCase):
+    def test_link_labels_can_contain_bracketed_conditions(self):
+        self.assertEqual(clean('[[[条件甲]>解説#anchor]]'),'[条件甲]')
+        self.assertEqual(clean('[[名称甲>解説]]/[[名称乙>解説]]'),'名称甲/名称乙')
+        self.assertEqual(clean('[[単純リンク]] と [[名称甲>解説]]'),'[[単純リンク]] と 名称甲')
+
     def test_mechanic_aliases_and_scope(self):
         self.assertEqual(
             mechanics("(Link)/(Plus)/(change)/(GrowUp)/(Grow)/(Reflain)/(Refrain)"),
