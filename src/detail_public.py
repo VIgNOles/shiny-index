@@ -4,12 +4,12 @@ from datetime import datetime
 import hashlib,json,re,uuid,math
 from pathlib import Path
 from urllib.parse import urlsplit,unquote
-from src.detail_master import resolve,validate,KINDS
+from src.detail_master import resolve,validate,KINDS,validate_generation_parents
 from src.indexer import digest,read,write,now
 
 MECHANICS={'link','plus','change','grow','refrain'}
 COVERAGE_FIELDS={'skill_panel','review','memory_appeal','memory_boost','generated_live','unique_ability','stage_skill','aptitude','fight_skill','max_status','possessed_live','quick_skill','support_skills','traits'}
-ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost','generation_stage','generated_from_name','generation_origin_kind','random_effect_options','memory_link_facts','memory_charge_facts','memory_link_present','memory_charge_present']
+ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost','generation_stage','generated_from_name','generated_from_names','generation_origin_kind','random_effect_options','memory_link_facts','memory_charge_facts','memory_link_present','memory_charge_present']
 
 def numeric_facts(item):
     # Individual numeric facts do not imply unconditional or complete skill effects.
@@ -119,6 +119,7 @@ def validate_public(doc,base_cards):
         for item in card['items']:
             uuid.UUID(item['detail_id'])
             validate_memory_facts(item)
+            validate_generation_parents(item)
             if item['detail_id'] in items or item['kind'] not in KINDS[card['card_kind']]:raise ValueError('Invalid detail item')
             items.add(item['detail_id'])
             if item['kind']=='generated_live' and (item.get('sp') is not None

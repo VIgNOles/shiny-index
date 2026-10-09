@@ -12,6 +12,7 @@ export function factText(fact){
  if(fact.metric==='activation_limit')return '最大発動 '+fact.value+'回';
  return '';
 }
+export function generationParentText(item){return (item.generated_from_names??(item.generated_from_name?[item.generated_from_name]:[])).join(' / ');}
 export function detailSearch(cards,params,details){
  const q=normalized(params.get('skill_q')).trim().split(/\s+/).filter(Boolean);
  const kinds=params.getAll('skill_kind'),mechanics=params.getAll('mechanic');
@@ -24,7 +25,7 @@ export function detailSearch(cards,params,details){
   return detail.items.some(item=>{
    if(kinds.length&&!kinds.includes(item.kind))return false;
    if(mechanics.length&&(!liveKinds.has(item.kind)||!mechanics.some(value=>(item.mechanics??[]).includes(value))))return false;
-   const common=[item.name,kindNames[item.kind],...(item.mechanics??[]).map(m=>mechanicNames[m]),...(item.cap_targets??[])];
+   const common=[item.name,kindNames[item.kind],...(item.mechanics??[]).map(m=>mechanicNames[m]),...(item.cap_targets??[]),...(item.kind==='generated_live'?[generationParentText(item)]:[])];
    const views=[[...common,...(item.numeric_facts??[]).map(factText),...(item.random_effect_options?.length?['ランダム',...item.random_effect_options.map(factText)]:[])]];
    if(item.memory_link_present)views.push([...common,'Link追加効果',...(item.memory_link_facts??[]).map(factText)]);
    if(item.memory_charge_present)views.push([...common,'チャージ追加効果',...(item.memory_charge_facts??[]).map(factText)]);

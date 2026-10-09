@@ -157,6 +157,20 @@ try{
    assert.ok(!(await page.locator('.performance').textContent()).includes('*1'));
    await page.locator('#reset').click();
   }
+  const shared=details.cards.find(card=>card.card_id==='34f1b963-2bbc-4ef3-a863-43b3817dabab');
+  if(shared&&Number((process.env.UI_EXPECTED_VERSION??'').match(/^ui-v(\d+)/)?.[1])>=9){
+   const baseCard=cards.find(card=>card.card_id===shared.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   await page.locator('#skill-kind').selectOption('generated_live');
+   await page.locator('#skill-q').fill('new or …+(☆4)');
+   await page.locator('input[name="mechanic"][value="change"]').check();
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'生成ライブスキル'}).click();
+   assert.ok((await page.locator('.performance').textContent()).includes('生成元 new or … / new or …+(☆4)'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-shared-generation.png')});
+   await page.locator('#reset').click();
+  }
   const missing=details.cards.find(card=>card.max_status?.missing_fields?.length);
   if(missing){
    const baseCard=cards.find(card=>card.card_id===missing.card_id);

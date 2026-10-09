@@ -203,7 +203,9 @@ def parse_compact_generated(number, table, anchor, parents, *, memory_boost=Fals
         seen.add(target)
         matches=[parent for parent in parents if target in
                  [key(t) for t in re.findall(r'ライブスキル生成\s*\[([^\]]+)\]',parent['effect_private'])]]
-        if len(matches)!=1:raise ValueError('Compact generated-live parent ambiguous or missing')
+        if (not matches or len({key(parent['name']) for parent in matches})!=len(matches)
+                or any(parent['kind']!=('mb_live' if memory_boost else 'panel_live') for parent in matches)):
+            raise ValueError('Compact generated-live parent ambiguous or missing')
         if re.search(r'ライブスキル生成\s*\[',effect.value):
             raise ValueError('Compact generated-live unresolved continuation')
         parent=matches[0]
@@ -211,6 +213,8 @@ def parse_compact_generated(number, table, anchor, parents, *, memory_boost=Fals
                         'generated_from_name':parent['name'],'generation_origin_kind':parent['kind'],
                         'effect_private':effect.value,'mechanics':mechanics(effect.value),
                         'source_positions':[evidence(number,name,anchor),evidence(number,effect,anchor)]})
+        if len(matches)>1:
+            records[-1]['generated_from_names']=[parent['name'] for parent in matches]
     targets={key(t) for parent in parents for t in re.findall(r'ライブスキル生成\s*\[([^\]]+)\]',parent['effect_private'])}
     if targets!=seen:raise ValueError('Compact generated-live target coverage mismatch')
     return records

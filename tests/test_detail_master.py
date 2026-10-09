@@ -23,6 +23,19 @@ class DetailMasterTests(unittest.TestCase):
         self.assertEqual(updated['registry'][0]['source']['effect_private'],'Vocal3倍アピール')
         self.assertEqual(adopt(updated,c),updated)
 
+    def test_generated_parent_expansion_preserves_id_and_roundtrip(self):
+        c=candidate();node={'kind':'generated_live','name':'child','sp':None,'generation_stage':1,
+                           'generated_from_name':'スキル','effect_private':'Vocal5倍','mechanics':[]}
+        c['cards'][0]['generated_live']=[node];rehash(c)
+        before=adopt(empty(c['base_dataset_version']),c);old=before['registry'][1]['detail_id']
+        c['cards'][0]['panel_nodes'].append(dict(c['cards'][0]['panel_nodes'][0],name='スキル+'))
+        node['generated_from_names']=['スキル','スキル+'];rehash(c)
+        after=adopt(before,c)
+        child=next(r for r in after['registry'] if r['source']['kind']=='generated_live')
+        self.assertEqual(child['detail_id'],old)
+        self.assertEqual(child['source']['generated_from_names'],['スキル','スキル+'])
+        self.assertEqual(from_rows(table_rows(after)),after)
+
     def test_manual_override_survives(self):
         c=candidate();m=adopt(empty(c['base_dataset_version']),c)
         r=m['registry'][0];r.update(override={'name':'修正した名称'},reason='表示訂正',source_ref=c['cards'][0]['wiki_url'],updated_at='2026-10-09T04:00:00Z')

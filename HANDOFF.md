@@ -631,3 +631,8 @@ UI v8・基礎v1-93a6a8b8d40e754aは不変、詳細候補d1-5c20f6531f1c8fb1、4
 候補と同じデータをnativeエクスポートから再生成し、PC1280/390/320の基本/詳細・MB/生成/思い出Link/チャージ/変動倍率/JSON版/欠損表示がPASS。新規cheer+のVo/Da/Vi+25表示、Scene With YouのMB生成元と脚注除外も3幅PASS、320px実画像を確認。公開50ファイル、旧48ファイルの変更はindex.html/details/latest.jsonのみで全旧データ版の生バイトを保持。Python137/JS24 PASS。Google実画面はCUA起動不可、native書式API検証済み・XLSX代替画像を別プロセスで描画中。公開Actions/匿名URL確認は後続追記する。
 
 証拠: private/audits/detail-native-397-roundtrip-20261009.json、native397-format-and-links-20261009.json、detail397-site-preservation-20261009.json、ui-v8-details397-local-20261009、private/details/sheet-write-after319-checkpoint-20261009.json。新依存なし。取得012/PID29464は全残件へ通常60秒以上/1ページで継続し、正式原本/公開へ自動採用しない。後続406候補は構造保留0、まだ未採用。全件詳細/条件の全面構造化/公式独立網羅/基礎新規カード本番追加実証等は引き続き未完了、リンク47はユーザー保留。
+
+
+397件UI v8の公開は準備215f7c3/公開06d4b6df4c0d315dbf9e40b7bd0f1416d740a1af、Actions37927628092 success、匿名50/50一致、PC1280/390/320基本/詳細/cheer上限/SceneMB生成PASS。native XLSXの6詳細タブ先頭/端11画像を確認（固定150px長文省略は継承、Google実画面はCUA起動不可）。397データ維持のUI v7切戻し候補も3幅PASS。private/audits/detail397-public-verification-20261009.json参照。
+
+次工程は420原本r13/6578項目の登録中。旧419候補の内容不変を確認して、複数親の同一生成先を1件で保存する修正を行った（docs/card-details-design参照、Python140/JS25）。397のfresh exportはactive原本と全15タブ実値一致。新nativeコピーはprivate/details/sheet-write-after397-checkpoint-20261009.json、23バッチ（元78/114requests、90KB未満同順序）のackを保存する。397原本/公開を維持し、420の全値/基礎9タブ/6179旧IDと手修正/書式・リンクを検証後に切替。UI v9候補はprivate/site-details420-ui9-candidate-20261009。公開397を420と混同せず、420完了後も全件完成とは扱わない。

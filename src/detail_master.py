@@ -41,6 +41,17 @@ def resolved_item(row):
     return item
 
 
+def validate_generation_parents(item):
+    if 'generated_from_names' not in item:return
+    names=item['generated_from_names']
+    if (item.get('kind')!='generated_live' or not isinstance(names,list) or len(names)<2
+            or any(not isinstance(name,str) or not name.strip() for name in names)):
+        raise ValueError('Invalid generated-live parent names')
+    identities=[re.sub(r'\s+','',normalize('NFKC',name)) for name in names]
+    if len(set(identities))!=len(names) or item.get('generated_from_name')!=names[0]:
+        raise ValueError('Invalid generated-live parent names')
+
+
 def validate(master):
     ids=set();aliases=set()
     coverage_ids=[row['card_id'] for row in master['coverage']]
@@ -60,6 +71,7 @@ def validate(master):
             raise ValueError('Manual override requires reason, source and date')
         if source['kind'] not in KINDS[master['cards'][row['card_id']]['source']['card_kind']]:raise ValueError('P/S detail mismatch')
         resolved=resolved_item(row)
+        validate_generation_parents(resolved)
         if not resolved.get('name'):raise ValueError('Missing detail name')
         if resolved.get('sp') is not None and (type(resolved['sp']) is not int or resolved['sp']<0):raise ValueError('Invalid SP')
         if source['kind']=='generated_live' and (resolved.get('sp') is not None

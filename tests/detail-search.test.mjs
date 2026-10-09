@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {detailSearch,factText} from '../web/details.mjs';
+import {detailSearch,factText,generationParentText} from '../web/details.mjs';
 const cards=[{card_id:'P1'},{card_id:'S1'},{card_id:'pending'}];
 const details=new Map([
  ['P1',{items:[{name:'通常',kind:'panel_live',mechanics:['link'],numeric_facts:[]},{name:'MB限定',kind:'mb_live',mechanics:['plus'],numeric_facts:[]},{name:'思い出',kind:'memory_appeal',mechanics:['link'],numeric_facts:[]}]}],
@@ -42,4 +42,13 @@ test('memory range search keeps both bounds and normalizes wave width',()=>{
  const d=new Map([['P1',{items:[{name:'思い出',kind:'memory_appeal',memory_link_present:true,memory_link_facts:[{metric:'appeal_range',targets:['Vocal'],minimum:0.4,maximum:2}]}]}]]);
  assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=memory_appeal&skill_q=Link+Vocal+0.4~2倍'),d),[cards[0]]);
  assert.equal(factText(d.get('P1').items[0].memory_link_facts[0]),'Vocal 0.4～2倍（条件未構造化）');
+});
+
+test('shared generated skill searches both parents without mixing panel mechanics',()=>{
+ const item={name:'child',kind:'generated_live',generated_from_name:'root A',generated_from_names:['root A','root B(☆4)'],mechanics:['change']};
+ const d=new Map([['P1',{items:[item]}]]);
+ assert.equal(generationParentText(item),'root A / root B(☆4)');
+ assert.equal(generationParentText({generated_from_name:'root'}),'root');
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=generated_live&skill_q=root+B(☆4)&mechanic=change'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=panel_live&skill_q=root+B(☆4)'),d),[]);
 });

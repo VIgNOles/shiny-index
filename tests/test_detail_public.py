@@ -21,6 +21,18 @@ class DetailPublicTests(unittest.TestCase):
   self.assertEqual(item['generation_stage'],1);self.assertNotIn('effect_private',item)
   c['cards'][0]['generated_live'][0]['sp']=40;rehash(c)
   with self.assertRaisesRegex(ValueError,'generated-live'):adopt(empty(c['base_dataset_version']),c)
+ def test_shared_generated_parents_are_public_and_invalid_shapes_rejected(self):
+  c=candidate();c['cards'][0]['generated_live']=[{'kind':'generated_live','name':'child','sp':None,'generation_stage':1,
+    'generated_from_name':'スキル','generated_from_names':['スキル','スキル+'],'effect_private':'非公開本文','mechanics':[]}];rehash(c)
+  d=public_document(adopt(empty(c['base_dataset_version']),c),[{'card_id':CID,'card_kind':'P'}])
+  item=d['cards'][0]['items'][1];self.assertEqual(item['generated_from_names'],['スキル','スキル+'])
+  self.assertNotIn('effect_private',item)
+  for bad in [[],['スキル'],['wrong','スキル+'],['スキル','ス キ ル'],['スキル',{}],'スキル']:
+   broken=copy.deepcopy(d);broken['cards'][0]['items'][1]['generated_from_names']=bad
+   with self.subTest(bad=bad),self.assertRaisesRegex(ValueError,'parent names'):
+    validate_public(broken,[{'card_id':CID,'card_kind':'P'}])
+  broken=copy.deepcopy(d);broken['cards'][0]['items'][1]['kind']='panel_live'
+  with self.assertRaisesRegex(ValueError,'parent names'):validate_public(broken,[{'card_id':CID,'card_kind':'P'}])
  def test_random_options_allow_only_structured_facts(self):
   c=candidate();item=c['cards'][0]['panel_nodes'][0]
   item['random_effect_options']=[{'metric':'rate','target':'Vocal','value':50,'unit':'percent','direction':'UP','turns':3}];rehash(c)

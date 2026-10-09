@@ -83,6 +83,21 @@ class DetailHtmlTests(unittest.TestCase):
         for old,new,error in [('[MB]child A','child A','MB context'),('child B','unknown','parent ambiguous'),('Dance6倍','ライブスキル生成[next]','unresolved')]:
             with self.subTest(error=error),self.assertRaisesRegex(ValueError,error):parse(html.replace(old,new))
 
+    def test_compact_generated_shared_target_keeps_both_explicit_parents_once(self):
+        from src.card_details import parse_compact_generated
+        html='<table><tr><th>生成されるライブスキル</th></tr><tr><th>child</th></tr><tr><td style="background-color:gainsboro">Visual5倍(change)</td></tr></table>'
+        parents=[{'kind':'panel_live','name':'root','effect_private':'ライブスキル生成[child]'},
+                 {'kind':'panel_live','name':'root+(☆4)','effect_private':'ライブスキル生成[child]'}]
+        parse=lambda value:parse_compact_generated(5,BeautifulSoup(html,'html.parser').table,'panel',value)
+        records=parse(parents)
+        self.assertEqual(len(records),1)
+        self.assertEqual(records[0]['generated_from_names'],['root','root+(☆4)'])
+        self.assertEqual(records[0]['generated_from_name'],'root')
+        self.assertEqual(records[0]['mechanics'],['change'])
+        for invalid in [[],[parents[0],dict(parents[0])],[dict(parents[0],kind='mb_live')]]:
+            with self.subTest(invalid=invalid),self.assertRaisesRegex(ValueError,'parent ambiguous'):
+                parse(invalid)
+
     def test_generated_skill_footnote_is_evidence_not_part_of_target_name(self):
         from src.card_details import parse_compact_generated
         note='<a class="note_super tooltip" id="notetext_1">*1</a>'
