@@ -381,3 +381,15 @@ frozen state732（242保存ページ）の入力候補ad01f438b35dc959b832b2efaf
 正式原本r10/298P141S157/4418、固定ID、手修正、基礎r7/1466、native Sheetsは変更せず、公開変換とUI v8を修正。最新native exportとactive master全値一致も再確認。詳細版d1-45ed170d94366826、46ファイル。旧44ファイルの変更はdetails.mjs/index.html/details/latest.jsonだけで旧バンドルは生バイト不変。Python134/JS24、PC1280/390/320基本/詳細・実Housekeeping変動Linkの表示/検索・ライブLinkへの非混入PASS。320px変動倍率画面を視認。依存追加なし。公開Actions/匿名46ファイル/公開画面は後続に追記。
 
 次の保存済み入力はfrozen state795/263ページ、319カードP144/S175、構造保留0・入力待ち1100・リンク47保留、候補3ca632d4a0128b004cf1c10b40d4ed118e0cdacef1f6a7f38986db800d145efa。private/audits/after298-next-candidate-20261009.jsonとfrozenを保持。現在native原本のfresh exportからprivate/details/after298-next-adoption-20261009-03を準備中。これらは候補であり319原本/公開版ではない。取得011は継続し、256/298/319を新しい上限にはしていない。
+
+## 2026-10-09 319件原本・公開候補と298件修正版の公開確認
+
+298件UI v8変動倍率修正版は8a4ceac/5c1bb5f、Actions37917797482 success、匿名46/46ファイル一致、PC1280/390/320基本/詳細・思い出Link/チャージ/実Housekeeping範囲検索PASS。旧UI v7へ戻す候補でも298件と最新詳細d1-45ed170d94366826を保持して同3幅の基本/詳細操作PASS。証拠はprivate/audits/detail298-range-public-verification-20261009.jsonとui-v7-rollback-from298-range-20261009。
+
+次のfrozen state795/263保存ページ・候補3ca632d4a0128b004cf1c10b40d4ed118e0cdacef1f6a7f38986db800d145efaから319カードP144/S175・4796項目を採用。298原本をfresh exportして計画入力/active原本と全値一致、指定アカウントでnative全コピーへ20バッチ（元69バッチ/103 requestsと同じ順序、90KB未満）を書き込んだ。全値読戻し一致、基礎9タブ差分0、旧4418固定ID/手修正保持、元298の更新時刻10:11:35.968UTC不変を確認後、原本接続とmaster.xlsxをr11へ切替。追加378出典URL/実リンク一致、書込14092セルの書式/validation/chips/数式と6タブのフィルター範囲をAPI確認。旧298 native/XLSX/接続/siteバックアップを保存。詳細はprivate/audits/detail-native-319-roundtrip-20261009.json、native319-format-and-links-20261009.json、private/details/sheet-write-after298-checkpoint-20261009.json。
+
+UI v8・基礎v1-93a6a8b8d40e754aは不変、詳細候補d1-5c20f6531f1c8fb1、48ファイル。旧46ファイルの変更はindex.htmlとdetails/latest.jsonだけで旧不変データは全バイト保持。319候補PC1280/390/320の基本/詳細・思い出Link/チャージ/変動倍率/MB/生成/ランダム/最大Lv欠損/JSON版・SHA/横はみ出しPASS。コード変更なし、直前のPython134/JS24 PASSを使用。319公開Actions/匿名48ファイル/公開画面は後続へ記録し、298公開確認と混同しない。
+
+取得workflow011は残全件へ通常60秒以上/1ページ・実HTTP失敗/Retry-After停止で継続する。256/298/319を上限にはしない。取得終了時の自動処理は保存入力からの候補監査までで、原本への追加採用/公開は別工程。未完了は全件詳細取得/採用・複合効果/条件の全面構造化・公式独立網羅・基礎新規実在カード1追加/修正の本番反映実証・日付56・リンク47ユーザー保留・実機/スクリーンリーダー全面検証。Google画面外観はCUA起動不可のため未確認、XLSXの代替表示を確認中。原本/公開の整合性障害や新しいWiki HTTP失敗は確認していない。
+
+319件公開準備の補足: scripts/export_detail_sheet.pyのHTML読書きをbytes経由へ変更し、Windowsでも既存の改行コードを保持する。再生成を実行し、旧HTMLから詳細版文字列だけ置換したバイト列とcandidate/active HTMLが完全一致することを確認。新依存はない。表示検証用にはCodex依存バンドル26.1007.11041のArtifact Toolでnativeエクスポートの読み取りを別privateディレクトリで実行し、原本の値/書式を書き換えない。

@@ -11,10 +11,10 @@ if __name__=='__main__':
  m=from_workbook(a.sheet_export)
  root=Path(a.site_candidate);base_version=read(root/'data/latest.json')['dataset_version']
  d=prepare(m,read(root/'data'/base_version/'cards.json')['cards'],root,base_version)
- html=(root/'index.html').read_text(encoding='utf-8')
+ html=(root/'index.html').read_bytes().decode('utf-8')
  html,n=re.subn(r"window\.DETAIL_VERSION='[^']*'","window.DETAIL_VERSION='"+d['meta']['detail_version']+"'",html)
  if n!=1:raise ValueError('Expected one detail version marker')
- (root/'index.html').write_text(html,encoding='utf-8')
+ (root/'index.html').write_bytes(html.encode('utf-8'))
  from scripts.check_site import check
  check(root)
  if a.master_snapshot:write(a.master_snapshot,m)
