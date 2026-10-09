@@ -392,3 +392,31 @@ D01で複合上限があり、対象を配列cap_targetsとしてすべて保存
 再開時の具体操作: git statusとscripts/collect_one.py statusを読み、待機解除の現行設定60秒を旧引き継ぎの24時間へ戻さない。取得済みのD01〜D04は再取得せず、 ./.venv/Scripts/python.exe scripts/verify_detail_pilot.py で4件入力のハッシュ・P2/S2・変換・比較を再検証できる。同じ結果なら既存v2監査を保持。変換変更時は--outputで新規候補へ出力する。次工程はこの4件を使い、固定detail_id台帳・手修正優先・原本コピー、構造化公開値、詳細バンドルとWebの少数一気通貫を順に作る。追加取得が必要な例外は基本索引の固定ID・種別・URLを許可一覧へ登録し、正常時60秒以上空けて単一ページ取得する。新規429等なら後続通信を止めて保存入力の工程へ移る。問い合わせを新しい必須条件として追加しない。
 
 09:40 JSTの状態確認で取得・変換実行中プロセスなし、取得ロックなし、候補*.tmp残留なし。長時間ジョブ・自動再取得・自動公開は起動していない。今回の4件取得試験の完了を全件詳細版の完成と報告しない。
+
+## 2026-10-09 詳細の全件HTML取得を開始（現在進行中）
+
+現在工程: ユーザーの原文「問題なければ全件への取得を進めてください」により、P2/S2実HTML試験後、全件の詳細原入力取得を先行開始。少数原本・Web一気通貫より前に取得だけ先行する順序変更はdesign.md 17.36、docs/card-details-design.md、TASK.mdへ記録した。正式原本Sheet r7・基礎索引1,466件(P548/S918)・公開UI v4/データ版v1-93a6a8b8d40e754aは維持。詳細公開版は未完成。
+
+対象: 1,419カードのURLをまとめて1,363の一意な個別ページ。URLなし47件は既存の保留を維持。ロード28ページは3カードずつ、84固定IDで共有する。HTMLは1回取得、派生の節対応が分かるまで詳細変換はneeds_variant_mapping。既知初回日2018-04-24～2026-10-02、日付不明56件。公式全網羅やWiki最終編集日は未確認。ページ数・カード数・取得日・実装期間を混同しない。
+
+実行中: private/raw/detail-catalog-20261009。最終起動は2026-10-09T01:08:27+00:00（10:08:27 JST）、実Python PID3720、venv launcher PID28440。コマンドは scripts/run_detail_workflow.py private/raw/detail-catalog-20261009 --max-attempts 1351 --clear-stop。worker.lock/workflow.lockとworkflow-report.jsonに実PID・phaseを記録。10:08:29 JST確認時はrunning/worker_is_alive=true、取得済み13/1363（今回新規8＋既存再利用5）、残り1350、失敗0、active_attempt=null、STOPなし。これは時点の件数。再開時は必ずCLIで実状態を確認する。長時間backgroundプロセスはこの会話後もPC上で実行を続ける設定。PC終了/スリープでは進まない。無期限・自動再取得・自動公開のサービスはない。
+
+原入力と状態: catalog.jsonは基礎索引ハッシュ・ID/P/S/URL/期待カード1466/期待ページ1363と照合する不変ファイル。state.jsonにページごとのpending/fetched/reused/failed/needs_inspection、ハッシュ、取得日時、保存先、active_attempt、履歴を原子的に保存。個別取得はpages/DC-.../attempt-UUID、正常既存5はD01～D04のuser-waiverとrun-c01を読み取り専用で再利用。各取得の完了から60秒以上、concurrency1、robots確認、画像なし。共通private/raw/acquisition-state.json/.lockを併用。新規失敗/429/503/403/確認画面/取得形式不整合では後続を止め、自動リトライせず24時間/Retry-Afterの長い期限を維持。旧一覧full_collection_enabled=falseは維持、詳細専用detail_catalog_enabled=trueと有限予算で明示拡大した。
+
+今回完成した実装: src/detail_catalog.py、scripts/collect_detail_catalog.py（init/status/stop/run/死んだ所有PIDのロック解除/結果不明の確認処理）、scripts/transform_detail_catalog.py（取得と別の全カード状態監査）、scripts/run_detail_workflow.py（有限取得1回の後でオフライン監査を生成）。collect_one.pyは凍結カタログ登録先だけを許し、詳細入力をprivate/rawへ限定。変換不能な1件で正常な他カードを失わず、構造例外/入力異常/派生未対応をカードごとに明示する。採用・公開はしない。
+
+検証: Python全79テストPASS（既存56＋全件制御23）。合成テストでURL/ID/P/S/件数異常、予算超過、publicへの生入力拒否、同一URLとロード派生、旧入力再利用/改変検出、逐次60秒、429とサーバー期限の後続停止、二重起動拒否、STOP、成功応答の中断復旧、不明結果の確認待ち/履歴維持、24時間経過前再試行拒否、部分変換の全件件数、他カード変換継続、最終監査生成/失敗を確認。テストのHTTP429は合成、Wikiへ送っていない。実通信ではこの時点の新規8ページがHTTP200、429等なし。
+
+実際の停止・再開: 10:01:45 JSTにstopped、active_attemptなし、worker.lockと共通取得lockなしを確認。保存済み9入力はURL/応答SHAを検証し保持。再開後も元の9保存先/ハッシュは不変、二重取得なし。10:07:00 JSTにも安全停止して最終の取得＋監査wrapperへ切替。新規7ページの実応答間隔は60/60/60/201/60/60秒。private/audits/detail-catalog-20261009-pause-resume-before.jsonとpause-resume-verified.jsonに保護対象site/web/private/master.xlsxの31ファイル差分0、既存9入力不変、応答成功を記録した。安全停止に伴う201秒の間隔であって取得エラーではない。
+
+オフライン実検証: checkpoint-b（state revision14）でP3/S6、候補9、input_pending1410、missing_page47、内容ハッシュ6c7ca9ab7dcd167bb9f5e411575709a0603a8f54e34afcbf7a357c331fbfb6cfを2回再現。checkpoint-c（revision25）でP3/S9、候補12、input_pending1407、missing_page47、全1466coverage行、構造エラー0、ハッシュf056fc7fb1d46b60fd7477a6ae60ec0154ad339ce6c6f25e323546dd15e65aafを2回再現。候補はすべてneeds_review。全カードの詳細を変換できたとは扱わない。既存候補と入力は保持した。全取得終了/安全停止/失敗の時にwrapperが新しいprivate/audits/detail-catalog-内容SHA.jsonへ最終監査を生成しworkflow-report.jsonへ参照を保存する。phase=finishedはジョブ終了で、全件詳細の完成ではない。
+
+変更ファイル: source_manifest.json、src/detail_catalog.py、scripts/collect_one.py、collect_detail_catalog.py、transform_detail_catalog.py、run_detail_workflow.py、tests/test_detail_catalog.py、docs/card-details-full-acquisition.md、card-details-acquisition.md、card-details-design.md、README.md、operations.md、TASK.md、HANDOFF.md、docs/verification.md。local design.md 17.36も更新（Git対象外）。非公開原入力・候補・監査・ログはprivate内のみ。依存追加なし、既存requirements.txtと.venvで実行。公開site/webと正式原本への変更なし。
+
+未完了: 全1,363ページの保存（低負荷で約23時間、停止/応答時間で延長）、全件の構造例外/Grow等対応、84カードの派生対応、固定detail_idと手修正・再取得統合、詳細原本コピー/Sheet往復、公開用効果の構造化、詳細バンドル/Web表示と技能検索/版一致/公開、少数追加・修正の一気通貫。基礎索引の公式全網羅・実在新規と修正の本番反映・初回日56件・CSV直接URLの非公開範囲も従前どおり。47件のリンク追加はユーザー保留で、取得失敗と数えない。公開画面は変更していないためブラウザ再検証は今回行っていない（UI v4は前工程の結果）。
+
+次の具体操作:
+1. ./.venv/Scripts/python.exe scripts/collect_detail_catalog.py status private/raw/detail-catalog-20261009、workflow-report.json、stdout-workflow-003.log/stderr-workflow-003.logを読む。実PIDとロックの生存を確認。稼働中なら二重起動しない。古いHANDOFFの「全件無効」「ジョブなし」へ戻さない。
+2. 取得中でもscripts/transform_detail_catalog.py RUN 新しいprivate/audits/...jsonで部分候補を作り、needs_structure_review/input_invalidを保存HTMLだけで確認する。原入力は書き換えない。
+3. complete後はworkflow-reportのcandidate_fileを開き、1466coverage行/P/S/各節/欠損/84派生を確認し、4試験カードから詳細ID・手修正台帳→原本コピー→構造化公開→Web/ファイルの少数一気通貫を進める。全件入力成功だけで公開・全件詳細完成と扱わない。
+4. 失敗/中断ならdocs/card-details-full-acquisition.mdのSTOP/所有PID/不明結果/24時間待機/明示1ページ再試行を使う。古いstdout.log、stdout-worker-002.logと対応stderr/launch記録も保持。wrapperの死んだlockはrelease-stale-lock --lock-kind workflow --expected-pidでのみ解除。共通取得lockを自動削除しない。

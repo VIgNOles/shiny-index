@@ -269,3 +269,11 @@ UI v4公開実績: 通常pushのrun 37800885079はskipped、明示公開run 3780
 ユーザーの「待機期限を解除して進めて」により、正常時のローカル待機を60秒へ変更した。source_manifest.jsonのsingle_page_cooldown_seconds=60、single_page_failure_backoff_seconds=86400。失敗時にはlast_failure_atと理由を状態へ記録し、後続ページを停止する。HTTP429の時刻、Retry-After、過去の一度限りの早期取得記録は削除せず、local_wait_changesに今回の変更根拠を保存した。通常の60秒という値はWikiの許容頻度を保証するものではなく、並列や大量連続取得は開始しない。full_collection_enabled=falseは維持する。
 
 scripts/collect_one.py statusで現状を確認し、登録済みの1ページを新しいprivate/raw/へ保存する。429/503/403/確認画面/取得形式異常の場合は自動リトライせず、少なくとも新規失敗から24時間とRetry-Afterの長い方を守る。変換の構造エラーは追加通信で直さず、保存入力で対応・再検証する。P/S詳細4件は09:25–09:29 JSTに103/72/89秒の間隔でHTTP200保存し、実HTML変換と504共通項目のキャッシュ照合を完了した。現行の再実行コマンドと入力・候補の場所はdocs/card-details-acquisition.md。原本Sheet r7・公開基礎索引は変更していない。
+
+## 詳細の全件取得・中断・復旧（2026-10-09 現行）
+
+ユーザーの「問題なければ全件への取得を進めてください」により、上の「大量連続取得は開始しない」は旧段階の記録となる。詳細専用の凍結カタログ（1,466カード/1,363URL）に限り、取得完了から60秒以上の逐次取得を明示的に有効化した。一覧用full_collection_enabled=false、共有取得ロック、新規失敗後24時間＋Retry-Afterの停止、自動リトライなしは維持する。問い合わせを追加の必須ゲートにしない。
+
+現在のrunはprivate/raw/detail-catalog-20261009。状態はscripts/collect_detail_catalog.py statusで実際に読み、HANDOFFの件数だけで完了・プロセス停止と判断しない。停止はstopサブコマンド、再開はstopped/worker_is_alive=false確認後のrun --clear-stop。成功した既存入力を再送しない。取得中でもtransform_detail_catalog.pyでオフライン変換できる。詳しい有限予算・PIDロック・不明結果の扱い・24時間復旧は [全件詳細取得の手順](docs/card-details-full-acquisition.md) を参照。
+
+原本Sheet r7、公開基礎索引1,466件、UI v4はこの取得では変更しない。原HTML、原文効果、全件候補・監査・ログはprivateのみで、Gitのforce addや自動採用・公開をしない。全入力を保存し終えても詳細公開版の完成ではない。

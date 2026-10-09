@@ -4,7 +4,7 @@
   "single_page_collection_enabled": true,
   "single_page_cooldown_seconds": 60,
   "public_distribution_enabled": true,
-  "reason": "2026-10-09 user explicitly cancels the local 24-hour wait. Sequential allowlisted single-page requests, at least 60 seconds between attempts; stop on acquisition failure and preserve server Retry-After. Full batch remains disabled. Public factual index excludes article text, images and raw HTML.",
+  "reason": "2026-10-09 user authorizes full detail-page acquisition after P2/S2 HTML verification. Frozen base-index catalogue only; concurrency 1, >=60 seconds after each completion, reuse verified saved inputs, stop on any acquisition failure and respect 24-hour/server backoff. Legacy list batch remains disabled. Raw HTML/effect text stay private; adoption/publication are separate.",
   "pages": [
     {
       "id": "W02",
@@ -75,5 +75,9 @@
       "url": "https://wikiwiki.jp/shinycolors/%E3%80%90HoP%20PoP%20%E3%82%89%E3%81%B3%E3%81%A3%E3%81%A4%E3%80%91%E4%B8%89%E5%B3%B0%E7%B5%90%E8%8F%AF"
     }
   ],
-  "single_page_failure_backoff_seconds": 86400
+  "single_page_failure_backoff_seconds": 86400,
+  "detail_catalog_enabled": true,
+  "detail_catalog_expected_cards": 1466,
+  "detail_catalog_expected_pages": 1363,
+  "detail_catalog_authorization": "2026-10-09 user: 問題なければ全件への取得を進めてください"
 }

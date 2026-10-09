@@ -250,3 +250,14 @@ UI v3タグ ui-v3-20261008 はコミット4862ed4。通常main pushのPages run 
 隔離候補・siteのcheck_siteは3版各1,466件PASS。Python29件、JS検索13件PASS。隔離候補・site・匿名公開URLでEdge/PlaywrightのPC1280px・390px・320pxの検索、8区分のOR、詳細とのAND、旧URL、人物の常時表示、CSV導線不在、横はみ出し・JavaScript例外なしを確認。UI v3の切り戻し候補はcheck_siteを通し、タグの画面4ファイルとGit改行フィルターを通さない生バイトで一致。tests/ui-smoke.mjsはUI v2向けの出典DOMを期待するため、UI v3候補には適用しない。UI v3自体は前回公開時に匿名URLで操作試験済み。公開サイトを実際に切り戻したわけではない。
 
 UI v4タグはui-v4-20261009、実装コミット7b5a7eb。通常main pushのPages run 37800885079はskipped、明示公開コミットc6b472bのrun 37800969481はsuccess。匿名URL https://vignoles.github.io/shiny-index/ の26/26ファイルがsiteとバイト一致し、公開ブラウザのPC・390px・320pxの試験がPASS。データ版v1-93a6a8b8d40e754a、正式Sheet revision 7、カード1,466件は不変。実端末・スクリーンリーダーによる新UI操作と、元のデータ要件の未完了項目は残る。
+
+## 2026-10-09 全件詳細HTML取得（進行中、公開変更なし）
+
+- 対象は基礎索引1,466カード(P548/S918)の1,363一意URL。URLなし47件は保留、ロード28URLは84別カードとして派生対応待ち。既知初回日2018-04-24～2026-10-02、不明56件。全ゲーム網羅・記事編集日時は未確認。
+- Python79テストPASS。全件カタログ/件数異常/保存改変/60秒逐次/429停止/共有ロック/安全中断と不明結果/部分監査/最終監査を検証。合成429をWikiへ送っていない。
+- 実取得の新規7ページを検証した監査では全HTTP200、間隔60/60/60/201/60/60秒。保存9ページの安全停止後再開でURL/保存先/SHA維持、二重取得なし。保護対象site/web/private/master.xlsxの31ファイル差分0。以後もbackground取得を継続中。
+- checkpoint-cの候補12(P3/S9)、取得待ち1407、ページ保留47、全1466coverage行。保存HTMLだけから2回再変換しハッシュf056fc7fb1d46b60fd7477a6ae60ec0154ad339ce6c6f25e323546dd15e65aaf一致。全件解析・採用・公開の成功ではない。
+- 10:08:29 JST確認時は13/1363ページ取得済み(新規8＋再利用5)、残り1350、失敗0。runはprivate/raw/detail-catalog-20261009、workflow PID3720で稼働。現在値はcollect_detail_catalog.py statusを実行して読む。wrapperは取得の終了時に保存状態から全件監査を作る。
+- 原本Sheet r7、公開UI v4、基礎データ版v1-93a6a8b8d40e754aは未変更。正式原本1件追加/修正の本番反映、詳細ID/手修正維持、詳細版/Web/配布一致・技能検索は未完了。公開UIのブラウザ試験は今回未実施で、前工程の検証を参照する。
+
+詳しい進行状態・未完了・再開操作はHANDOFF.md、実行と復旧はdocs/card-details-full-acquisition.md。取得完了と全件詳細版の完成を区別する。

@@ -53,7 +53,7 @@ def retry_after_deadline(value, current):
     return parsed.astimezone(timezone.utc) if parsed.tzinfo else None
 
 
-def registered_pages(manifest):
+def registered_pages(manifest, catalog_path=None):
     items=manifest['pages']+manifest['audit_pages']+manifest.get('detail_pages',[])
     if len({item['id'] for item in items})!=len(items):
         raise ValueError('duplicate source page ID')
@@ -68,10 +68,16 @@ def registered_pages(manifest):
             if not card or card['card_kind']!=item['kind'] or not card.get('wiki_url') or (
                     wiki_key(card['wiki_url'])!=wiki_key(item['url'])):
                 raise ValueError('detail source card ID/kind/URL mismatch')
+    if catalog_path is not None:
+        from src.detail_catalog import load_catalog
+        catalog=load_catalog(ROOT,Path(catalog_path),manifest)
+        items=items+catalog['targets']
+        if len({item['id'] for item in items})!=len(items):
+            raise ValueError('duplicate catalogue/source page ID')
     return {item['id']:item for item in items}
 
 
-def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False):
+def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False, catalog_path=None):
     manifest=read(ROOT/'source_manifest.json')
     current=current or datetime.now(timezone.utc)
     state=read(state_path) if Path(state_path).exists() else None
@@ -85,10 +91,10 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
                     current>=as_utc(state['server_not_before_at'])))
     if not availability['can_fetch'] and not early_allowed:
         raise RuntimeError('Wiki single-page fetch unavailable until '+str(availability['next_allowed_at']))
-    pages=registered_pages(manifest)
+    pages=registered_pages(manifest,catalog_path)
     if page_id not in pages: raise ValueError('page ID outside source manifest')
     target=Path(directory)
-    if pages[page_id].get('card_id') and not target.resolve().is_relative_to((ROOT/'private/raw').resolve()):
+    if (pages[page_id].get('card_id') or pages[page_id].get('card_ids')) and not target.resolve().is_relative_to((ROOT/'private/raw').resolve()):
         raise ValueError('Detail raw inputs must stay under private/raw/')
     if target.exists(): raise FileExistsError('Use a fresh directory; saved inputs are immutable')
     stamp=current.isoformat(timespec='seconds')
@@ -99,6 +105,8 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
     write(state_path,state)
     try:
         fetcher(pages[page_id]['url'],target,allow_limited=True)
+        result=read(target/'fetch.json')
+        write(target/'limited-run.json',{'page_id':page_id,'status':result['status'],'full_run':False,'authorized_early':bool(early_allowed and not availability['can_fetch'])})
     except HTTPError as error:
         state['last_failure_at']=stamp
         state['last_failure_reason']='HTTP '+str(error.code)
@@ -117,18 +125,16 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
         if target.is_dir():
             write(target/'limited-run.json',{'page_id':page_id,'status':'failed','full_run':False,'authorized_early':bool(early_allowed and not availability['can_fetch'])})
         raise
-    result=read(target/'fetch.json')
-    write(target/'limited-run.json',{'page_id':page_id,'status':result['status'],'full_run':False,'authorized_early':bool(early_allowed and not availability['can_fetch'])})
     return result
 
 
 
-def fetch_one(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False):
+def fetch_one(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False, catalog_path=None):
     lock_path=Path(state_path).with_suffix('.lock')
     lock_path.parent.mkdir(parents=True,exist_ok=True)
     fd=os.open(lock_path,os.O_CREAT|os.O_EXCL|os.O_WRONLY)
     try:
-        return _fetch_one_unlocked(page_id,directory,current=current,state_path=state_path,fetcher=fetcher,authorized_early=authorized_early)
+        return _fetch_one_unlocked(page_id,directory,current=current,state_path=state_path,fetcher=fetcher,authorized_early=authorized_early,catalog_path=catalog_path)
     finally:
         os.close(fd)
         lock_path.unlink()
@@ -144,6 +150,7 @@ def main():
     command.add_argument('page_id')
     command.add_argument('directory')
     command.add_argument('--user-authorized-early-fetch',action='store_true')
+    command.add_argument('--catalog',type=Path)
     args=parser.parse_args()
     manifest=read(ROOT/'source_manifest.json')
     state=read(STATE) if STATE.exists() else None
@@ -156,7 +163,7 @@ def main():
         import json
         print(json.dumps(status(manifest,state,datetime.now(timezone.utc)),ensure_ascii=False))
     else:
-        print(fetch_one(args.page_id,args.directory,authorized_early=args.user_authorized_early_fetch))
+        print(fetch_one(args.page_id,args.directory,authorized_early=args.user_authorized_early_fetch,catalog_path=args.catalog))
 
 
 if __name__=='__main__':

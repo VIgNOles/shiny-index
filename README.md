@@ -106,3 +106,9 @@ Wikiへの全7ページの連続取得は無効（full_collection_enabled=false�
 P/S各2件の詳細情報の非公開試験は [試験結果](docs/card-details-pilot.md) に記録しています。保存済みのキャッシュ表示から再変換するには python scripts/transform_detail_sample.py、分類の単体検証には python -m unittest tests.test_detail_sample_transform を実行します。試験用の入力・効果文・出力は private/ 内に置き、Gitや公開サイトには含めません。
 
 詳細の直接取得対象と実HTML再変換手順は [詳細取得の手順](docs/card-details-acquisition.md) に記載しています。4件の取得は既存の共通待機期限を守って1ページずつ行います。実HTML変換はP/S両方に対応し、4件のHTTP200入力とキャッシュ候補の共通504項目を照合済みです。保存入力の一括再変換・検証は ./.venv/Scripts/python.exe scripts/verify_detail_pilot.py を使用します。正式原本への採用、Web詳細表示・公開は後続工程です。
+
+## 全件の詳細取得（2026-10-09）
+
+P2/S2の実HTML試験を経て、ユーザーの指示で全件詳細HTMLの取得を開始しました。対象は1,466カードに対応する1,363の一意な個別ページです。既存5ページは検証して再利用し、残りを60秒以上の間隔で順番に保存します。個別ページなし47件は保留、同じページを共有するアイドルロード84カードは派生ごとの対応確認待ちです。正式原本・公開版への詳細採用はまだ行っていません。
+
+[全件詳細の取得・停止・再開・オフライン監査](docs/card-details-full-acquisition.md) を参照してください。状況確認は `./.venv/Scripts/python.exe scripts/collect_detail_catalog.py status private/raw/detail-catalog-20261009`。実行中のrunを再初期化したり二重起動したりしないでください。旧一覧一括取得は無効のままです。
