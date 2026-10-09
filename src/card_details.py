@@ -190,9 +190,15 @@ def parse_compact_generated(number, table, anchor, parents, *, memory_boost=Fals
         if (name.row!=1 or name.column!=c or name.tag.name!='th' or not name.value
                 or effect.row!=2 or effect.column!=c or effect.tag.name!='td' or not background_gray(effect.tag)):
             raise ValueError('Compact generated-live name/effect mismatch')
-        if memory_boost != name.value.startswith('[MB]'):
+        # A Wiki footnote marker belongs to the cell's evidence, not the skill name.
+        label=BeautifulSoup(str(name.tag),'html.parser')
+        for note in label.select('a.note_super[id]'):
+            if re.fullmatch(r'notetext_\d+',note.get('id','')) and re.fullmatch(r'\*\d+',text(note)):
+                note.decompose()
+        name_value=text(label)
+        if memory_boost != name_value.startswith('[MB]'):
             raise ValueError('Generated-live MB context mismatch')
-        target=key(name.value.removeprefix('[MB]'))
+        target=key(name_value.removeprefix('[MB]'))
         if target in seen:raise ValueError('Duplicate compact generated-live target')
         seen.add(target)
         matches=[parent for parent in parents if target in
@@ -201,7 +207,7 @@ def parse_compact_generated(number, table, anchor, parents, *, memory_boost=Fals
         if re.search(r'ライブスキル生成\s*\[',effect.value):
             raise ValueError('Compact generated-live unresolved continuation')
         parent=matches[0]
-        records.append({'kind':'generated_live','name':name.value,'sp':None,'generation_stage':1,
+        records.append({'kind':'generated_live','name':name_value,'sp':None,'generation_stage':1,
                         'generated_from_name':parent['name'],'generation_origin_kind':parent['kind'],
                         'effect_private':effect.value,'mechanics':mechanics(effect.value),
                         'source_positions':[evidence(number,name,anchor),evidence(number,effect,anchor)]})
@@ -301,6 +307,15 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
             if generated is None: raise ValueError("Generated-live collection unavailable")
             if generated: raise ValueError("Duplicate generated-live diagram")
             generated.extend(parse_generated_live(number, table, anchor, nodes))
+            continue
+        if header=='[MB]ランダム効果付与':
+            explanation=table_grid(table)
+            if (notes is None or len(explanation)!=2 or any(len(row)!=1 for row in explanation)
+                    or explanation[0][0].tag.name!='th' or explanation[1][0].tag.name!='td'
+                    or not explanation[1][0].value):
+                raise ValueError('Unknown MB random-effect explanation')
+            notes.append({'name':header,'effect_private':explanation[1][0].value,
+                          'source_positions':[evidence(number,row[0],anchor) for row in explanation]})
             continue
         if "メモリーブースト" not in text(table) and "[MB]" not in text(table):
             explanation=table_grid(table)

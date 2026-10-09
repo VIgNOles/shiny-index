@@ -69,6 +69,36 @@ class DetailHtmlTests(unittest.TestCase):
         for old,new,error in [('[MB]child A','child A','MB context'),('child B','unknown','parent ambiguous'),('Dance6倍','ライブスキル生成[next]','unresolved')]:
             with self.subTest(error=error),self.assertRaisesRegex(ValueError,error):parse(html.replace(old,new))
 
+    def test_generated_skill_footnote_is_evidence_not_part_of_target_name(self):
+        from src.card_details import parse_compact_generated
+        note='<a class="note_super tooltip" id="notetext_1">*1</a>'
+        html='<table><tr><th>[MB]生成されるライブスキル</th></tr><tr><th>[MB]child'+note+'</th></tr><tr><td style="background-color:gainsboro">Dance5倍(Plus)</td></tr></table>'
+        parent=[{'kind':'mb_live','name':'[MB]root(4/5)','effect_private':'ライブスキル生成[child]'}]
+        parse=lambda value:parse_compact_generated(7,BeautifulSoup(value,'html.parser').table,'panel',parent,memory_boost=True)
+        child=parse(html)[0]
+        self.assertEqual(child['name'],'[MB]child')
+        self.assertEqual(child['generated_from_name'],'[MB]root(4/5)')
+        self.assertEqual(child['mechanics'],['plus'])
+        self.assertEqual(child['source_positions'][0],{'table':7,'row':2,'column':1,'section_anchor':'panel'})
+        for old,new in [('note_super','ordinary'),('notetext_1','other_1'),('*1','literal')]:
+            with self.subTest(old=old),self.assertRaisesRegex(ValueError,'parent ambiguous'):
+                parse(html.replace(old,new))
+
+    def test_mb_random_explanation_does_not_become_a_skill_or_hide_unknown_tables(self):
+        mb='<table><tr><th>メモリーブースト</th></tr><tr><th>[MB]root(2/5)</th></tr><tr><td style="background-color:gainsboro">Visual5倍(Plus)</td></tr></table>'
+        note='<table><tr><th>[MB]ランダム効果付与</th></tr><tr><td>未構造化の選択肢 (Refrain)</td></tr></table>'
+        card=extract_html(fixture(extra=mb+note),CARD)
+        self.assertEqual(len(card['mb_live']),1)
+        self.assertEqual(card['mb_live'][0]['mb_stage'],2)
+        self.assertEqual(card['mb_live'][0]['mechanics'],['plus'])
+        self.assertNotIn('random_effect_options',card['mb_live'][0])
+        self.assertEqual(card['skill_notes_private'][0]['name'],'[MB]ランダム効果付与')
+        self.assertEqual(len(card['skill_notes_private'][0]['source_positions']),2)
+        with self.assertRaisesRegex(ValueError,'MB stage/effect missing'):
+            extract_html(fixture(extra=mb+note.replace('[MB]ランダム効果付与','[MB]未知の表')),CARD)
+        with self.assertRaisesRegex(ValueError,'Unknown MB random-effect explanation'):
+            extract_html(fixture(extra=mb+note.replace('未構造化の選択肢 (Refrain)','')),CARD)
+
     def test_random_options_attach_to_exact_parent_and_preserve_evidence(self):
         from src.card_details import attach_random_options
         html='<table><tr><th colspan="2">ランダム効果付与</th></tr><tr><td colspan="2">以下の中からランダムで効果が付与される</td></tr><tr><th>root A</th><th>root B</th></tr><tr><td>・Vocal5%UP[3ターン] ・Vocal50%UP[3ターン]</td><td>・Dance100%UP[4ターン]</td></tr></table>'
