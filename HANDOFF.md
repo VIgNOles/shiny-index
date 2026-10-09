@@ -522,3 +522,22 @@ GitHubへのpushは自動承認審査に2回拒否された。理由は過去の
 取得は224/1363ページ・残1139、state677/stopped、STOP保持・worker/launcher終了・全ロックなし・active_attempt=nullで確定。保存入力と256原本/site不変、private/audits/user-stop256-safe-20261009.json。追加採用・拡張・取得再開を実行しない。
 
 公開承認が後で得られた場合だけ、保存済みコード/タグをoriginへpush→publish:コミット→Actions成功→匿名40ファイルと公開UI v7/基本詳細PC390320確認→最終結果を記録する。取得を再起動したり256件を超えて採用しない。未解決のままなら256件はローカル検証済み/未公開として報告して停止する。
+
+
+## 最新確定: 256件版公開完了・取得停止維持（2026-10-09 JST）
+
+ユーザーの最新原文「Tokenが復活したので気にせず作業を続けてください。『ローカル保存』の制限は解除するので、やりやすい方式で進めて構いません」をTASK末尾へ原文保存。過去のローカル限定と公開承認待ちを解除。直前の256採用上限は維持し、追加採用/拡張や取得再起動をしていない。
+
+完了: 正式原本r8・15タブ、基礎r7/1466(P548/S918)不変、詳細256(P126/S130)/3685。原本/接続/site全SHAが停止時の証拠と一致、計画との全値一致を再確認。指定Drive原本の更新時刻07:12:32.541UTCは検証済みexport07:13:08UTC以前で、その後未変更、所有者のみ。256の原本/手修正を再構築していない。
+
+Git保存と公開: 準備583eb58、停止記録99d49d3、制限解除864dcac、公開010f5b7da0efc537fd1603ec320673df19b26e86、タグui-v7-details256-20261009をoriginへ保存。Actions37910476569 success。以前のpush自動審査拒否は最新の明示解除後に解消。非公開入力/原本/接続/design.mdはGitへ送信していない。
+
+公開URL https://vignoles.github.io/shiny-index/ はUI v7、基礎v1-93a6a8b8d40e754a、詳細d1-471997dafba126df、256/3685。匿名40/40ファイルがsiteと生バイト一致。公開PC1280/390/320の基本検索/絞込/並替、詳細、生成通常/MB Change、ランダム候補、JSON取得、版/SHA、最高Lv欠損、横はみ出し/説明と見出しの間隔がPASS。320pxランダム画面を目視。証拠private/audits/detail256-public-verification-20261009.json、画像private/audits/ui-v7-details256-public-20261009。ローカルPython129/JS21、native往復と旧UI v6切り戻しは前工程PASS、コード/データはその保存済み版と同じ。
+
+停止状態: 取得224/1363保存、残1139、state677/stopped、STOP保持、active_attempt=null、worker/workflow/request lockなし。取得010/実PID6716/launcher3484は終了のまま。全成功入力とmaster/connection/siteは停止時から保持。最終オフライン監査670f539...は保存のみ、256超のカードを採用していない。今回Wikiアクセスなし。公開確認用のブラウザ試験も終了済み。
+
+現在の変更: TASKに最新指示、README/operations/docs/card-details-integration/docs/verification/HANDOFFを公開完了へ更新、local design.md17.42（Git対象外）、privateの公開検証と書込checkpointをpublic_deployed=trueへ更新。依存/実装/256件データの追加変更なし。過去の未公開/承認待ち記録は履歴であり、現在は公開済み。
+
+未完了: 全件詳細取得/原本採用/公開、条件/複合効果全面構造化、公式全網羅、基礎新規実在カード1追加/修正の本番反映実証、日付不明56・個別リンク47ユーザー保留、実スマホ/スクリーンリーダー全面検証。256件版の公開完了をプロジェクト全体/全件版の完成と扱わない。
+
+次回の再開地点: まず256超の追加採用/取得再開の範囲指示を確認。許可があればTASK・最新HANDOFF・原本接続・STOP/state/ロック/PID・Git差分を照合し、既存224入力を保持する。保存入力だけの変換は新しいprivate候補へ、採用計画は最新native exportから作る。取得再開は旧jobなし・共通待機/失敗条件を確認して新ログ番号で残数1139以下の有限workflow --clear-stopを実行。許可されるまではSTOPを維持し自動再開しない。前節の『256公開承認待ち』から再開する必要はない。
