@@ -5,6 +5,7 @@ const normalized=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('j
 export function factText(fact){
  const target=fact.targets?.join(' & ')??fact.target??'';
  if(fact.metric==='appeal')return target+' '+fact.value+'倍';
+ if(fact.metric==='appeal_range')return target+' '+fact.minimum+'～'+fact.maximum+'倍（条件未構造化）';
  if(fact.metric==='appeal_maximum')return target+' 最大'+fact.value+'倍（条件未構造化）';
  if(fact.metric==='rate')return target+' '+fact.value+'% '+fact.direction;
  if(fact.metric==='activation_probability')return '発動確率 '+fact.value+'%';

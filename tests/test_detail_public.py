@@ -44,6 +44,11 @@ class DetailPublicTests(unittest.TestCase):
   self.assertEqual(item['memory_link_facts'][0]['metric'],'appeal_maximum')
   self.assertEqual(item['memory_link_facts'][0]['value'],3.5)
   self.assertTrue(item['conditions_not_structured'])
+ def test_memory_range_remains_a_range_and_rejects_invalid_bounds(self):
+  d=self.memory_document(link='全観客にVocal0.4～2倍アピール[消去:VocalUP]');item=next(i for i in d['cards'][0]['items'] if i['kind']=='memory_appeal')
+  self.assertEqual(item['memory_link_facts'],[{'metric':'appeal_range','targets':['Vocal'],'minimum':0.4,'maximum':2.0,'unit':'multiplier'}])
+  item['memory_link_facts'][0]['minimum']=3
+  with self.assertRaisesRegex(ValueError,'memory numeric range'):validate_public(d,[{'card_id':CID,'card_kind':'P'}])
  def test_memory_absent_and_unstructured_effects_are_distinct(self):
   d=self.memory_document(link='任意の未対応説明',charge=None);item=next(i for i in d['cards'][0]['items'] if i['kind']=='memory_appeal')
   self.assertTrue(item['memory_link_present']);self.assertEqual(item['memory_link_facts'],[])

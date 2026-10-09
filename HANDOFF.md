@@ -572,3 +572,14 @@ frozen state732（242保存ページ）の入力候補ad01f438b35dc959b832b2efaf
 変更: src/detail_public.py、web/app.mjs/details.mjs/index.html、siteの対応資産と新詳細バンドル、tests/test_detail_public.py/detail-search.test.mjs/ui-v5-smoke.mjs、README/operations/HANDOFF/docs/card-details-design/integration/verification、local design.md17.44（Git対象外）。最初のmemory単体試験はfixtureのcollection名を単数にしたため失敗し、実スキーマのmemory_appealsへ直して全件PASS。133試験の429/ファイル欠落ログはモックの障害試験で、実Wiki失敗ではない。公開Actions・匿名44ファイル・公開PC/スマホ確認は後続に追記する。取得011は継続し自動採用しない。
 
 証拠: private/audits/detail-native-298-roundtrip-20261009.json、native298-format-and-links-20261009.json、detail298-site-preservation-20261009.json、ui-v8-details298-local-20261009、ui-v7-rollback-from298-20261009、private/details/sheet-write-after282-checkpoint-20261009.json。全件詳細/複合効果・条件の全面構造化/基礎新規実在カード本番追加実証/公式独立網羅、日付56/リンク47保留、実機・スクリーンリーダー全面検査は未完了。
+
+
+## UI v8 思い出変動倍率の追加対応（2026-10-09、公開前）
+
+298件版UI v8の公開はda2e3dd/54381c5/d377d5e、最終Actions37916819260 success、匿名44/44ファイル一致、PC1280/390/320基本/詳細と思い出Link/チャージ表示PASS。private/audits/detail298-public-verification-20261009.json。旧公開資産の改行を維持する追加コミットd377d5eにより、UI v7との差分はapp7追加1削除/details6追加2削除へ収束した。中間の全行改行差分は機能変更ではない。
+
+未構造化のLink5行はP【Housekeeping!】のVocal0.4～2倍/0.9～4.5倍だったため、appeal_range(minimum/maximum)へ対応。固定倍率・最大値・変動範囲を区別し、条件未構造化を明示する。範囲逆転/非有限値/未知フィールドを検査。波ダッシュとASCII~の検索をNFKCで揃え、Linkとチャージの効果区分を跨ぐ誤一致を防ぐ。全文/消去条件は非公開のまま、条件の全面構造化が終わったとは扱わない。651思い出行のうち観測Link626すべてに参考数値、チャージ15すべてに参考数値あり。これは全効果を解析済みという意味ではない。
+
+正式原本r10/298P141S157/4418、固定ID、手修正、基礎r7/1466、native Sheetsは変更せず、公開変換とUI v8を修正。最新native exportとactive master全値一致も再確認。詳細版d1-45ed170d94366826、46ファイル。旧44ファイルの変更はdetails.mjs/index.html/details/latest.jsonだけで旧バンドルは生バイト不変。Python134/JS24、PC1280/390/320基本/詳細・実Housekeeping変動Linkの表示/検索・ライブLinkへの非混入PASS。320px変動倍率画面を視認。依存追加なし。公開Actions/匿名46ファイル/公開画面は後続に追記。
+
+次の保存済み入力はfrozen state795/263ページ、319カードP144/S175、構造保留0・入力待ち1100・リンク47保留、候補3ca632d4a0128b004cf1c10b40d4ed118e0cdacef1f6a7f38986db800d145efa。private/audits/after298-next-candidate-20261009.jsonとfrozenを保持。現在native原本のfresh exportからprivate/details/after298-next-adoption-20261009-03を準備中。これらは候補であり319原本/公開版ではない。取得011は継続し、256/298/319を新しい上限にはしていない。

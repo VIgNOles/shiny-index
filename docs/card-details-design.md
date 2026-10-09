@@ -132,3 +132,6 @@ Find M Trickの4行補足表は「ランダム効果付与」・説明・技能�
 原本のmemory_appealsには通常効果・link_appeal_private・charge_appeal_privateが分離保存済みだったが、配布処理が後二者を除外していた。通常numeric_factsに混ぜず、memory_link_facts/memory_charge_factsと、観測有無を示す*_presentを追加する。数値未構造化でも観測ありを維持し、WebにWiki確認を表示する。最大倍率はappeal_maximumとして最大値を保持し、発動条件を復元したと誤認させない。スキーマ1.0への省略可能項目追加で旧バンドルは不変。新しい公開ネストは数値/対象/単位だけを検証し、全文・未知フィールド/非有限数値を拒否する。
 
 検索は同じ思い出行の同じ効果区分にキーワードを適用し、Linkとチャージを跨ぐ誤一致を防ぐ。ライブ機能Linkには思い出を入れない。UI v7へは新データを維持して切り戻せるが、この追加効果/最大倍率の専用表示・検索は旧UIにはない。複合効果/発動条件の全面構造化は未完了。
+
+
+変動倍率はappeal_rangeのminimum/maximumとunit=multiplierで保持し、上下限を単一固定倍率へ集約しない。表示/検索には範囲と条件未構造化を含める。実Housekeepingの5Lvと、逆転境界/全文混入拒否を検証。

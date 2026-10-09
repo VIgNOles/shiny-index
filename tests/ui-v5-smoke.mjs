@@ -82,6 +82,20 @@ try{
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-memory.png')});
    await page.locator('#reset').click();
   }
+  if(Number((process.env.UI_EXPECTED_VERSION??'').match(/^ui-v(\d+)/)?.[1])>=8){
+   const rangeCard=details.cards.find(card=>card.items.some(item=>item.memory_link_facts?.some(f=>f.metric==='appeal_range')));
+   assert.ok(rangeCard,'Expected a saved variable memory Link appeal');
+   const baseCard=cards.find(card=>card.card_id===rangeCard.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   await page.locator('#skill-kind').selectOption('memory_appeal');
+   await page.locator('#skill-q').fill('Link Vocal 0.4~2倍');
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();await page.locator('.performance summary').filter({hasText:'思い出アピール'}).click();
+   assert.ok((await page.locator('.memory-link').first().textContent()).includes('0.4～2倍（条件未構造化）'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-memory-range.png')});
+   await page.locator('input[name="mechanic"][value="link"]').check();assert.equal(await page.locator('#count').textContent(),'0 / '+total+' 件');
+   await page.locator('#reset').click();
+  }
   const generation=details.cards.find(card=>card.items.some(item=>item.kind==='generated_live'));
   if(generation&&process.env.UI_EXPECTED_VERSION!=='ui-v5'){
    await page.locator('#skill-q').fill('Cherish You++++');

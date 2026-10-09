@@ -15,6 +15,8 @@ def numeric_facts(item):
     # Individual numeric facts do not imply unconditional or complete skill effects.
     value=item.get('name','')+' / '+item.get('effect_private','')
     facts=[]
+    for match in re.finditer(r'(Vocal|Dance|Visual)((?:\s*&\s*(?:Vocal|Dance|Visual))*)\s*(\d+(?:\.\d+)?)\s*[～〜~]\s*(\d+(?:\.\d+)?)倍(?:アピール)?',value):
+        facts.append({'metric':'appeal_range','targets':re.findall(r'Vocal|Dance|Visual',match[1]+match[2]),'minimum':float(match[3]),'maximum':float(match[4]),'unit':'multiplier'})
     for match in re.finditer(r'(Vocal|Dance|Visual)((?:\s*&\s*(?:Vocal|Dance|Visual))*)\s*(最大)?\s*(\d+(?:\.\d+)?)倍(?:アピール)?',value):
         facts.append({'metric':'appeal_maximum' if match[3] else 'appeal','targets':re.findall(r'Vocal|Dance|Visual',match[1]+match[2]),'value':float(match[4]),'unit':'multiplier'})
     for match in re.finditer(r'(Vocal|Dance|Visual|注目度|思い出ゲージ|リアクション回避率|メンタルダメージ|メンタル)\s*(\d+(?:\.\d+)?)%\s*(UP|DOWN|CUT)',value):
@@ -84,6 +86,11 @@ def validate_memory_facts(item):
         present=item['memory_'+slot+'_present'];facts=item['memory_'+slot+'_facts']
         if type(present) is not bool or not isinstance(facts,list) or (not present and facts):raise ValueError('Invalid memory effect presence')
         for fact in facts:
+            if not isinstance(fact,dict):raise ValueError('Invalid memory numeric fact')
+            if fact.get('metric')=='appeal_range':
+                if (set(fact)!={'metric','targets','minimum','maximum','unit'} or not isinstance(fact['targets'],list) or not fact['targets'] or set(fact['targets'])-{'Vocal','Dance','Visual'} or fact['unit']!='multiplier'
+                        or any(type(fact[k]) not in (int,float) or not math.isfinite(fact[k]) for k in ('minimum','maximum')) or not 0<=fact['minimum']<=fact['maximum']):raise ValueError('Invalid memory numeric range')
+                continue
             if not isinstance(fact,dict) or type(fact.get('value')) not in (int,float) or not math.isfinite(fact['value']) or fact['value']<0:raise ValueError('Invalid memory numeric fact')
             metric=fact.get('metric')
             if metric in {'appeal','appeal_maximum'}:
