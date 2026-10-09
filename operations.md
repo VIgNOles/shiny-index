@@ -314,3 +314,10 @@ UI v6と詳細d1-d3a4bf450390442b、基礎版はv1-93a6a8b8d40e754a。切り戻�
 最新指示で256件上限を解除し、正式原本は基礎r7/1466不変・詳細r9/282P136S146/4138へ更新。現在の原本URLはprivate/sheets-connection.json。旧256原本とXLSX/接続/siteバックアップは保持。取得011は残1139を有限予算で継続し、成功済みは再送しない。60秒以上、実HTTP失敗/Retry-After停止、単一workerと共通ロックは維持。取得中の原本への自動採用はない。
 
 次の採用は新しいstate凍結と候補監査、現在native原本のfresh export、prepare_detail_adoption.py、native全コピー、全値照合を繰り返す。今回の旧256計画を再適用しない。書込結果不明時はprivate/details/sheet-write-after256-checkpoint-20261009.jsonを確認し実値を読んでから判断する。空のUI_BASE_URLはローカルブラウザ試験として動作する。公開URL確認の最新結果はdocs/verification.mdとHANDOFF.md末尾。
+
+
+## 282件版の公開確認完了（2026-10-09）
+
+準備7a5d3e5、公開9e1a7ac、タグui-v7-details282-20261009、Actions37914739564 success。匿名公開URL42/42ファイルがsiteと生バイト一致。PC1280/390/320の基本・詳細検索/フィルター/並替、MB/生成/ランダム、最高Lv欠損、JSON版/SHAと取得、横はみ出し/見出し間隔PASS。原本r9/282P136S146/4138と公開d1-6595cad90a13ca0bは一致、基礎1466/v1版不変。private/audits/detail282-public-verification-20261009.json、ui-v7-details282-public-20261009参照。
+
+256件上限は解除済みで取得011は継続中。次の取得済み入力からafter282-next-frozen/after282-next-candidate-20261009を独立変換中。後続候補の採用はfresh native原本から行い、全件版完成とはしない。

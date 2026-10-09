@@ -552,3 +552,10 @@ frozen state684の保存226ページから282カードP136/S146・4138項目、�
 追加453出典URLの表示値とnativeリンクの一致、全書込範囲の書式/validation/chips、フィルターの全使用行をAPIで確認。Google画面のCUAはsandbox setup refreshエラーで起動不可、native画面の外観は未確認。Web候補はPC1280/390/320基本/詳細操作PASS、320px画像を視認。基礎v1-93a6a8b8d40e754a不変、UI v7、詳細d1-6595cad90a13ca0b、全42ファイル。tests/ui-v4/v5-smoke.mjsは空UI_BASE_URLを未指定と扱うよう修正。最初の空URL試験失敗は試験設定の問題で、修正後全幅PASS。成果物index.htmlの改行は旧LFへ揃えた。新依存なし。
 
 証拠: private/audits/detail-native-282-roundtrip-20261009.json、native282-format-and-links-20261009.json、ui-v7-details282-local-20261009、private/details/sheet-write-after256-checkpoint-20261009.json。取得は並行継続し、この原本/公開候補への自動採用はない。公開Actions・匿名URLの結果は後続に追記する。全件詳細/発動条件等の全面構造化/基礎新規カード本番追加実証/公式独立網羅、日付56・個別リンク47保留、実機/スクリーンリーダー全面検証は未完了。
+
+
+## 282件版の公開確認完了（2026-10-09）
+
+準備7a5d3e5、公開9e1a7ac、タグui-v7-details282-20261009、Actions37914739564 success。匿名公開URL42/42ファイルがsiteと生バイト一致。PC1280/390/320の基本・詳細検索/フィルター/並替、MB/生成/ランダム、最高Lv欠損、JSON版/SHAと取得、横はみ出し/見出し間隔PASS。原本r9/282P136S146/4138と公開d1-6595cad90a13ca0bは一致、基礎1466/v1版不変。private/audits/detail282-public-verification-20261009.json、ui-v7-details282-public-20261009参照。
+
+256件上限は解除済みで取得011は継続中。次の取得済み入力からafter282-next-frozen/after282-next-candidate-20261009を独立変換中。後続候補の採用はfresh native原本から行い、全件版完成とはしない。

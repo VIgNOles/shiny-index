@@ -350,3 +350,10 @@ UI v5、基礎v1-93a6a8b8d40e754a、詳細d1-ee415ee7fa6b3d80。公開run3788616
 UI v7/d1-6595cad90a13ca0b、42公開ファイル。基本・詳細PC1280/390/320、MB/生成/ランダム、最高Lv欠損、JSON取得/版、はみ出し/見出し間隔PASS、320px画面視認。旧40ファイルのうち変更はindex.htmlとdetails/latest.jsonだけ、旧データ版はバイト不変。空UI_BASE_URLを空URLとして開いた試験設定の不備を修正し、同じ空設定で全幅PASS。依存追加なし。前回129Python/21JSは実装/データ変換器に変更なし。
 
 公開URLのActions・匿名42ファイル・ブラウザ操作の結果は後続に記録する。原本・監査・保存HTML・接続は公開Git対象外。
+
+
+## 282件版の公開確認完了（2026-10-09）
+
+準備7a5d3e5、公開9e1a7ac、タグui-v7-details282-20261009、Actions37914739564 success。匿名公開URL42/42ファイルがsiteと生バイト一致。PC1280/390/320の基本・詳細検索/フィルター/並替、MB/生成/ランダム、最高Lv欠損、JSON版/SHAと取得、横はみ出し/見出し間隔PASS。原本r9/282P136S146/4138と公開d1-6595cad90a13ca0bは一致、基礎1466/v1版不変。private/audits/detail282-public-verification-20261009.json、ui-v7-details282-public-20261009参照。
+
+256件上限は解除済みで取得011は継続中。次の取得済み入力からafter282-next-frozen/after282-next-candidate-20261009を独立変換中。後続候補の採用はfresh native原本から行い、全件版完成とはしない。
