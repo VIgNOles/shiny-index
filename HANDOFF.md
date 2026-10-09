@@ -706,3 +706,14 @@ native631のcomplete exportをArtifact Toolで読み取り、詳細6タブの先
 後続frozen1874/622保存ページでは676候補とS2件の10(MAX)表記保留を検出した。docs/card-details-designの通りMAX明示と特訓☆を分ける修正・境界試験を追加しPython144 PASS、JS25のコードは変更なし。S【アイドルのたまご】甜花はLv10/4能力60、夏葉はLv10/Vo40 Da80 Vi60 Me60、特訓回数null。676既存候補の内容不変、678(P281/S397)候補・構造保留0へ補完。候補hash365e12b9101a57229b01d2bb7c705f7e2c76dcc0190bd1d58f14611cbccee920、private/audits/after631-latest-fixed-candidate-20261010.json。保存入力全件の追加再変換を実行中で、終了後に全JSON一致を照合する。取得済みページを再取得しない。公開631/原本r14はこの修正で変更しない。
 
 private/details/after631-adoption678-20261010は631のfresh exportから作成した後続計画で、654旧計画を上限にしない。まだnativeコピー/書込/原本採用/公開は行っていない。631原本/公開を保護し、現在nativeのfresh export・入力hash照合を行ってから次の採用へ進む。全件取得は通常60秒以上/1ページで012が継続中。
+
+
+## 最終保存時の照合（2026-10-10、取得は継続）
+
+631原本/公開d1-c4c54f3692bd4473/UI v9・54匿名ファイル一致・3幅操作・native全値/書式/出典/11代替画像確認済み。後続678候補の最新コードによる全入力再変換が補完候補と全JSON一致（hash365e12b9101a57229b01d2bb7c705f7e2c76dcc0190bd1d58f14611cbccee920）。旧676候補不変。Python144/JS25 PASS。変更ファイルはsrc/card_details.py、tests/test_detail_html.py/test_support_detail_html.py/ui-v5-smoke.mjs、docs/card-details-design/integration/verification、README/operations/TASK/HANDOFF、公開index/details pointerと新不変バンドル。中断前後の編集を保持してGitHubへ保存済み。
+
+最新の後続計画はprivate/details/after631-adoption678-20261010（678=P281/S397、11178項目、631から47カード/773項目追加、10405旧ID/手修正保持、入力意味hash72dfd5ef40cf814b919bcb21becfb7798603ce9786c5dffa8d9deb94cd5d7191、出力hash e89e866166ae3474729c9bbcae0cbb3b17ee2c06aa855b5b59da23813447cfb6）。書込要求private/details/after631-requests678-20261010は140小バッチ、まだ送信していない。654旧計画は履歴として保持。次回は現在native原本をfresh exportして入力hashと照合し、変化があれば手修正を保って再計画する。旧元原本や採用済み631へ直接未確認バッチを適用しない。
+
+今回の検証用render/変換/更新/公開処理は完了し、未確認の書込応答はない。残って動くのは全件取得012だけ（launcher28492/worker29464）。記録時state1910・2026-10-09T16:35:42+00:00、保存634/1363（新規629+再利用5）、pending729、status=running、active_attempt=None、STOPなし、stderr0。60秒以上/1ページ、共有ゲート、実HTTP失敗/Retry-After停止を維持。保存済みを再取得せず、稼働中の012を二重起動しない。終了後の旧コード監査は新コードで保存入力を再変換してから採用判断する。取得は停止していない。
+
+未完了条件と保留は検証表の通り。全件詳細の入力取得/採用/公開、効果/条件の全面構造化、独立した公式網羅確認、基礎新規実在カード本番追加/修正実証等を完成済みと扱わない。個別リンク47件はユーザー保留。Google実画面は環境起動障害で未確認だがAPI/エクスポート代替を確認済み。今回は再開と追加公開まで進めた状態で、プロジェクト完成・一時停止・ユーザー操作待ちではない。
