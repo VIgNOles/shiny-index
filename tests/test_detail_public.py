@@ -28,6 +28,34 @@ class DetailPublicTests(unittest.TestCase):
   self.assertEqual(d['cards'][0]['items'][0]['random_effect_options'][0]['turns'],3)
   d['cards'][0]['items'][0]['random_effect_options'][0]['prose']='非公開全文'
   with self.assertRaisesRegex(ValueError,'random-effect option'):validate_public(d,[{'card_id':CID,'card_kind':'P'}])
+ def memory_document(self,link='Dance3倍アピール',charge='Visual4倍アピール'):
+  c=candidate();c['cards'][0]['memory_appeals']=[{'kind':'memory_appeal','name':'思い出','level':1,'effect_private':'思い出アピール[Lv1] / Vocal2倍アピール','link_appeal_private':link,'charge_appeal_private':charge}];rehash(c)
+  return public_document(adopt(empty(c['base_dataset_version']),c),[{'card_id':CID,'card_kind':'P'}])
+ def test_memory_link_and_charge_are_separate_without_prose(self):
+  d=self.memory_document();item=next(i for i in d['cards'][0]['items'] if i['kind']=='memory_appeal')
+  self.assertEqual(item['numeric_facts'][0]['targets'],['Vocal'])
+  self.assertEqual(item['memory_link_facts'][0]['targets'],['Dance'])
+  self.assertEqual(item['memory_charge_facts'][0]['targets'],['Visual'])
+  self.assertTrue(item['memory_link_present']);self.assertTrue(item['memory_charge_present'])
+  self.assertNotIn('link_appeal_private',item);self.assertNotIn('charge_appeal_private',item)
+ def test_maximum_memory_appeal_is_not_a_fixed_multiplier(self):
+  d=self.memory_document(link='全観客にDance最大3.5倍アピール [回復回数増加で効果UP]')
+  item=next(i for i in d['cards'][0]['items'] if i['kind']=='memory_appeal')
+  self.assertEqual(item['memory_link_facts'][0]['metric'],'appeal_maximum')
+  self.assertEqual(item['memory_link_facts'][0]['value'],3.5)
+  self.assertTrue(item['conditions_not_structured'])
+ def test_memory_absent_and_unstructured_effects_are_distinct(self):
+  d=self.memory_document(link='任意の未対応説明',charge=None);item=next(i for i in d['cards'][0]['items'] if i['kind']=='memory_appeal')
+  self.assertTrue(item['memory_link_present']);self.assertEqual(item['memory_link_facts'],[])
+  self.assertFalse(item['memory_charge_present']);self.assertEqual(item['memory_charge_facts'],[])
+  d=self.memory_document(link='メンタルダメージ50%CUT[1ターン]');item=next(i for i in d['cards'][0]['items'] if i['kind']=='memory_appeal')
+  self.assertEqual(item['memory_link_facts'][0]['target'],'メンタルダメージ')
+ def test_memory_slot_rejects_nested_prose_and_wrong_kind(self):
+  d=self.memory_document();item=next(i for i in d['cards'][0]['items'] if i['kind']=='memory_appeal')
+  item['memory_link_facts'][0]['prose']='非公開全文'
+  with self.assertRaisesRegex(ValueError,'memory numeric fact'):validate_public(d,[{'card_id':CID,'card_kind':'P'}])
+  d=self.memory_document();item=next(i for i in d['cards'][0]['items'] if i['kind']=='memory_appeal');item['kind']='panel_live'
+  with self.assertRaisesRegex(ValueError,'memory effect slots'):validate_public(d,[{'card_id':CID,'card_kind':'P'}])
  def test_count_anomaly_rejected(self):
   d=self.build();d['coverage']['detail_item_count']=999
   with self.assertRaisesRegex(ValueError,'Count anomaly'):validate_public(d,[{'card_id':CID,'card_kind':'P'}])

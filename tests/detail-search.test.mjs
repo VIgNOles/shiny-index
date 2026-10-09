@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {detailSearch} from '../web/details.mjs';
+import {detailSearch,factText} from '../web/details.mjs';
 const cards=[{card_id:'P1'},{card_id:'S1'},{card_id:'pending'}];
 const details=new Map([
  ['P1',{items:[{name:'通常',kind:'panel_live',mechanics:['link'],numeric_facts:[]},{name:'MB限定',kind:'mb_live',mechanics:['plus'],numeric_facts:[]},{name:'思い出',kind:'memory_appeal',mechanics:['link'],numeric_facts:[]}]}],
@@ -25,3 +25,14 @@ test('random option search stays on the owning live skill',()=>{
  assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_q=ランダム+200%&mechanic=plus'),d),[cards[0]]);
  assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_q=ランダム&mechanic=change'),d),[]);
 });
+
+
+test('memory extra facts are searchable without becoming a live Link',()=>{
+ const d=new Map([['P1',{items:[{name:'思い出',kind:'memory_appeal',numeric_facts:[],memory_link_present:true,memory_link_facts:[{metric:'appeal',targets:['Dance'],value:3}],memory_charge_present:true,memory_charge_facts:[{metric:'appeal',targets:['Visual'],value:4}]}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=memory_appeal&skill_q=Link+Dance+3倍'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=memory_appeal&skill_q=チャージ+Visual+4倍'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('mechanic=link&skill_q=Dance'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=memory_appeal&skill_q=Link+Visual+4倍'),d),[]);
+});
+
+test('maximum appeal label retains its condition limitation',()=>assert.equal(factText({metric:'appeal_maximum',targets:['Dance'],value:3.5}),'Dance 最大3.5倍（条件未構造化）'));

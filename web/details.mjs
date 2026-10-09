@@ -5,6 +5,7 @@ const normalized=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('j
 export function factText(fact){
  const target=fact.targets?.join(' & ')??fact.target??'';
  if(fact.metric==='appeal')return target+' '+fact.value+'倍';
+ if(fact.metric==='appeal_maximum')return target+' 最大'+fact.value+'倍（条件未構造化）';
  if(fact.metric==='rate')return target+' '+fact.value+'% '+fact.direction;
  if(fact.metric==='activation_probability')return '発動確率 '+fact.value+'%';
  if(fact.metric==='activation_limit')return '最大発動 '+fact.value+'回';
@@ -22,8 +23,11 @@ export function detailSearch(cards,params,details){
   return detail.items.some(item=>{
    if(kinds.length&&!kinds.includes(item.kind))return false;
    if(mechanics.length&&(!liveKinds.has(item.kind)||!mechanics.some(value=>(item.mechanics??[]).includes(value))))return false;
-   const text=normalized([item.name,kindNames[item.kind],...(item.mechanics??[]).map(m=>mechanicNames[m]),...(item.numeric_facts??[]).map(factText),...(item.cap_targets??[]),...(item.random_effect_options?.length?['ランダム',...item.random_effect_options.map(factText)]:[])].join(' '));
-   return q.every(word=>text.includes(word));
+   const common=[item.name,kindNames[item.kind],...(item.mechanics??[]).map(m=>mechanicNames[m]),...(item.cap_targets??[])];
+   const views=[[...common,...(item.numeric_facts??[]).map(factText),...(item.random_effect_options?.length?['ランダム',...item.random_effect_options.map(factText)]:[])]];
+   if(item.memory_link_present)views.push([...common,'Link追加効果',...(item.memory_link_facts??[]).map(factText)]);
+   if(item.memory_charge_present)views.push([...common,'チャージ追加効果',...(item.memory_charge_facts??[]).map(factText)]);
+   return views.some(parts=>{const text=normalized(parts.join(' '));return q.every(word=>text.includes(word));});
   });
  });
 }

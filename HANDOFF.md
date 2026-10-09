@@ -559,3 +559,16 @@ frozen state684の保存226ページから282カードP136/S146・4138項目、�
 準備7a5d3e5、公開9e1a7ac、タグui-v7-details282-20261009、Actions37914739564 success。匿名公開URL42/42ファイルがsiteと生バイト一致。PC1280/390/320の基本・詳細検索/フィルター/並替、MB/生成/ランダム、最高Lv欠損、JSON版/SHAと取得、横はみ出し/見出し間隔PASS。原本r9/282P136S146/4138と公開d1-6595cad90a13ca0bは一致、基礎1466/v1版不変。private/audits/detail282-public-verification-20261009.json、ui-v7-details282-public-20261009参照。
 
 256件上限は解除済みで取得011は継続中。次の取得済み入力からafter282-next-frozen/after282-next-candidate-20261009を独立変換中。後続候補の採用はfresh native原本から行い、全件版完成とはしない。
+
+
+## 2026-10-09 298件原本・UI v8公開前検証
+
+frozen state732（242保存ページ）の入力候補ad01f438b35dc959b832b2efaf9e26844b583e588580b768229fb194ea7c080cから、298カードP141/S157・4418項目を採用。構造保留0・入力待ち1121・リンク47保留。282原本のfresh exportとactive原本全値一致、native全コピーへ16バッチ（元53バッチと同じrequests順序を90KB未満に再編成）。原本r10を全値読戻し一致・基礎9タブ差分0・4138旧detail_id/手修正維持で切替。元282の更新時刻09:51:41.455UTC不変、XLSX/接続/siteバックアップを保存。現在の原本はprivate/sheets-connection.json。追加280出典URLのリンク一致、全書込範囲の書式/validation/chips・全使用フィルター範囲をAPI確認。CUA起動不可につきGoogle画面外観は未確認。
+
+原本に保存済みの思い出Link/チャージ効果が公開変換から除外されていたため、参考数値をmemory_link_facts/memory_charge_factsへ分けて公開・表示・検索するUI v8へ修正。観測した効果の有無と、本文があるが数値未構造化の状態を区別し、未対応を効果なしとしない。最大倍率はappeal_maximumとして固定倍率と区別し『最大/条件未構造化』と表示する。最大値の発動条件や継続ターンまで解析済みとは扱わない。Linkとチャージのキーワードを跨いだ誤一致を防ぎ、思い出Linkはライブ機能フィルターへ混ぜない。原本/固定ID/取得入力はこの公開改善で書き換えない。Wiki全文・画像・私的条件テキストは配布しない。memory651行、Linkあり626/数値あり621、チャージあり15/数値あり15。
+
+基礎v1-93a6a8b8d40e754a不変、UI v8・詳細d1-01d9d4aba38f5334・44公開ファイル。旧42ファイルの変更はindex/app/details.mjs/details/latest.jsonだけ、旧データ版全バイト不変。Python133/JS23 PASS。UI v8基本/詳細PC1280/390/320、思い出Link/チャージ表示、通常/MB/生成/ランダム、JSON版/SHA、最高Lv欠損、横はみ出し/間隔PASS、320px思い出画面視認。旧UI v7タグを使う切り戻し候補も298データを維持して全幅基本/詳細PASS。旧UIでは思い出追加効果と最大倍率の専用表示/検索が省かれる。新依存なし。
+
+変更: src/detail_public.py、web/app.mjs/details.mjs/index.html、siteの対応資産と新詳細バンドル、tests/test_detail_public.py/detail-search.test.mjs/ui-v5-smoke.mjs、README/operations/HANDOFF/docs/card-details-design/integration/verification、local design.md17.44（Git対象外）。最初のmemory単体試験はfixtureのcollection名を単数にしたため失敗し、実スキーマのmemory_appealsへ直して全件PASS。133試験の429/ファイル欠落ログはモックの障害試験で、実Wiki失敗ではない。公開Actions・匿名44ファイル・公開PC/スマホ確認は後続に追記する。取得011は継続し自動採用しない。
+
+証拠: private/audits/detail-native-298-roundtrip-20261009.json、native298-format-and-links-20261009.json、detail298-site-preservation-20261009.json、ui-v8-details298-local-20261009、ui-v7-rollback-from298-20261009、private/details/sheet-write-after282-checkpoint-20261009.json。全件詳細/複合効果・条件の全面構造化/基礎新規実在カード本番追加実証/公式独立網羅、日付56/リンク47保留、実機・スクリーンリーダー全面検査は未完了。

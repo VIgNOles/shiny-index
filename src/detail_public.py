@@ -9,15 +9,15 @@ from src.indexer import digest,read,write,now
 
 MECHANICS={'link','plus','change','grow','refrain'}
 COVERAGE_FIELDS={'skill_panel','review','memory_appeal','memory_boost','generated_live','unique_ability','stage_skill','aptitude','fight_skill','max_status','possessed_live','quick_skill','support_skills','traits'}
-ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost','generation_stage','generated_from_name','generation_origin_kind','random_effect_options']
+ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost','generation_stage','generated_from_name','generation_origin_kind','random_effect_options','memory_link_facts','memory_charge_facts','memory_link_present','memory_charge_present']
 
 def numeric_facts(item):
     # Individual numeric facts do not imply unconditional or complete skill effects.
     value=item.get('name','')+' / '+item.get('effect_private','')
     facts=[]
-    for match in re.finditer(r'(Vocal|Dance|Visual)((?:\s*&\s*(?:Vocal|Dance|Visual))*)\s*(\d+(?:\.\d+)?)倍(?:アピール)?',value):
-        facts.append({'metric':'appeal','targets':re.findall(r'Vocal|Dance|Visual',match[1]+match[2]),'value':float(match[3]),'unit':'multiplier'})
-    for match in re.finditer(r'(Vocal|Dance|Visual|注目度|思い出ゲージ|リアクション回避率|メンタル)\s*(\d+(?:\.\d+)?)%\s*(UP|DOWN|CUT)',value):
+    for match in re.finditer(r'(Vocal|Dance|Visual)((?:\s*&\s*(?:Vocal|Dance|Visual))*)\s*(最大)?\s*(\d+(?:\.\d+)?)倍(?:アピール)?',value):
+        facts.append({'metric':'appeal_maximum' if match[3] else 'appeal','targets':re.findall(r'Vocal|Dance|Visual',match[1]+match[2]),'value':float(match[4]),'unit':'multiplier'})
+    for match in re.finditer(r'(Vocal|Dance|Visual|注目度|思い出ゲージ|リアクション回避率|メンタルダメージ|メンタル)\s*(\d+(?:\.\d+)?)%\s*(UP|DOWN|CUT)',value):
         facts.append({'metric':'rate','target':match[1],'value':float(match[2]),'unit':'percent','direction':match[3]})
     for label,metric,unit in [('確率','activation_probability','percent'),('最大','activation_limit','times')]:
         match=re.search(r'\['+label+r':\s*(\d+)(?:%|回)\]',value)
@@ -42,6 +42,11 @@ def public_document(master,base_cards,base_version=None):
             public={key:item[key] for key in ITEM_FIELDS if key in item}
             public.update(numeric_facts=numeric_facts(item),effect_structure='partial',conditions_not_structured=True,
                           source_positions=item.get('source_positions',[]))
+            if item['kind']=='memory_appeal':
+                for slot,source_field in [('link','link_appeal_private'),('charge','charge_appeal_private')]:
+                    text=(item.get(source_field) or '').strip()
+                    public['memory_'+slot+'_present']=text not in {'','-','－','―'}
+                    public['memory_'+slot+'_facts']=numeric_facts({'effect_private':text}) if public['memory_'+slot+'_present'] else []
             if item.get('progression'):
                 public['progression']=[{key:step[key] for key in ['support_level','skill_level']} for step in item['progression']]
             if item.get('manual_source_ref'):public['manual_source_ref']=item['manual_source_ref']
@@ -70,6 +75,25 @@ def public_document(master,base_cards,base_version=None):
     validate_public(doc,base_cards);return doc
 
 
+
+def validate_memory_facts(item):
+    fields={'memory_link_facts','memory_charge_facts','memory_link_present','memory_charge_present'}
+    if not fields.intersection(item):return
+    if item['kind']!='memory_appeal' or not fields.issubset(item):raise ValueError('Invalid memory effect slots')
+    for slot in ('link','charge'):
+        present=item['memory_'+slot+'_present'];facts=item['memory_'+slot+'_facts']
+        if type(present) is not bool or not isinstance(facts,list) or (not present and facts):raise ValueError('Invalid memory effect presence')
+        for fact in facts:
+            if not isinstance(fact,dict) or type(fact.get('value')) not in (int,float) or not math.isfinite(fact['value']) or fact['value']<0:raise ValueError('Invalid memory numeric fact')
+            metric=fact.get('metric')
+            if metric in {'appeal','appeal_maximum'}:
+                if set(fact)!={'metric','targets','value','unit'} or not isinstance(fact['targets'],list) or not fact['targets'] or set(fact['targets'])-{'Vocal','Dance','Visual'} or fact['unit']!='multiplier':raise ValueError('Invalid memory numeric fact')
+            elif metric=='rate':
+                if set(fact)!={'metric','target','value','unit','direction'} or fact['target'] not in {'Vocal','Dance','Visual','注目度','思い出ゲージ','リアクション回避率','メンタルダメージ','メンタル'} or fact['unit']!='percent' or fact['direction'] not in {'UP','DOWN','CUT'}:raise ValueError('Invalid memory numeric fact')
+            elif metric in {'activation_probability','activation_limit'}:
+                if set(fact)!={'metric','value','unit'} or type(fact['value']) is not int or fact['unit']!=('percent' if metric=='activation_probability' else 'times'):raise ValueError('Invalid memory numeric fact')
+            else:raise ValueError('Invalid memory numeric fact')
+
 def validate_public(doc,base_cards):
     if set(doc)!={'meta','cards','coverage'}:raise ValueError('Non-public document field')
     bases={c['card_id']:c for c in base_cards};ids=set();items=set()
@@ -87,6 +111,7 @@ def validate_public(doc,base_cards):
         datetime.fromisoformat(card['fetched_at'])
         for item in card['items']:
             uuid.UUID(item['detail_id'])
+            validate_memory_facts(item)
             if item['detail_id'] in items or item['kind'] not in KINDS[card['card_kind']]:raise ValueError('Invalid detail item')
             items.add(item['detail_id'])
             if item['kind']=='generated_live' and (item.get('sp') is not None

@@ -68,6 +68,20 @@ try{
   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
   await page.locator('#reset').click();
   assert.equal(await page.locator('#count').textContent(),total+' / '+total+' 件');
+  if(Number((process.env.UI_EXPECTED_VERSION??'').match(/^ui-v(\d+)/)?.[1])>=8){
+   const memory=details.cards.find(card=>card.items.some(item=>item.memory_link_present&&item.memory_charge_present&&item.memory_charge_facts?.length));
+   assert.ok(memory,'Expected an acquired memory appeal with separate Link and charge effects');
+   const baseCard=cards.find(card=>card.card_id===memory.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   const group=page.locator('.performance summary').filter({hasText:'思い出アピール'});
+   await group.click();
+   assert.ok(await page.locator('.memory-link').count()>0);assert.ok(await page.locator('.memory-charge').count()>0);
+   assert.ok((await page.locator('.memory-charge').first().textContent()).includes('倍'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-memory.png')});
+   await page.locator('#reset').click();
+  }
   const generation=details.cards.find(card=>card.items.some(item=>item.kind==='generated_live'));
   if(generation&&process.env.UI_EXPECTED_VERSION!=='ui-v5'){
    await page.locator('#skill-q').fill('Cherish You++++');

@@ -476,7 +476,7 @@ try{
    const stats=card.max_status;
    detailLine(list,'最大Lv '+stats.level,['Vo','Da','Vi','Me'].map((label,i)=>label+' '+(stats[['vocal','dance','visual','mental'][i]]??'未記載')).join(' / '));
   }
-  add(section,'p','効果は参考数値の一部を表示しています。発動条件・複合効果・Link等の追加効果はWikiで確認してください。','detail-note');
+  add(section,'p','効果は参考数値の一部を表示しています。発動条件・複合効果や、未構造化の効果はWikiで確認してください。','detail-note');
   for(const [kind,label] of Object.entries(kindNames)){
    const items=card.items.filter(item=>item.kind===kind);if(!items.length)continue;
    const group=add(section,'details','','skill-section');add(group,'summary',label+'（'+items.length+'件）');
@@ -496,6 +496,12 @@ try{
     if(attrs.length)add(row,'p',attrs.join(' · '),'skill-meta');
     if(item.cap_delta!=null)add(row,'p',item.cap_targets.join(' / ')+' 上限 +'+item.cap_delta);
     if(item.numeric_facts.length)add(row,'p','参考数値：'+item.numeric_facts.map(factText).join(' / '),'skill-values');
+    for(const [slot,label] of [['link','Link追加効果'],['charge','チャージ追加効果']]){
+     if(item['memory_'+slot+'_present']){
+      const facts=item['memory_'+slot+'_facts']??[];
+      add(row,'p',label+'（参考数値）：'+(facts.length?facts.map(factText).join(' / '):'数値を未構造化。Wikiで確認してください。'),'skill-values memory-'+slot);
+     }
+    }
     if(item.random_effect_options?.length)add(row,'p','ランダム効果の候補（確率未収録）：'+item.random_effect_options.map(option=>factText(option)+' ['+option.turns+'ターン]').join(' / '),'skill-values');
     if(item.progression?.length)add(row,'p','取得Lv → スキルLv：'+item.progression.map(step=>step.support_level+' → '+step.skill_level).join(' / '),'skill-values');
    }
