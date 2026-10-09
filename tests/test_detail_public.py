@@ -21,6 +21,13 @@ class DetailPublicTests(unittest.TestCase):
   self.assertEqual(item['generation_stage'],1);self.assertNotIn('effect_private',item)
   c['cards'][0]['generated_live'][0]['sp']=40;rehash(c)
   with self.assertRaisesRegex(ValueError,'generated-live'):adopt(empty(c['base_dataset_version']),c)
+ def test_random_options_allow_only_structured_facts(self):
+  c=candidate();item=c['cards'][0]['panel_nodes'][0]
+  item['random_effect_options']=[{'metric':'rate','target':'Vocal','value':50,'unit':'percent','direction':'UP','turns':3}];rehash(c)
+  m=adopt(empty(c['base_dataset_version']),c);d=public_document(m,[{'card_id':CID,'card_kind':'P'}])
+  self.assertEqual(d['cards'][0]['items'][0]['random_effect_options'][0]['turns'],3)
+  d['cards'][0]['items'][0]['random_effect_options'][0]['prose']='非公開全文'
+  with self.assertRaisesRegex(ValueError,'random-effect option'):validate_public(d,[{'card_id':CID,'card_kind':'P'}])
  def test_count_anomaly_rejected(self):
   d=self.build();d['coverage']['detail_item_count']=999
   with self.assertRaisesRegex(ValueError,'Count anomaly'):validate_public(d,[{'card_id':CID,'card_kind':'P'}])

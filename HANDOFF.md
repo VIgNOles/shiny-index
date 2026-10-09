@@ -487,3 +487,27 @@ D01で複合上限があり、対象を配列cap_targetsとしてすべて保存
 - 変更: src/card_details.py/detail_master.py/detail_public.py、webとsiteのindex/app/details、テスト4ファイル、README/operations/TASK/HANDOFF、docs/card-details-design/integration/verification、local design.md17.40（Git対象外）。依存追加なし。private原本/入力/候補/監査はGit対象外。site改行も旧規則へ揃え、不要な全行変更を避けた。
 - 次: Gitに検証済みコード/文書/siteのみ保存しui-v6タグ、publish:コミット、Actions成功、匿名URL38ファイルとPC/390/320の基本/詳細操作、結果を追記。worker稼働中の二重起動禁止。終了時candidateの件数/例外を読み、保存HTMLから変換を再実行し、正式原本のfresh exportから次の採用計画を作る。
 - 残件: 全件詳細取得/原本採用/公開、条件/複合効果全面構造化、公式独立網羅、基礎新規実在1カードの本番追加/修正実証、日付56/個別リンク47保留、実機/スクリーンリーダー全面検査。プロジェクト完成ではない。47は追加していないというユーザー判断を維持する。
+
+
+## 最新: 256件版で停止準備・公開前（2026-10-09）
+
+ユーザーが今回の範囲を256件版までと指定した。TASK.mdに原文を保存。以後256超の追加採用・拡張はしない。原本/公開確認と保存を終え、再開指示まで停止する。元の全件目的を取消していない。
+
+現在の正式原本は指定アカウントnative15タブ・基礎r7/1466(P548/S918)不変、詳細r8/256(P126/S130)/3685。ID/URL/バックアップはprivate/sheets-connection.json。206原本を全コピーし107バッチ、読戻しmaster-r8-256-20261009.xlsxが計画と全値一致、基礎9タブ差分0、2845既存detail_id/名称手修正を保持。切替前の206更新時刻/値不変。旧206の原本・XLSX・接続・siteを保持。private/audits/detail-native-256-roundtrip-20261009.json参照。
+
+新しい生成表: Could Beの通常/MB表を親の明記生成先名で照合、SP=nullで生成4技能追加。Cherish4と合計8（MB由来2）。Find M Trickのランダム表をパネル名称へ結び、2技能10候補の属性/値/ターンを表示/検索。確率は推測しない。Candy等2行1列の共通説明はprivate補足のまま。frozen state602/200入力から256全valid、候補1811cc0614a84f3d9ff0178db0bb59cf34f5bdbb95f57904087886f6de19fc94、入力待ち1163/リンク保留47。正式計画private/details/compact-random-adoption-20261009、107requestと書込checkpointはprivate/details内。未完成の効果条件を完全と表示しない。
+
+siteはUI v7・詳細d1-471997dafba126df・40ファイル、基礎v1不変、公開はまだ206版。Python129/JS21 PASS。PC1280/390/320基本/詳細、通常/MB生成Change、ランダム候補、JSON版/SHA、最高Lv欠損、はみ出し/説明と見出し間隔PASS、320px画像視認。旧UI v6の切り戻し候補も256データで基本/詳細PASS。旧UI v6にはランダム専用表示/検索がない。206公開結果はbca0845/84dc136/Actions37895739334成功、匿名38/38、PC/390/320基本/詳細PASS。
+
+取得010はSTOPにより保存境界で停止、最終監査も07:18:33UTCで終了。state677/stopped、224保存(219fetched+5reused)/1363、残1139、active_attempt=null。worker/workflow/共通request lockなし、実PID6716/launcher3484は終了、STOP保持。成功入力の全記録とmaster/connection/site全SHA不変。旧009/010報告/ログも保存。最新監査候補private/audits/detail-catalog-670f539ba8fe581e418e20c8b766fc6aef8cd385ecd9ba26baffc2dcfe243d7c.jsonは自動採用せず保持。停止証拠private/audits/user-stop256-safe-20261009.json。これ以上取得を再起動しない。
+
+変更ファイル: src/card_details.py/detail_public.py、scripts/collect_detail_catalog.py（共有URL数を未対応数と誤表示する旧キーを修正）、web/site index/app/details、テスト4ファイル、README/operations/TASK/HANDOFF、docs/card-details-design/integration/verification、local design.md17.41。privateの原入力・全文・原本・監査/接続はGit非公開。依存追加なし。途中候補255件版も破棄せず保持、256計画へ訂正済み。
+
+今回残す作業: 検証済み256コード/文書/siteのGit保存、ui-v7タグ、publish:、Actions/匿名40ファイル/公開PC390320の確認、最終結果追記。追加採用はしない。
+
+次回の具体的な再開地点（再開指示後だけ実行）:
+1. HANDOFF末尾とTASKの制約、private/sheets-connection.json、state/STOP/workflow-report/各ロックとPIDを照合。Git差分と最新のnative原本を確認しユーザー編集を保持する。
+2. 取得を再開するなら成功224入力を維持し、残数と共通の通常60秒/実失敗Retry-Afterを確認。旧ジョブなしを確認して新しいログ番号でrun_detail_workflow.py --max-attempts <実残数> --clear-stopを実行。今回の停止中は実行しない。
+3. 保存済み入力だけから新しいprivate候補へtransform_detail_catalog.pyを再実行し、256超の未採用入力/構造例外を次回の範囲で確認する。採用時は現在native原本のfresh exportから計画を作り固定ID/手修正を維持する。過去の計画や旧原本で上書きしない。
+
+残件: 全件詳細取得/原本採用/公開、発動条件/複合効果全面構造化、公式全網羅、基礎新規実在1カードの本番追加/修正実証、日付56/個別リンク47保留、実機/スクリーンリーダー全面検査。今回の停止はユーザーの範囲指定によるもので、障害や全件完成によるものではない。

@@ -52,6 +52,8 @@ try{
   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
   await page.locator('.detail-toggle').click();
   const performance=page.locator('.performance');
+  const spacing=await performance.evaluate(node=>({noteBottom:node.querySelector('.detail-note').getBoundingClientRect().bottom,summaryTop:node.querySelector('summary').getBoundingClientRect().top}));
+  assert.ok(spacing.summaryTop>=spacing.noteBottom+4,'Skill summary overlaps detail note: '+JSON.stringify(spacing));
   assert.equal(await performance.locator('summary').filter({hasText:'MBライブスキル'}).count(),1);
   await performance.locator('summary').filter({hasText:'MBライブスキル'}).click();
   assert.ok((await performance.textContent()).includes('MB 2/5'));
@@ -79,6 +81,27 @@ try{
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-generated.png')});
    await page.locator('#skill-kind').selectOption('panel_live');
    assert.equal(await page.locator('#count').textContent(),'0 / '+total+' 件');
+   await page.locator('#reset').click();
+  }
+  if(details.cards.some(card=>card.items.some(item=>item.generation_origin_kind==='mb_live'))){
+   await page.locator('#skill-q').fill('[MB]Could Be++');
+   await page.locator('#skill-kind').selectOption('generated_live');
+   await page.locator('input[name="mechanic"][value="change"]').check();
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'生成ライブスキル'}).click();
+   assert.ok((await page.locator('.performance').textContent()).includes('[MB]Could Be(2/5)'));
+   await page.locator('#reset').click();
+  }
+  if(details.cards.some(card=>card.items.some(item=>item.random_effect_options?.length))&&process.env.UI_EXPECTED_VERSION==='ui-v7'){
+   await page.locator('#skill-q').fill('Find M Trick ランダム 200%');
+   await page.locator('#skill-kind').selectOption('panel_live');
+   await page.locator('input[name="mechanic"][value="plus"]').check();
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'パネルのライブスキル'}).click();
+   assert.ok((await page.locator('.performance').textContent()).includes('ランダム効果の候補（確率未収録）'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-random.png')});
    await page.locator('#reset').click();
   }
   const missing=details.cards.find(card=>card.max_status?.missing_fields?.length);

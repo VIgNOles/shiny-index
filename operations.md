@@ -293,3 +293,10 @@ scripts/collect_one.py statusで現状を確認し、登録済みの1ページ�
 現行は指定Driveの15タブ、基礎r7/1466件、詳細r7/206件2845項目。旧205/r6のnative原本とローカルXLSXはバックアップ保持。private/sheets-connection.jsonで現在のURL・全値照合・バックアップを確認する。生成ライブはP専用でSP空欄、連係段階/生成元/機能タグを取得値として扱う。手修正は既存G:M列のみ、生成段階やID/source_jsonを直接書き換えない。未記載SPを0にしない。
 
 UI v6と詳細d1-d3a4bf450390442b、基礎版はv1-93a6a8b8d40e754a。切り戻し基準はui-v5-details205-20261009。build_ui_rollback.pyで現行データを維持し、別候補で検査後に明示公開する。旧UIには生成専用表示/検索がないことを確認する。全件入力取得はworkflow009、stdout/stderr-workflow-009.logとworker.lock、state.jsonで確認する。再開前にPID/ロックを必ず照合し、稼働中の重複起動をしない。
+
+
+### 2026-10-09 256件版での停止
+
+現行原本は指定Driveの基礎r7/詳細r8、15タブ、1466基礎/256詳細(P126/S130)/3685項目。private/sheets-connection.jsonが現在の接続、旧206はバックアップ。UI v7/詳細d1-471997dafba126df、40ファイル、基礎v1不変。切り戻し基準ui-v6-details206-20261009は256データを保持して検証済み。UI v6にはランダム候補の専用表示/検索がない。
+
+今回の上限は256件。全件取得をSTOPで停止し、最終監査/ロック解放/保存入力不変を確認して引き継ぐ。再開指示があるまでclear-stopや追加採用を実行しない。statusのshared_url_pagesは共有URL数28で、派生対応の未完了数ではない（84カードは対応済み）。旧キーshared_url_pages_needing_variant_mappingは過去の表示名で、古いジョブ報告に残る場合がある。

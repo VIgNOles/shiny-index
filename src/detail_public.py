@@ -1,7 +1,7 @@
 """Allowlisted factual detail distribution; Wiki prose remains in the private master."""
 from collections import Counter
 from datetime import datetime
-import hashlib,json,re,uuid
+import hashlib,json,re,uuid,math
 from pathlib import Path
 from urllib.parse import urlsplit,unquote
 from src.detail_master import resolve,validate,KINDS
@@ -9,7 +9,7 @@ from src.indexer import digest,read,write,now
 
 MECHANICS={'link','plus','change','grow','refrain'}
 COVERAGE_FIELDS={'skill_panel','review','memory_appeal','memory_boost','generated_live','unique_ability','stage_skill','aptitude','fight_skill','max_status','possessed_live','quick_skill','support_skills','traits'}
-ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost','generation_stage','generated_from_name']
+ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost','generation_stage','generated_from_name','generation_origin_kind','random_effect_options']
 
 def numeric_facts(item):
     # Individual numeric facts do not imply unconditional or complete skill effects.
@@ -94,6 +94,12 @@ def validate_public(doc,base_cards):
                     or not item.get('generated_from_name')):
                 raise ValueError('Invalid public generated-live relation')
             if any(set(position)-{'table','row','column','section_anchor','field'} for position in item.get('source_positions',[])):raise ValueError('Non-public source position field')
+            if item.get('generation_origin_kind') not in {None,'panel_live','mb_live'}:raise ValueError('Invalid generation origin')
+            for option in item.get('random_effect_options',[]):
+                if (set(option)!={'metric','target','value','unit','direction','turns'} or option['metric']!='rate'
+                        or option['target'] not in {'Vocal','Dance','Visual'} or option['unit']!='percent' or option['direction']!='UP'
+                        or type(option['value']) not in (int,float) or not math.isfinite(option['value']) or option['value']<0
+                        or type(option['turns']) is not int or option['turns']<1):raise ValueError('Invalid random-effect option')
             if set(item.get('mechanics',[]))-MECHANICS:raise ValueError('Invalid mechanic')
             if set(item)-set(ITEM_FIELDS+['numeric_facts','effect_structure','conditions_not_structured','source_positions','progression','manual_source_ref']):raise ValueError('Non-public detail field')
     coverage=doc['coverage'];rows=coverage['card_status']

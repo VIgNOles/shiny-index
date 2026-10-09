@@ -22,7 +22,7 @@ export function detailSearch(cards,params,details){
   return detail.items.some(item=>{
    if(kinds.length&&!kinds.includes(item.kind))return false;
    if(mechanics.length&&(!liveKinds.has(item.kind)||!mechanics.some(value=>(item.mechanics??[]).includes(value))))return false;
-   const text=normalized([item.name,kindNames[item.kind],...(item.mechanics??[]).map(m=>mechanicNames[m]),...(item.numeric_facts??[]).map(factText),...(item.cap_targets??[])].join(' '));
+   const text=normalized([item.name,kindNames[item.kind],...(item.mechanics??[]).map(m=>mechanicNames[m]),...(item.numeric_facts??[]).map(factText),...(item.cap_targets??[]),...(item.random_effect_options?.length?['ランダム',...item.random_effect_options.map(factText)]:[])].join(' '));
    return q.every(word=>text.includes(word));
   });
  });

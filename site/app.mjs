@@ -496,6 +496,7 @@ try{
     if(attrs.length)add(row,'p',attrs.join(' · '),'skill-meta');
     if(item.cap_delta!=null)add(row,'p',item.cap_targets.join(' / ')+' 上限 +'+item.cap_delta);
     if(item.numeric_facts.length)add(row,'p','参考数値：'+item.numeric_facts.map(factText).join(' / '),'skill-values');
+    if(item.random_effect_options?.length)add(row,'p','ランダム効果の候補（確率未収録）：'+item.random_effect_options.map(option=>factText(option)+' ['+option.turns+'ターン]').join(' / '),'skill-values');
     if(item.progression?.length)add(row,'p','取得Lv → スキルLv：'+item.progression.map(step=>step.support_level+' → '+step.skill_level).join(' / '),'skill-values');
    }
   }

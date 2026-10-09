@@ -1,6 +1,6 @@
 # 詳細情報の原本・Web・配布データ接続（UI v5）
 
-2026-10-09 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。詳細は段階的な収録で、206カード（P103/S103）・2,845項目、`d1-d3a4bf450390442b`、詳細原本revision7。**全件詳細版は未完成**。公開URLでの最終検証結果は末尾へ追記する。
+2026-10-09 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。詳細は段階的な収録で、256カード（P126/S130）・3,685項目、`d1-471997dafba126df`、詳細原本revision8。**全件詳細版は未完成**。公開URLでの最終検証結果は末尾へ追記する。
 
 ## 原本と出力
 
@@ -45,7 +45,7 @@ Copy-Item -LiteralPath site -Destination private/detail-update-candidate -Recurs
 ./.venv/Scripts/python.exe scripts/export_detail_sheet.py private/sheets-exports/<日時>.xlsx private/detail-update-candidate --master-snapshot private/details/<日時>.json
 ./.venv/Scripts/python.exe scripts/check_site.py private/detail-update-candidate
 $env:UI_BROWSER_PATH='C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-$env:UI_EXPECTED_VERSION='ui-v6'
+$env:UI_EXPECTED_VERSION='ui-v7'
 node tests/ui-v4-smoke.mjs private/detail-update-candidate
 node tests/ui-v5-smoke.mjs private/detail-update-candidate
 ```
@@ -54,7 +54,7 @@ node tests/ui-v5-smoke.mjs private/detail-update-candidate
 
 ## 取得・中断・復旧
 
-全件1,363個別ページの取得を1件ずつ60秒以上で続行中。正常保存済みページは再送しない。現在の処理状態は `private/raw/detail-catalog-20261009/state.json` とworker.lock、workflow-report.json、stdout/stderr-workflow-009.logで確認する。PC終了や利用上限でジョブが終わった場合、docs/card-details-full-acquisition.mdのPID確認・残留ロック・保存成功回復を先に行う。新しいジョブを重ねて起動しない。
+全件1,363個別ページのうち224を保存し、今回のユーザー指定で取得は停止済み。再開指示まで実行しない。正常時の間隔は60秒以上。正常保存済みページは再送しない。現在の処理状態は `private/raw/detail-catalog-20261009/state.json` とworker.lock、workflow-report.json、stdout/stderr-workflow-010.logで確認する。PC終了や利用上限でジョブが終わった場合、docs/card-details-full-acquisition.mdのPID確認・残留ロック・保存成功回復を先に行う。新しいジョブを重ねて起動しない。
 
 HTTP200短文の誤検知は `private/audits/detail-shape-false-positive-20261009.json` に根拠を保存し、履歴は削除していない。実HTTP失敗・Retry-Afterは解除していない。変換と原本採用、公開は取得とは独立し、異常入力は正常な原本・siteに自動反映しない。詳細数の異常・重複・未知P/S・孤児ID・ファイル改変は検査で拒否する。壊れた更新の復旧は正常な原本コピーと不変d1バンドルから新しい候補を作り、検査後に公開する。UI v4へはタグ `ui-v4-20261009` とbuild_ui_rollback.pyを使う。原本は切り戻さない。
 
@@ -107,3 +107,14 @@ P【Cherish You】鈴木羽那の保存HTMLにある生成ライブ連係表を�
 指定Driveの205原本をnative完全コピーし、更新11バッチ、全値読戻し一致・基礎9タブ差分0、既存2825固定ID/名称手修正保持を確認。旧205原本の未変更もDrive更新日時と実値で確認後、詳細r7へ切り替えた。原本/監査/バックアップは非公開。接続ファイル内の古い100件のdetail_roundtrip_result表示も206件の実検証結果へ同期した。
 
 UI v6では「生成ライブスキル」を独立表示・検索し、生成元と段階を表示する。新詳細版d1-d3a4bf450390442b、38ファイル。ローカルPC1280/390/320の基本/詳細操作、生成Change検索とパネルとの分離、JSON版一致を確認。公開URLの結果は後続に追記する。旧UI v5タグを使う切り戻し候補では206件データを維持し、生成専用機能だけ旧UIの範囲外になる。
+
+
+## 256件版の原本接続・公開前検証（2026-10-09）
+
+206件版は準備bca0845、公開84dc136、Actions37895739334 success、匿名38/38一致、PC1280/390/320基本/詳細PASS。今回、凍結state602/200保存ページの256カードP126/S130・3685項目を採用した。候補ハッシュ1811cc0614a84f3d9ff0178db0bb59cf34f5bdbb95f57904087886f6de19fc94。入力待ち1163・個別リンク保留47、構造保留0。全件入力完了ではない。
+
+P【Could Be】ルカの3行型生成表は通常/MBの表見出しを区別し、各生成先名を通常/MBそれぞれの親効果に照合する。生成4件を別ID/SP=nullで保存する。P【Find M Trick】摩美々のランダム表はパネルの正確な名称へ結び、Vocalの候補値・継続ターンだけを構造化。2技能×5候補を公開し、確率や確定発動を推測しない。単なる2行1列の共通説明（Candy等）は従来どおり非公開補足で、未知効果を一般に無視する変更ではない。
+
+指定Driveの206原本をnative全コピー、107バッチ、全値往復一致、基礎9タブ差分0、2845既存ID/手修正保持を確認後、詳細r8の256件へ接続切替。元206の未変更も値/更新時刻で確認した。UI v7・詳細d1-471997dafba126df・40ファイル。PC1280/390/320の基本・詳細、生成通常/MB、ランダム候補検索、版/JSON、横はみ出し/説明文と見出しの非重複を検証した。320pxランダム画面を目視。旧UI v6へ同じ256データを維持する切り戻しの基本/詳細操作もPASS。公開結果は後続に記録する。
+
+ユーザーが今回の採用上限を256件としたため、新たな採用・拡張は止める。取得も安全停止し、原入力と最終監査を保持。再開前にはHANDOFF.md末尾、STOP・state・PID/ロックと現在の正式原本を照合する。取得済み>256の入力を自動採用しない。

@@ -58,6 +58,29 @@ class DetailHtmlTests(unittest.TestCase):
             with self.subTest(message=message), self.assertRaisesRegex(ValueError,message):
                 parse(diagram.replace(old,new))
 
+    def test_compact_generated_mb_context_and_target_coverage(self):
+        from src.card_details import parse_compact_generated
+        html='<table><tr><th colspan="2">[MB]生成されるライブスキル</th></tr><tr><th>[MB]child A</th><th>[MB]child B</th></tr><tr><td style="background-color:gainsboro">Dance5倍(change)</td><td style="background-color:gainsboro">Dance6倍</td></tr></table>'
+        parents=[{'kind':'mb_live','name':'[MB]root(2/5)','effect_private':'ライブスキル生成[child A]'},
+                 {'kind':'mb_live','name':'[MB]root+(4/5)','effect_private':'ライブスキル生成[child B]'}]
+        parse=lambda value:parse_compact_generated(4,BeautifulSoup(value,'html.parser').table,'panel',parents,memory_boost=True)
+        items=parse(html);self.assertEqual(len(items),2);self.assertEqual(items[0]['generation_origin_kind'],'mb_live')
+        self.assertEqual(items[0]['mechanics'],['change']);self.assertIsNone(items[0]['sp'])
+        for old,new,error in [('[MB]child A','child A','MB context'),('child B','unknown','parent ambiguous'),('Dance6倍','ライブスキル生成[next]','unresolved')]:
+            with self.subTest(error=error),self.assertRaisesRegex(ValueError,error):parse(html.replace(old,new))
+
+    def test_random_options_attach_to_exact_parent_and_preserve_evidence(self):
+        from src.card_details import attach_random_options
+        html='<table><tr><th colspan="2">ランダム効果付与</th></tr><tr><td colspan="2">以下の中からランダムで効果が付与される</td></tr><tr><th>root A</th><th>root B</th></tr><tr><td>・Vocal5%UP[3ターン] ・Vocal50%UP[3ターン]</td><td>・Dance100%UP[4ターン]</td></tr></table>'
+        make=lambda:[{'kind':'panel_live','name':'root A (☆4)','effect_private':'ランダム効果1個付与','source_positions':[]},
+                     {'kind':'panel_live','name':'root B','effect_private':'ランダム効果1個付与','source_positions':[]}]
+        nodes=make();attach_random_options(8,BeautifulSoup(html,'html.parser').table,'panel',nodes)
+        self.assertEqual([x['value'] for x in nodes[0]['random_effect_options']],[5,50])
+        self.assertEqual(nodes[1]['random_effect_options'][0]['turns'],4)
+        self.assertEqual(nodes[0]['source_positions'][0]['row'],3)
+        for old,new,error in [('root B','unknown','parent ambiguous'),('Dance100%UP','未対応効果','Unknown random-effect option')]:
+            with self.subTest(error=error),self.assertRaisesRegex(ValueError,error):attach_random_options(8,BeautifulSoup(html.replace(old,new),'html.parser').table,'panel',make())
+
     def test_explanation_table_is_private_and_does_not_add_live_tags(self):
         note='<table><tr><th>付与効果甲</th></tr><tr><td>合成の説明 (Plus)</td></tr></table>'
         card=extract_html(fixture(extra=note),CARD)
@@ -65,6 +88,9 @@ class DetailHtmlTests(unittest.TestCase):
         self.assertEqual(card['skill_notes_private'][0]['name'],'付与効果甲')
         self.assertEqual(card['panel_nodes'][0]['mechanics'],['link'])
         self.assertEqual(len(card['skill_notes_private'][0]['source_positions']),2)
+        random_note=extract_html(fixture(extra=note.replace('付与効果甲','ランダム効果付与')),CARD)
+        self.assertEqual(random_note['skill_notes_private'][0]['name'],'ランダム効果付与')
+        self.assertNotIn('random_effect_options',random_note['panel_nodes'][0])
 
     def test_dedicated_only_ability_has_unknown_sp_and_own_source(self):
         from src.card_details import match_abilities

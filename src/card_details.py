@@ -178,6 +178,66 @@ def parse_generated_live(number, table, anchor, panel_nodes):
     return records
 
 
+def parse_compact_generated(number, table, anchor, parents, *, memory_boost=False):
+    grid=table_grid(table);header='[MB]生成されるライブスキル' if memory_boost else '生成されるライブスキル'
+    if (len(grid)!=3 or grid[0][0].value!=header or grid[0][0].tag.name!='th'
+            or grid[0][0].colspan!=len(grid[0])):
+        raise ValueError('Unknown compact generated-live table')
+    key=lambda value: re.sub(r'\s+','',normalize('NFKC',value))
+    records=[];seen=set()
+    for c,name in enumerate(grid[1]):
+        effect=grid[2][c]
+        if (name.row!=1 or name.column!=c or name.tag.name!='th' or not name.value
+                or effect.row!=2 or effect.column!=c or effect.tag.name!='td' or not background_gray(effect.tag)):
+            raise ValueError('Compact generated-live name/effect mismatch')
+        if memory_boost != name.value.startswith('[MB]'):
+            raise ValueError('Generated-live MB context mismatch')
+        target=key(name.value.removeprefix('[MB]'))
+        if target in seen:raise ValueError('Duplicate compact generated-live target')
+        seen.add(target)
+        matches=[parent for parent in parents if target in
+                 [key(t) for t in re.findall(r'ライブスキル生成\s*\[([^\]]+)\]',parent['effect_private'])]]
+        if len(matches)!=1:raise ValueError('Compact generated-live parent ambiguous or missing')
+        if re.search(r'ライブスキル生成\s*\[',effect.value):
+            raise ValueError('Compact generated-live unresolved continuation')
+        parent=matches[0]
+        records.append({'kind':'generated_live','name':name.value,'sp':None,'generation_stage':1,
+                        'generated_from_name':parent['name'],'generation_origin_kind':parent['kind'],
+                        'effect_private':effect.value,'mechanics':mechanics(effect.value),
+                        'source_positions':[evidence(number,name,anchor),evidence(number,effect,anchor)]})
+    targets={key(t) for parent in parents for t in re.findall(r'ライブスキル生成\s*\[([^\]]+)\]',parent['effect_private'])}
+    if targets!=seen:raise ValueError('Compact generated-live target coverage mismatch')
+    return records
+
+
+def attach_random_options(number, table, anchor, nodes):
+    grid=table_grid(table)
+    if (len(grid)!=4 or grid[0][0].value!='ランダム効果付与'
+            or grid[0][0].colspan!=len(grid[0]) or grid[1][0].colspan!=len(grid[0])
+            or grid[1][0].value!='以下の中からランダムで効果が付与される'):
+        raise ValueError('Unknown random-effect supplement')
+    key=lambda value: re.sub(r'\s+','',normalize('NFKC',re.sub(r'\s*[（(]☆\d+[)）]','',value)))
+    seen=set()
+    for c,name in enumerate(grid[2]):
+        effect=grid[3][c]
+        if name.tag.name!='th' or name.column!=c or name.row!=2 or effect.row!=3 or effect.column!=c:
+            raise ValueError('Random-effect name/effect mismatch')
+        matches=[n for n in nodes if n['kind']=='panel_live' and key(n['name'])==key(name.value)]
+        if len(matches)!=1 or key(name.value) in seen or 'ランダム効果' not in matches[0]['effect_private']:
+            raise ValueError('Random-effect parent ambiguous or missing')
+        seen.add(key(name.value));options=[]
+        pieces=effect.value.split('・')
+        if pieces[0].strip():raise ValueError('Random-effect bullet layout mismatch')
+        for piece in pieces[1:]:
+            match=re.fullmatch(r'\s*(Vocal|Dance|Visual)(\d+(?:\.\d+)?)%UP\[(\d+)ターン\]\s*',piece)
+            if not match:raise ValueError('Unknown random-effect option')
+            options.append({'metric':'rate','target':match[1],'value':float(match[2]),'unit':'percent','direction':'UP','turns':int(match[3])})
+        if not options or len({str(x) for x in options})!=len(options):raise ValueError('Empty/duplicate random-effect option')
+        matches[0]['random_effect_options']=options
+        matches[0]['random_effect_private']=effect.value
+        matches[0]['source_positions'].extend([evidence(number,name,anchor),evidence(number,effect,anchor)])
+
+
 def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list[dict]]:
     panels = [(n, t, a) for n, t, a in tables
               if any(text(c) == "SP" for c in t.find_all(["th", "td"]))]
@@ -228,11 +288,16 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
             nodes.append(node)
     if not nodes:
         raise ValueError("Empty panel")
-    mb = []
+    mb = []; compact=[]; random_tables=[]
     for number, table, anchor in tables:
         if table is panels[0][1]:
             continue
-        if table_grid(table)[0][0].value == "ライブスキル生成(連係図)":
+        header=table_grid(table)[0][0].value
+        if header in ('生成されるライブスキル','[MB]生成されるライブスキル'):
+            compact.append((number,table,anchor,header.startswith('[MB]')));continue
+        if header=='ランダム効果付与' and len(table_grid(table))==4:
+            random_tables.append((number,table,anchor));continue
+        if header == "ライブスキル生成(連係図)":
             if generated is None: raise ValueError("Generated-live collection unavailable")
             if generated: raise ValueError("Duplicate generated-live diagram")
             generated.extend(parse_generated_live(number, table, anchor, nodes))
@@ -264,6 +329,11 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
                            "source_positions": [evidence(number, name, anchor), evidence(number, effect, anchor)]})
         if not mb:
             raise ValueError("MB table without parsed skills")
+    for number,table,anchor,is_mb in compact:
+        if generated is None:raise ValueError('Generated-live collection unavailable')
+        generated.extend(parse_compact_generated(number,table,anchor,mb if is_mb else [n for n in nodes if n['kind']=='panel_live'],memory_boost=is_mb))
+    if generated and len({n['name'] for n in generated})!=len(generated):raise ValueError('Duplicate generated-live name across tables')
+    for number,table,anchor in random_tables:attach_random_options(number,table,anchor,nodes)
     return nodes, mb
 
 
