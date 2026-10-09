@@ -33,6 +33,31 @@ def fixture(panel=PANEL, memory=MEMORY, extra=''):
 
 
 class DetailHtmlTests(unittest.TestCase):
+
+    def test_generated_diagram_keeps_children_separate_and_checks_parent_names(self):
+        from src.card_details import parse_generated_live
+        diagram = '<table><tr><th colspan="3">ライブスキル生成(連係図)</th></tr>'
+        diagram += '<tr><th>root A</th><th rowspan="2">初 手</th><th>root B</th></tr>'
+        diagram += '<tr><td style="background-color:gainsboro">ライブスキル生成[child A](Plus)</td><td style="background-color:gainsboro">ライブスキル生成[child B](Link)</td></tr>'
+        diagram += '<tr><td>↓</td><td>↓</td><td>↓</td></tr>'
+        diagram += '<tr><th>child A</th><th rowspan="2">1 連</th><th>child B</th></tr>'
+        diagram += '<tr><td style="background-color:gainsboro">Vocal7倍(change)</td><td style="background-color:gainsboro">Vocal6倍</td></tr></table>'
+        roots = [{'kind':'panel_live','name':'root A','effect_private':'ライブスキル生成[child A](Plus)'},
+                 {'kind':'panel_live','name':'root B','effect_private':'ライブスキル生成[child B](Link)'}]
+        parse = lambda markup: parse_generated_live(3,BeautifulSoup(markup,'html.parser').table,'panel',roots)
+        generated = parse(diagram)
+        self.assertEqual(len(generated),2)
+        self.assertEqual(generated[0]['generated_from_name'],'root A')
+        self.assertEqual(generated[0]['mechanics'],['change'])
+        self.assertEqual(generated[1]['mechanics'],[])
+        self.assertIsNone(generated[0]['sp'])
+        self.assertEqual(generated[0]['source_positions'][0],{'table':3,'row':5,'column':1,'section_anchor':'panel'})
+        for old,new,message in [('child B</th>','child A</th>','Duplicate'),('初 手','2連','stage label'),
+                                ('↓','→','connector'),('child A</th>','unrelated</th>','parent/target'),
+                                ('Vocal7倍(change)','ライブスキル生成[next]','unresolved final')]:
+            with self.subTest(message=message), self.assertRaisesRegex(ValueError,message):
+                parse(diagram.replace(old,new))
+
     def test_explanation_table_is_private_and_does_not_add_live_tags(self):
         note='<table><tr><th>付与効果甲</th></tr><tr><td>合成の説明 (Plus)</td></tr></table>'
         card=extract_html(fixture(extra=note),CARD)

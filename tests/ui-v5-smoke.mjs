@@ -37,6 +37,7 @@ try{
   const page=await browser.newPage({viewport,...(name.startsWith('mobile')?{isMobile:true,hasTouch:true}:{})});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base,{waitUntil:'networkidle'});
+  if(process.env.UI_EXPECTED_VERSION)assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION);
   assert.equal(await page.locator('#count').textContent(),total+' / '+total+' 件');
   assert.ok((await page.locator('#detail-version').textContent()).includes(dl.detail_version));
   assert.equal(await page.locator('#skill-controls').isDisabled(),false);
@@ -65,6 +66,21 @@ try{
   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
   await page.locator('#reset').click();
   assert.equal(await page.locator('#count').textContent(),total+' / '+total+' 件');
+  const generation=details.cards.find(card=>card.items.some(item=>item.kind==='generated_live'));
+  if(generation&&process.env.UI_EXPECTED_VERSION!=='ui-v5'){
+   await page.locator('#skill-q').fill('Cherish You++++');
+   await page.locator('#skill-kind').selectOption('generated_live');
+   await page.locator('input[name="mechanic"][value="change"]').check();
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   const group=page.locator('.performance summary').filter({hasText:'生成ライブスキル'});
+   assert.equal(await group.count(),1);await group.click();
+   assert.ok((await page.locator('.performance').textContent()).includes('生成 2連目 / 生成元 Cherish You+++'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-generated.png')});
+   await page.locator('#skill-kind').selectOption('panel_live');
+   assert.equal(await page.locator('#count').textContent(),'0 / '+total+' 件');
+   await page.locator('#reset').click();
+  }
   const missing=details.cards.find(card=>card.max_status?.missing_fields?.length);
   if(missing){
    const baseCard=cards.find(card=>card.card_id===missing.card_id);

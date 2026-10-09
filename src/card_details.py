@@ -130,7 +130,55 @@ def node_kind(effect: Cell) -> str:
     raise ValueError("Unclassified panel effect; no candidate adopted")
 
 
-def parse_panel(tables, *, notes=None) -> tuple[list[dict], list[dict]]:
+def parse_generated_live(number, table, anchor, panel_nodes):
+    """Resolve an explicitly labelled generation diagram by names in the parent effect."""
+    grid = table_grid(table)
+    if (len(grid) < 6 or (len(grid)-3) % 3 or any(len(row) != 3 for row in grid)
+            or grid[0][0].value != "ライブスキル生成(連係図)"
+            or grid[0][0].colspan != 3):
+        raise ValueError("Unknown generated-live diagram")
+    key = lambda value: re.sub(r"\s+", "", normalize("NFKC", value))
+    previous = []; records = []; seen = set()
+    for stage, r in enumerate(range(1, len(grid), 3)):
+        names, effects = grid[r], grid[r+1]
+        label = "初手" if stage == 0 else f"{stage}連"
+        if (names[1].tag.name != "th" or key(names[1].value) != label
+                or names[1].rowspan != 2 or effects[1] is not names[1]):
+            raise ValueError("Generated-live stage label mismatch")
+        current = []
+        for branch, c in enumerate((0, 2)):
+            name, effect = names[c], effects[c]
+            if (name.row != r or name.column != c or name.tag.name != "th" or not name.value
+                    or effect.row != r+1 or effect.column != c or effect.tag.name != "td"
+                    or not background_gray(effect.tag) or not effect.value):
+                raise ValueError("Generated-live name/effect mismatch")
+            identity = key(name.value)
+            if identity in seen: raise ValueError("Duplicate generated-live name")
+            seen.add(identity)
+            if stage == 0:
+                matches = [node for node in panel_nodes if node['kind'] == 'panel_live'
+                           and key(node['name']) == identity and key(node['effect_private']) == key(effect.value)]
+                if len(matches) != 1: raise ValueError("Generated-live root does not match panel")
+                current.append(matches[0])
+            else:
+                parent = previous[branch]
+                targets = re.findall(r"ライブスキル生成\s*\[([^\]]+)\]", parent['effect_private'])
+                if len(targets) != 1 or key(targets[0]) != identity:
+                    raise ValueError("Generated-live parent/target mismatch")
+                record = {'kind':'generated_live','name':name.value,'sp':None,
+                          'generation_stage':stage,'generated_from_name':parent['name'],
+                          'effect_private':effect.value,'mechanics':mechanics(effect.value),
+                          'source_positions':[evidence(number,name,anchor),evidence(number,effect,anchor)]}
+                records.append(record); current.append(record)
+        previous = current
+        if r+2 < len(grid) and any(cell.value != '↓' for cell in grid[r+2]):
+            raise ValueError("Generated-live connector mismatch")
+    if any(re.search(r"ライブスキル生成\s*\[", node['effect_private']) for node in previous):
+        raise ValueError("Generated-live diagram has unresolved final targets")
+    return records
+
+
+def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list[dict]]:
     panels = [(n, t, a) for n, t, a in tables
               if any(text(c) == "SP" for c in t.find_all(["th", "td"]))]
     if len(panels) != 1:
@@ -183,6 +231,11 @@ def parse_panel(tables, *, notes=None) -> tuple[list[dict], list[dict]]:
     mb = []
     for number, table, anchor in tables:
         if table is panels[0][1]:
+            continue
+        if table_grid(table)[0][0].value == "ライブスキル生成(連係図)":
+            if generated is None: raise ValueError("Generated-live collection unavailable")
+            if generated: raise ValueError("Duplicate generated-live diagram")
+            generated.extend(parse_generated_live(number, table, anchor, nodes))
             continue
         if "メモリーブースト" not in text(table) and "[MB]" not in text(table):
             explanation=table_grid(table)
@@ -427,8 +480,8 @@ def extract_html(raw: bytes, card: dict, *, variant_cards=None) -> dict:
     def section(heading,optional=False):
         tables=tables_in(content,heading,optional=optional)
         return select_variant_tables(tables,variant_cards,card['card_id'],required=not optional) if variant_cards is not None else tables
-    notes=[]
-    nodes, mb = parse_panel(section("スキルパネル"),notes=notes)
+    notes=[]; generated=[]
+    nodes, mb = parse_panel(section("スキルパネル"),notes=notes,generated=generated)
     record = {"card_id": card["card_id"], "card_kind": card["card_kind"], "card_title": card["card_title"],
               "wiki_url": card["wiki_url"], "source_kind": "saved_wiki_html",
               "source_sha256": hashlib.sha256(raw).hexdigest(), "panel_nodes": nodes,
@@ -440,13 +493,15 @@ def extract_html(raw: bytes, card: dict, *, variant_cards=None) -> dict:
             raise ValueError("P/S section mismatch")
         match_abilities(nodes, section("アビリティ",optional=True))
         record["mb_live"] = mb
+        record["generated_live"] = generated
         record["memory_appeals"] = parse_memory(section("思い出アピール"))
         record["coverage"].update({
+            "generated_live": "extracted" if generated else "no_entry_confirmed",
             "memory_appeal": "extracted", "memory_boost": "extracted" if mb else "no_entry_confirmed",
             "unique_ability": "extracted" if any(n["kind"] == "unique_ability" for n in nodes) else "no_entry_confirmed",
             "stage_skill": "not_collected", "aptitude": "not_collected"})
     else:
-        if tables_in(content, "思い出アピール", optional=True) or mb:
+        if tables_in(content, "思い出アピール", optional=True) or mb or generated:
             raise ValueError("P/S section mismatch")
         record["traits"] = parse_s_traits(content)
         record["max_status"] = parse_s_status(tables_in(content, "ステータス"))

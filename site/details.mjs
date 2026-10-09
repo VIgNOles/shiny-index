@@ -1,6 +1,6 @@
-export const kindNames={panel_live:'パネルのライブスキル',mb_live:'MBライブスキル',panel_passive:'パッシブスキル',unique_ability:'固有アビリティ',cap_increase:'上限UP',memory_appeal:'思い出アピール',possessed_live:'所持ライブスキル',support_skill:'サポートスキル',quick_skill:'クイックスキル'};
+export const kindNames={panel_live:'パネルのライブスキル',mb_live:'MBライブスキル',generated_live:'生成ライブスキル',panel_passive:'パッシブスキル',unique_ability:'固有アビリティ',cap_increase:'上限UP',memory_appeal:'思い出アピール',possessed_live:'所持ライブスキル',support_skill:'サポートスキル',quick_skill:'クイックスキル'};
 export const mechanicNames={link:'Link',plus:'Plus',change:'Change',grow:'Grow / GrowUp',refrain:'Refrain'};
-export const liveKinds=new Set(['panel_live','mb_live','possessed_live']);
+export const liveKinds=new Set(['panel_live','mb_live','generated_live','possessed_live']);
 const normalized=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('ja');
 export function factText(fact){
  const target=fact.targets?.join(' & ')??fact.target??'';

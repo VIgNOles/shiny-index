@@ -13,6 +13,14 @@ class DetailPublicTests(unittest.TestCase):
   self.assertEqual(item['numeric_facts'][0]['value'],2)
   self.assertEqual(d['cards'][0]['source_sha256'],'a'*64)
   self.assertFalse(d['coverage']['complete'])
+ def test_generated_live_relation_is_public_without_effect_prose(self):
+  c=candidate();c['cards'][0]['generated_live']=[{'kind':'generated_live','name':'生成甲','sp':None,
+   'generation_stage':1,'generated_from_name':'スキル','effect_private':'非公開説明 Vocal7倍(change)','mechanics':['change']}];rehash(c)
+  m=adopt(empty(c['base_dataset_version']),c);d=public_document(m,[{'card_id':CID,'card_kind':'P'}]);item=d['cards'][0]['items'][1]
+  self.assertEqual(item['kind'],'generated_live');self.assertEqual(item['generated_from_name'],'スキル')
+  self.assertEqual(item['generation_stage'],1);self.assertNotIn('effect_private',item)
+  c['cards'][0]['generated_live'][0]['sp']=40;rehash(c)
+  with self.assertRaisesRegex(ValueError,'generated-live'):adopt(empty(c['base_dataset_version']),c)
  def test_count_anomaly_rejected(self):
   d=self.build();d['coverage']['detail_item_count']=999
   with self.assertRaisesRegex(ValueError,'Count anomaly'):validate_public(d,[{'card_id':CID,'card_kind':'P'}])

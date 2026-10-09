@@ -10,9 +10,9 @@ from src.indexer import digest
 
 DETAIL_TABS=['詳細カード','詳細項目','詳細属性','詳細出典','詳細収録範囲','_detail_meta']
 OVERRIDE_FIELDS={'name','sp','effect_private','mechanics'}
-KINDS={'P':{'panel_live','panel_passive','cap_increase','unique_ability','mb_live','memory_appeal'},
+KINDS={'P':{'panel_live','panel_passive','cap_increase','unique_ability','mb_live','generated_live','memory_appeal'},
        'S':{'panel_live','panel_passive','cap_increase','unique_ability','quick_skill','possessed_live','support_skill'}}
-COLLECTIONS=['panel_nodes','mb_live','memory_appeals','possessed_live','support_skills']
+COLLECTIONS=['panel_nodes','mb_live','generated_live','memory_appeals','possessed_live','support_skills']
 
 
 def empty(base_version):
@@ -30,7 +30,7 @@ def resolved_item(row):
     source=row['source'];manual=row.get('override',{})
     item={**copy.deepcopy(source),**manual}
     if 'effect_private' in manual:
-        if item['kind'] in {'panel_live','mb_live','possessed_live'} and 'mechanics' not in manual:
+        if item['kind'] in {'panel_live','mb_live','generated_live','possessed_live'} and 'mechanics' not in manual:
             from src.card_details import mechanics
             item['mechanics']=mechanics(item['effect_private'])
         if item['kind']=='cap_increase':
@@ -62,6 +62,10 @@ def validate(master):
         resolved=resolved_item(row)
         if not resolved.get('name'):raise ValueError('Missing detail name')
         if resolved.get('sp') is not None and (type(resolved['sp']) is not int or resolved['sp']<0):raise ValueError('Invalid SP')
+        if source['kind']=='generated_live' and (resolved.get('sp') is not None
+                or type(source.get('generation_stage')) is not int or source['generation_stage']<1
+                or not source.get('generated_from_name')):
+            raise ValueError('Invalid generated-live relation or SP')
         if set(resolved.get('mechanics',[]))-{'link','plus','change','grow','refrain'}:raise ValueError('Invalid mechanics')
         if row.get('updated_at'):
             datetime.fromisoformat(row['updated_at'].replace('Z','+00:00'))

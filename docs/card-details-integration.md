@@ -1,6 +1,6 @@
 # 詳細情報の原本・Web・配布データ接続（UI v5）
 
-2026-10-09 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。詳細は段階的な収録で、205カード（P102/S103）・2,825項目、`d1-0d933fce3b2fb3b6`、詳細原本revision6。**全件詳細版は未完成**。公開URLでの最終検証結果は末尾へ追記する。
+2026-10-09 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。詳細は段階的な収録で、206カード（P103/S103）・2,845項目、`d1-d3a4bf450390442b`、詳細原本revision7。**全件詳細版は未完成**。公開URLでの最終検証結果は末尾へ追記する。
 
 ## 原本と出力
 
@@ -45,7 +45,7 @@ Copy-Item -LiteralPath site -Destination private/detail-update-candidate -Recurs
 ./.venv/Scripts/python.exe scripts/export_detail_sheet.py private/sheets-exports/<日時>.xlsx private/detail-update-candidate --master-snapshot private/details/<日時>.json
 ./.venv/Scripts/python.exe scripts/check_site.py private/detail-update-candidate
 $env:UI_BROWSER_PATH='C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-$env:UI_EXPECTED_VERSION='ui-v5'
+$env:UI_EXPECTED_VERSION='ui-v6'
 node tests/ui-v4-smoke.mjs private/detail-update-candidate
 node tests/ui-v5-smoke.mjs private/detail-update-candidate
 ```
@@ -54,7 +54,7 @@ node tests/ui-v5-smoke.mjs private/detail-update-candidate
 
 ## 取得・中断・復旧
 
-全件1,363個別ページの取得を1件ずつ60秒以上で続行中。正常保存済みページは再送しない。現在の処理状態は `private/raw/detail-catalog-20261009/state.json` とworker.lock、workflow-report.json、stdout/stderr-workflow-008.logで確認する。PC終了や利用上限でジョブが終わった場合、docs/card-details-full-acquisition.mdのPID確認・残留ロック・保存成功回復を先に行う。新しいジョブを重ねて起動しない。
+全件1,363個別ページの取得を1件ずつ60秒以上で続行中。正常保存済みページは再送しない。現在の処理状態は `private/raw/detail-catalog-20261009/state.json` とworker.lock、workflow-report.json、stdout/stderr-workflow-009.logで確認する。PC終了や利用上限でジョブが終わった場合、docs/card-details-full-acquisition.mdのPID確認・残留ロック・保存成功回復を先に行う。新しいジョブを重ねて起動しない。
 
 HTTP200短文の誤検知は `private/audits/detail-shape-false-positive-20261009.json` に根拠を保存し、履歴は削除していない。実HTTP失敗・Retry-Afterは解除していない。変換と原本採用、公開は取得とは独立し、異常入力は正常な原本・siteに自動反映しない。詳細数の異常・重複・未知P/S・孤児ID・ファイル改変は検査で拒否する。壊れた更新の復旧は正常な原本コピーと不変d1バンドルから新しい候補を作り、検査後に公開する。UI v4へはタグ `ui-v4-20261009` とbuild_ui_rollback.pyを使う。原本は切り戻さない。
 
@@ -96,3 +96,14 @@ S【Actors】の補足説明表は原文監査用に分離し、ライブスキ�
 凍結時点のcoverageは205収録・入力待ち1213・リンク保留47・構造対応待ち1（Cherish You）。全件収集と発動条件・生成技能等の全面構造化は未完了。公開中の収録状況は固定した原本スナップショットであり、取得ジョブの後続件数とは区別する。
 
 新しい原本書込計画は `scripts/prepare_detail_sheet_requests.py <新鮮な原本XLSX> <採用計画フォルダー> <nativeメタデータJSON> <新しいprivate出力>` で作れる。6詳細タブだけ、値更新・必要な行拡張・既存データ行からの書式複製・フィルター範囲を用意し、実際のAPI送信は行わない。必ず完全nativeコピーへ適用する。構造化requestsを順に送信し成功位置を記録する。ツールからJSONを読む場合はcompact JSONを使い、読取り打切りを検出してから送信する。送信結果が不明なら実値を確認し、確認せず次へ進まない。
+
+
+## 205件版の公開確認と206件への更新（2026-10-09）
+
+205件版は準備0ade31f、公開b796703、Actions 37893156287 success、匿名URL36/36ファイル一致、PC1280/390/320の基本/詳細操作PASS。公開結果はprivate/audits/detail205-public-verification-20261009.json。前節の「公開直前」は履歴である。
+
+P【Cherish You】鈴木羽那の保存HTMLにある生成ライブ連係表を追加対応した。同じ150ページの凍結入力を再変換し206件P103/S103・2845項目、構造保留0（入力待ち1213、リンク保留47）となった。通常パネル3ライブと生成4ライブを重複させない。生成元の本文に明記された生成先名を照合し、初手と連係段階、矢印、原セルを検証する。生成スキルのSPはnull、1/2連目と生成元名を保存する。PlusとChangeはその行の効果から独立抽出する。未知の形・異なる生成先・終端未解決・重複は採用しない。
+
+指定Driveの205原本をnative完全コピーし、更新11バッチ、全値読戻し一致・基礎9タブ差分0、既存2825固定ID/名称手修正保持を確認。旧205原本の未変更もDrive更新日時と実値で確認後、詳細r7へ切り替えた。原本/監査/バックアップは非公開。接続ファイル内の古い100件のdetail_roundtrip_result表示も206件の実検証結果へ同期した。
+
+UI v6では「生成ライブスキル」を独立表示・検索し、生成元と段階を表示する。新詳細版d1-d3a4bf450390442b、38ファイル。ローカルPC1280/390/320の基本/詳細操作、生成Change検索とパネルとの分離、JSON版一致を確認。公開URLの結果は後続に追記する。旧UI v5タグを使う切り戻し候補では206件データを維持し、生成専用機能だけ旧UIの範囲外になる。

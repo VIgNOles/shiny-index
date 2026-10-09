@@ -487,6 +487,7 @@ try{
     if(item.sp!=null)attrs.push('SP '+item.sp);
     if(item.unlock_star!=null)attrs.push('特訓 '+item.unlock_star);
     if(item.unlock_event)attrs.push('イベント解放');
+    if(item.generation_stage)attrs.push('生成 '+item.generation_stage+'連目 / 生成元 '+item.generated_from_name);
     if(item.mb_stage)attrs.push('MB '+item.mb_stage+(item.mb_total_stages?'/'+item.mb_total_stages:''));
     if(item.level!=null)attrs.push('Lv '+item.level);
     if(item.acquired_at_level!=null)attrs.push('取得Lv '+item.acquired_at_level);

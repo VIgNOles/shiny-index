@@ -8,8 +8,8 @@ from src.detail_master import resolve,validate,KINDS
 from src.indexer import digest,read,write,now
 
 MECHANICS={'link','plus','change','grow','refrain'}
-COVERAGE_FIELDS={'skill_panel','review','memory_appeal','memory_boost','unique_ability','stage_skill','aptitude','fight_skill','max_status','possessed_live','quick_skill','support_skills','traits'}
-ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost']
+COVERAGE_FIELDS={'skill_panel','review','memory_appeal','memory_boost','generated_live','unique_ability','stage_skill','aptitude','fight_skill','max_status','possessed_live','quick_skill','support_skills','traits'}
+ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost','generation_stage','generated_from_name']
 
 def numeric_facts(item):
     # Individual numeric facts do not imply unconditional or complete skill effects.
@@ -62,7 +62,7 @@ def public_document(master,base_cards,base_version=None):
           'detail_item_count':sum(len(c['items']) for c in cards),'by_kind':dict(Counter(c['card_kind'] for c in cards)),
           'status_counts':dict(counts),'card_status':coverage,
           'not_collected':['P.stage_skill','P.aptitude','S.fight_skill'],
-          'unverified':['Full detail acquisition','Shared-URL idol-road mapping','Complete effect/condition structure','Independent official verification']}}
+          'unverified':['Full detail acquisition','Complete effect/condition structure','Independent official verification']}}
     version='d1-'+digest({'base_dataset_version':base_version,**body})[:16]
     doc={'meta':{'detail_schema':'1.0','detail_version':version,'base_dataset_version':base_version,'source_base_dataset_version':master['base_dataset_version'],
                  'canonical_detail_revision':master['revision'],'published_at':now(),'source_fetched_from':min(c['fetched_at'] for c in cards),
@@ -89,6 +89,10 @@ def validate_public(doc,base_cards):
             uuid.UUID(item['detail_id'])
             if item['detail_id'] in items or item['kind'] not in KINDS[card['card_kind']]:raise ValueError('Invalid detail item')
             items.add(item['detail_id'])
+            if item['kind']=='generated_live' and (item.get('sp') is not None
+                    or type(item.get('generation_stage')) is not int or item['generation_stage']<1
+                    or not item.get('generated_from_name')):
+                raise ValueError('Invalid public generated-live relation')
             if any(set(position)-{'table','row','column','section_anchor','field'} for position in item.get('source_positions',[])):raise ValueError('Non-public source position field')
             if set(item.get('mechanics',[]))-MECHANICS:raise ValueError('Invalid mechanic')
             if set(item)-set(ITEM_FIELDS+['numeric_facts','effect_structure','conditions_not_structured','source_positions','progression','manual_source_ref']):raise ValueError('Non-public detail field')
