@@ -173,3 +173,16 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
  .card-head{grid-template-columns:minmax(0,1fr)}
  .detail-toggle{grid-column:1;grid-row:auto;justify-self:start;margin-top:6px}
 }
+#skill-controls{border:0;padding:0;display:grid;gap:.8rem;min-width:0}
+#skill-controls>label{display:grid;gap:.35rem}
+#skill-controls>.filter-option{display:flex;align-items:center}
+#skill-q,#skill-kind{width:100%;min-width:0}
+.performance{margin-top:1.25rem;border-top:1px solid var(--line,#ddd);padding-top:1rem}
+.performance h4{margin:.2rem 0 .75rem}
+.detail-note,.skill-meta{color:var(--muted,#5d5961);font-size:.875rem}
+.skill-section{margin:.65rem 0}
+.skill-section summary{min-height:44px;padding:.5rem;cursor:pointer}
+.skill-list{list-style:none;margin:0;padding:0 .5rem}
+.skill-item{padding:.8rem 0;border-top:1px solid var(--line,#ddd);overflow-wrap:anywhere}
+.skill-item p{margin:.35rem 0}
+#detail-downloads{display:flex;flex-wrap:wrap;gap:.75rem;margin:.75rem 0}

@@ -1,0 +1,142 @@
+"""Allowlisted factual detail distribution; Wiki prose remains in the private master."""
+from collections import Counter
+from datetime import datetime
+import hashlib,json,re,uuid
+from pathlib import Path
+from urllib.parse import urlsplit,unquote
+from src.detail_master import resolve,validate,KINDS
+from src.indexer import digest,read,write,now
+
+MECHANICS={'link','plus','change','grow','refrain'}
+COVERAGE_FIELDS={'skill_panel','review','memory_appeal','memory_boost','unique_ability','stage_skill','aptitude','fight_skill','max_status','possessed_live','quick_skill','support_skills','traits'}
+ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost']
+
+def numeric_facts(item):
+    # Individual numeric facts do not imply unconditional or complete skill effects.
+    value=item.get('name','')+' / '+item.get('effect_private','')
+    facts=[]
+    for match in re.finditer(r'(Vocal|Dance|Visual)((?:\s*&\s*(?:Vocal|Dance|Visual))*)\s*(\d+(?:\.\d+)?)倍(?:アピール)?',value):
+        facts.append({'metric':'appeal','targets':re.findall(r'Vocal|Dance|Visual',match[1]+match[2]),'value':float(match[3]),'unit':'multiplier'})
+    for match in re.finditer(r'(Vocal|Dance|Visual|注目度|思い出ゲージ|リアクション回避率|メンタル)\s*(\d+(?:\.\d+)?)%\s*(UP|DOWN|CUT)',value):
+        facts.append({'metric':'rate','target':match[1],'value':float(match[2]),'unit':'percent','direction':match[3]})
+    for label,metric,unit in [('確率','activation_probability','percent'),('最大','activation_limit','times')]:
+        match=re.search(r'\['+label+r':\s*(\d+)(?:%|回)\]',value)
+        if match:facts.append({'metric':metric,'value':int(match[1]),'unit':unit})
+    return [dict(row) for row in {json.dumps(f,sort_keys=True):f for f in facts}.values()]
+
+
+def public_document(master,base_cards,base_version=None):
+    base_version=base_version or master['base_dataset_version']
+    validate(master);bases={c['card_id']:c for c in base_cards}
+    if len(bases)!=len(base_cards):raise ValueError('Duplicate base card')
+    cards=[]
+    for source in resolve(master):
+        cid=source['card_id']
+        if cid not in bases or bases[cid]['card_kind']!=source['card_kind']:raise ValueError('Orphan or mixed P/S detail')
+        card={key:source[key] for key in ['card_id','card_kind','wiki_url','fetched_at','source_sha256','coverage']}
+        card['items']=[]
+        if source['card_kind']=='S':
+            card['traits']={key:source['traits'][key] for key in ['idea','inspiration','music_proficiencies']}
+            card['max_status']={key:source['max_status'].get(key) for key in ['level','limit_break','vocal','dance','visual','mental','missing_fields']}
+        for item in source['items']:
+            public={key:item[key] for key in ITEM_FIELDS if key in item}
+            public.update(numeric_facts=numeric_facts(item),effect_structure='partial',conditions_not_structured=True,
+                          source_positions=item.get('source_positions',[]))
+            if item.get('progression'):
+                public['progression']=[{key:step[key] for key in ['support_level','skill_level']} for step in item['progression']]
+            if item.get('manual_source_ref'):public['manual_source_ref']=item['manual_source_ref']
+            card['items'].append(public)
+        cards.append(card)
+    adopted={c['card_id']:c for c in cards};coverage=[]
+    for row in master['coverage']:
+        cid=row['card_id']
+        if cid not in bases or row['card_kind']!=bases[cid]['card_kind']:raise ValueError('Unknown coverage card')
+        state='available_partial' if cid in adopted else row['status']
+        coverage.append({'card_id':cid,'card_kind':row['card_kind'],'status':state})
+    if {r['card_id'] for r in coverage}!=set(bases):
+        if base_version==master['base_dataset_version']:raise ValueError('Missing base coverage')
+        represented={r['card_id'] for r in coverage}
+        coverage.extend({'card_id':cid,'card_kind':bases[cid]['card_kind'],'status':'not_in_acquisition_catalog'} for cid in sorted(set(bases)-represented))
+    counts=Counter(row['status'] for row in coverage)
+    body={'cards':cards,'coverage':{'complete':False,'base_card_count':len(bases),'detail_card_count':len(cards),
+          'detail_item_count':sum(len(c['items']) for c in cards),'by_kind':dict(Counter(c['card_kind'] for c in cards)),
+          'status_counts':dict(counts),'card_status':coverage,
+          'not_collected':['P.stage_skill','P.aptitude','S.fight_skill'],
+          'unverified':['Full detail acquisition','Shared-URL idol-road mapping','Complete effect/condition structure','Independent official verification']}}
+    version='d1-'+digest({'base_dataset_version':base_version,**body})[:16]
+    doc={'meta':{'detail_schema':'1.0','detail_version':version,'base_dataset_version':base_version,'source_base_dataset_version':master['base_dataset_version'],
+                 'canonical_detail_revision':master['revision'],'published_at':now(),'source_fetched_from':min(c['fetched_at'] for c in cards),
+                 'source_fetched_to':max(c['fetched_at'] for c in cards)},**body}
+    validate_public(doc,base_cards);return doc
+
+
+def validate_public(doc,base_cards):
+    if set(doc)!={'meta','cards','coverage'}:raise ValueError('Non-public document field')
+    bases={c['card_id']:c for c in base_cards};ids=set();items=set()
+    if doc['meta']['detail_schema']!='1.0':raise ValueError('Unknown detail schema')
+    for card in doc['cards']:
+        if set(card)-{'card_id','card_kind','wiki_url','fetched_at','source_sha256','coverage','items','traits','max_status'}:raise ValueError('Non-public card field')
+        cid=card['card_id'];uuid.UUID(cid)
+        if cid in ids or cid not in bases or card['card_kind']!=bases[cid]['card_kind']:raise ValueError('Invalid detail card')
+        ids.add(cid)
+        url=urlsplit(card['wiki_url'])
+        if url.scheme!='https' or url.netloc!='wikiwiki.jp' or not unquote(url.path).startswith('/shinycolors/'):raise ValueError('Unsafe detail URL')
+        if set(card['coverage'])-COVERAGE_FIELDS:raise ValueError('Non-public coverage field')
+        if any(value not in {'extracted','needs_review','not_collected','no_entry_confirmed','partial_missing_values'} for value in card['coverage'].values()):raise ValueError('Invalid coverage state')
+        if not re.fullmatch('[0-9a-f]{64}',card['source_sha256']):raise ValueError('Invalid source hash')
+        datetime.fromisoformat(card['fetched_at'])
+        for item in card['items']:
+            uuid.UUID(item['detail_id'])
+            if item['detail_id'] in items or item['kind'] not in KINDS[card['card_kind']]:raise ValueError('Invalid detail item')
+            items.add(item['detail_id'])
+            if any(set(position)-{'table','row','column','section_anchor','field'} for position in item.get('source_positions',[])):raise ValueError('Non-public source position field')
+            if set(item.get('mechanics',[]))-MECHANICS:raise ValueError('Invalid mechanic')
+            if set(item)-set(ITEM_FIELDS+['numeric_facts','effect_structure','conditions_not_structured','source_positions','progression','manual_source_ref']):raise ValueError('Non-public detail field')
+    coverage=doc['coverage'];rows=coverage['card_status']
+    if len(rows)!=len(bases) or {r['card_id'] for r in rows}!=set(bases):raise ValueError('Coverage anomaly')
+    if coverage['detail_card_count']!=len(ids) or coverage['detail_item_count']!=len(items):raise ValueError('Count anomaly')
+    if coverage['status_counts']!=dict(Counter(r['status'] for r in rows)):raise ValueError('Status count mismatch')
+    if coverage['complete'] is not False:raise ValueError('Partial effects must not claim complete')
+    body={'base_dataset_version':doc['meta']['base_dataset_version'],'cards':doc['cards'],'coverage':coverage}
+    if doc['meta']['detail_version']!='d1-'+digest(body)[:16]:raise ValueError('Detail content version mismatch')
+    return {'version':doc['meta']['detail_version'],'cards':len(ids),'items':len(items)}
+
+
+def prepare(master,base_cards,root,base_version=None):
+    root=Path(root);doc=public_document(master,base_cards,base_version);version=doc['meta']['detail_version'];target=root/'details'/version
+    if target.exists():
+        old=read(target/'details.json');validate_public(old,base_cards)
+        if old['cards']!=doc['cards'] or old['coverage']!=doc['coverage']:raise ValueError('Detail version collision')
+        write(root/'details/latest.json',{'detail_version':version,'base_dataset_version':doc['meta']['base_dataset_version'],'manifest':version+'/manifest.json'})
+        return old
+    target.mkdir(parents=True)
+    write(target/'details.json',doc)
+    manifest={'detail_schema':'1.0','detail_version':version,'base_dataset_version':doc['meta']['base_dataset_version'],
+              'published_at':doc['meta']['published_at'],'files':{'details.json':hashlib.sha256((target/'details.json').read_bytes()).hexdigest()}}
+    write(target/'manifest.json',manifest)
+    write(root/'details/latest.json',{'detail_version':version,'base_dataset_version':doc['meta']['base_dataset_version'],'manifest':version+'/manifest.json'})
+    return doc
+
+
+def check_tree(root):
+    root=Path(root);base_dir=root/'details'
+    if not base_dir.exists():return []
+    names={p.name for p in base_dir.iterdir()};versions=names-{'latest.json'}
+    if 'latest.json' not in names or not versions or any(not re.fullmatch(r'd1-[0-9a-f]{16}',v) for v in versions):raise ValueError('Unexpected detail distribution entry')
+    latest=read(base_dir/'latest.json')
+    if set(latest)!={'detail_version','base_dataset_version','manifest'} or latest['detail_version'] not in versions or latest['manifest']!=latest['detail_version']+'/manifest.json':raise ValueError('Invalid detail pointer')
+    current=read(root/'data/latest.json')['dataset_version']
+    if latest['base_dataset_version']!=current:raise ValueError('Detail/base pointer mismatch')
+    html=(root/'index.html').read_text(encoding='utf-8')
+    markers=re.findall(r"window\.DETAIL_VERSION='(d1-[0-9a-f]{16})'",html)
+    if 'window.DETAIL_VERSION' in html and markers!=[latest['detail_version']]:raise ValueError('HTML detail version mismatch')
+    results=[]
+    for v in sorted(versions):
+        path=base_dir/v
+        if not path.is_dir() or {p.name for p in path.iterdir()}!={'manifest.json','details.json'}:raise ValueError('Unexpected detail bundle file')
+        manifest=read(path/'manifest.json');doc=read(path/'details.json')
+        if manifest['detail_version']!=v or manifest['files']!={'details.json':hashlib.sha256((path/'details.json').read_bytes()).hexdigest()}:raise ValueError('Detail file hash mismatch')
+        if manifest['published_at']!=doc['meta']['published_at'] or manifest['base_dataset_version']!=doc['meta']['base_dataset_version']:raise ValueError('Detail manifest mismatch')
+        base_cards=read(root/'data'/manifest['base_dataset_version']/'cards.json')['cards']
+        results.append(validate_public(doc,base_cards))
+    return results

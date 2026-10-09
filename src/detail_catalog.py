@@ -75,12 +75,8 @@ def verify_saved_fetch(root: Path, directory: Path, url: str) -> dict:
         raise ValueError('Saved fetch failed, incomplete, or has a hash mismatch')
     if wiki_key(report['url']) != wiki_key(url):
         raise ValueError('Saved URL mismatch')
-    document = BeautifulSoup(raw, 'html.parser')
-    links = document.select('link[rel="canonical"]')
-    content = document.select_one('#content')
-    if len(links) != 1 or wiki_key(links[0].get('href','')) != wiki_key(url) or (
-            content is None or not content.find('table') or len(content.get_text(' ', strip=True)) < 1000):
-        raise ValueError('Saved response is not the requested Wiki content')
+    from src.wiki_response import validate_response,registered_titles
+    validate_response(raw, url,registered_titles(root,url))
     if not report.get('fetched_at'):
         raise ValueError('Saved fetch lacks timestamp')
     timestamp = datetime.fromisoformat(report['fetched_at'].replace('Z', '+00:00'))

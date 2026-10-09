@@ -83,3 +83,10 @@ READMEのPython仮想環境と `requirements.txt` を使用する。新規依存
 上の1351は最終起動前の残数。再開時は実際のstatusから残数を確認する。wrapperの `workflow.lock` は最終監査まで保持し、`workflow-report.json` にphaseとPID、終了時の取得状態、監査の保存先・ハッシュ・不足を記録する。`phase=finished` は有限の取得・監査ジョブが終了した意味で、詳細データの全件完成を意味しない。取得失敗/確認待ちではCLIも終了コード1を返す。
 
 最終出力は `private/audits/detail-catalog-<内容SHA256>.json`。取得状態がcompleteでも、全節の構造が未対応なら `all_details_validated=false` のまま。監査が失敗した場合はphase=audit_failedを残し、変換CLIだけを保存入力から再実行する。PC終了などでwrapperが強制終了した場合は、workflow.lockとworker.lockをそれぞれ所有PID確認後に解除してから再開する。
+
+
+## 2026-10-09のHTTP200誤検知回復と後続
+
+可視文字数990の正常S-Rを1000文字の基準で拒否したため、個別カードはcanonical・登録タイトル・スキル表で検証する方式へ変更した。後続P【♡AKQJ10】は観測URLに♡がないため停止したが、失敗時に保存したHTTP200本文を正しい登録タイトルと照合し、追加リクエストなしで別の正常入力ディレクトリへ回復した。失敗報告・時刻・応答SHA・以前のstateは保持している。実際のHTTP429等ではない。レビュー済みの同じ失敗日時・同じローカル理由だけを停止条件から除外し、実HTTPのバックオフ・Retry-Afterは維持する。
+
+workflow-006は残り1279ページを有限予算で取得後、全カード監査を行う。PIDと現在の残数はHANDOFF.mdの最新記録と実stateで照合する。workflow-005の終了報告はworkflow-report-005-finished.jsonへ保存した。60カード865項目の原本/公開接続は別工程で実施し、現在は[詳細接続手順](card-details-integration.md)を使う。旧報告のdetails_adopted_or_published=falseはその取得ジョブが自動採用していない意味で、独立工程の段階採用・公開実績とは区別する。

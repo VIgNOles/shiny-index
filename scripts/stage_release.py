@@ -23,6 +23,8 @@ def stage(source, target, previous=None):
     target.mkdir(parents=True)
     for name in ['index.html','style.css','app.mjs','search.mjs']:
         shutil.copy2(source/name,target/name)
+    if (source/'details.mjs').exists():shutil.copy2(source/'details.mjs',target/'details.mjs')
+    if (source/'details').exists():shutil.copytree(source/'details',target/'details')
     if (source/'.nojekyll').exists(): shutil.copy2(source/'.nojekyll',target/'.nojekyll')
     data=target/'data';data.mkdir()
     if previous:

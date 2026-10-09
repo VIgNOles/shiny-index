@@ -48,7 +48,7 @@ try{
    await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-results.png'),fullPage:false});
   }
   assert.equal(await count(),total+' / '+total+' 件');
-  assert.match(await page.locator('#version').textContent(),/ui-v4/);
+  assert.ok((await page.locator('#version').textContent()).includes(process.env.UI_EXPECTED_VERSION??'ui-v4'));
   assert.equal(await page.locator('#downloads a').count(),5);
   assert.equal(await page.locator('#export').count(),0);
   assert.equal(await page.locator('#downloads a[href$="cards.csv"]').count(),0);

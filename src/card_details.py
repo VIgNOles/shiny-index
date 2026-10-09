@@ -289,24 +289,31 @@ def parse_s_status(tables) -> dict:
     if set(labels) != expected or len(labels) != len(expected):
         raise ValueError("Unknown S status columns")
     columns = {label: labels.index(label) for label in labels}
-    records = []
+    rows = []
     for cells in grid[1:]:
         lv = cells[columns["Lv"]]
         match = re.fullmatch(r"(\d+)(?:[（(]☆(\d+)[）)])?", lv.value.replace(" ", ""))
         if not match:
             raise ValueError("Unknown S status level")
-        record = {"level": int(match[1]), "limit_break": int(match[2]) if match[2] else None,
-                  "source_positions": [evidence(number, lv, anchor)]}
-        for label, field in (("Vo", "vocal"), ("Da", "dance"), ("Vi", "visual"), ("メンタル", "mental")):
-            cell = cells[columns[label]]
-            if not cell.value.isdecimal():
-                raise ValueError("Missing S status value")
-            record[field] = int(cell.value)
-            record["source_positions"].append(dict(evidence(number, cell, anchor), field=field))
-        records.append(record)
-    if not records or len({record["level"] for record in records}) != len(records):
+        rows.append((int(match[1]), int(match[2]) if match[2] else None, cells))
+    if not rows or len({row[0] for row in rows}) != len(rows):
         raise ValueError("Missing or duplicate S status levels")
-    return max(records, key=lambda record: record["level"])
+    level, star, cells = max(rows, key=lambda row: row[0])
+    record = {"level": level, "limit_break": star, "source_positions": [evidence(number, cells[columns["Lv"]], anchor)]}
+    missing = []
+    for label, field in (("Vo", "vocal"), ("Da", "dance"), ("Vi", "visual"), ("メンタル", "mental")):
+        cell = cells[columns[label]]
+        if cell.value.isdecimal():
+            record[field] = int(cell.value)
+        elif cell.value in ("", "?", "？", "-", "―", "不明", "未記載"):
+            record[field] = None
+            missing.append(field)
+        else:
+            raise ValueError("Unrecognized S status value")
+        record["source_positions"].append(dict(evidence(number, cell, anchor), field=field))
+    if missing:
+        record["missing_fields"] = missing
+    return record
 
 
 def parse_possessed_live(tables) -> list[dict]:
@@ -402,7 +409,7 @@ def extract_html(raw: bytes, card: dict) -> dict:
         record["max_status"] = parse_s_status(tables_in(content, "ステータス"))
         record["possessed_live"] = parse_possessed_live(tables_in(content, "ライブスキル"))
         record["support_skills"] = parse_support_skills(tables_in(content, "サポートスキル"))
-        record["coverage"].update({"traits": "extracted", "max_status": "extracted",
+        record["coverage"].update({"traits": "extracted", "max_status": "partial_missing_values" if record["max_status"].get("missing_fields") else "extracted",
                                    "possessed_live": "extracted", "support_skills": "extracted",
                                    "quick_skill": "extracted" if any(n["kind"] == "quick_skill" for n in nodes) else "no_entry_confirmed",
                                    "fight_skill": "not_collected"})

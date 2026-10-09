@@ -41,7 +41,7 @@ def check(root):
     if any(p.is_symlink() for p in root.rglob('*')): raise ValueError('symlink in site')
     required={'index.html','style.css','app.mjs','search.mjs','data'}
     present={p.name for p in root.iterdir()}
-    if not required<=present or present-required-{'.nojekyll'}: raise ValueError('missing or unexpected site root file')
+    if not required<=present or present-required-{'.nojekyll','details','details.mjs'}: raise ValueError('missing or unexpected site root file')
     data=root/'data'
     if not data.is_dir(): raise ValueError('data directory missing')
     entries=list(data.iterdir())
@@ -61,6 +61,9 @@ def check(root):
         check_provenance(data/name)
         if result['version']!=name: raise ValueError('bundle directory version mismatch')
         results.append(result)
+    from src.detail_public import check_tree
+    check_tree(root)
+    if (root/'details').exists() and not (root/'details.mjs').is_file():raise ValueError('Detail script missing')
     return results
 
 

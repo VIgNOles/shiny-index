@@ -31,8 +31,12 @@ def status(manifest, state, current):
                 'full_collection_enabled':manifest.get('full_collection_enabled') is True,
                 'next_allowed_at':None,'can_fetch':False}
     times=[as_utc(state['last_attempt_at'])+timedelta(seconds=cooldown)]
+    reviewed={(review['failed_at'],review.get('failure_reason','ValueError: unexpected Wiki content or security interstitial')) for review in state.get('failure_reviews',[])
+              if review.get('classification')=='local_validator_false_positive'}
     times.extend(as_utc(state[key])+timedelta(seconds=backoff)
-                 for key in ('last_rate_limit_at','last_failure_at') if state.get(key))
+                 for key in ('last_rate_limit_at','last_failure_at') if state.get(key) and
+                 not (key=='last_failure_at' and (state[key],state.get('last_failure_reason')) in reviewed and
+                      state.get('last_failure_reason') in {'ValueError: unexpected Wiki content or security interstitial','ValueError: unexpected individual-card title or skill-panel structure'}))
     if state.get('server_not_before_at'):
         times.append(as_utc(state['server_not_before_at']))
     next_allowed=max(times) if times else current
@@ -77,7 +81,7 @@ def registered_pages(manifest, catalog_path=None):
     return {item['id']:item for item in items}
 
 
-def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False, catalog_path=None):
+def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False, catalog_path=None, diagnose_content_failure=False):
     manifest=read(ROOT/'source_manifest.json')
     current=current or datetime.now(timezone.utc)
     state=read(state_path) if Path(state_path).exists() else None
@@ -89,7 +93,13 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
                    current>=as_utc(state['last_attempt_at'])+timedelta(hours=1) and
                    (not state.get('server_not_before_at') or
                     current>=as_utc(state['server_not_before_at'])))
-    if not availability['can_fetch'] and not early_allowed:
+    diagnostic_allowed=(diagnose_content_failure and availability['initialized'] and availability['single_page_enabled'] and
+        state.get('last_failure_reason')=='ValueError: unexpected Wiki content or security interstitial' and
+        current>=as_utc(state['last_attempt_at'])+timedelta(hours=1) and
+        (not state.get('last_rate_limit_at') or current>=as_utc(state['last_rate_limit_at'])+timedelta(seconds=manifest.get('single_page_failure_backoff_seconds',86400))) and
+        (not state.get('server_not_before_at') or current>=as_utc(state['server_not_before_at'])) and
+        not any(r.get('failed_at')==state.get('last_failure_at') for r in state.get('content_diagnostic_attempts',[])))
+    if not availability['can_fetch'] and not early_allowed and not diagnostic_allowed:
         raise RuntimeError('Wiki single-page fetch unavailable until '+str(availability['next_allowed_at']))
     pages=registered_pages(manifest,catalog_path)
     if page_id not in pages: raise ValueError('page ID outside source manifest')
@@ -98,6 +108,9 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
         raise ValueError('Detail raw inputs must stay under private/raw/')
     if target.exists(): raise FileExistsError('Use a fresh directory; saved inputs are immutable')
     stamp=current.isoformat(timespec='seconds')
+    if diagnostic_allowed:
+        if page_id!=state.get('last_page_id'): raise ValueError('Diagnostic must inspect the same failed page')
+        state.setdefault('content_diagnostic_attempts',[]).append({'failed_at':state['last_failure_at'],'at':stamp,'page_id':page_id,'reason':'User requests less cautious progress; inspect suspected local text-length false positive once'})
     state['last_attempt_at']=stamp
     state['last_page_id']=page_id
     if early_allowed and not availability['can_fetch']:
@@ -129,12 +142,12 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
 
 
 
-def fetch_one(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False, catalog_path=None):
+def fetch_one(page_id, directory, *, current=None, state_path=STATE, fetcher=collect, authorized_early=False, catalog_path=None, diagnose_content_failure=False):
     lock_path=Path(state_path).with_suffix('.lock')
     lock_path.parent.mkdir(parents=True,exist_ok=True)
     fd=os.open(lock_path,os.O_CREAT|os.O_EXCL|os.O_WRONLY)
     try:
-        return _fetch_one_unlocked(page_id,directory,current=current,state_path=state_path,fetcher=fetcher,authorized_early=authorized_early,catalog_path=catalog_path)
+        return _fetch_one_unlocked(page_id,directory,current=current,state_path=state_path,fetcher=fetcher,authorized_early=authorized_early,catalog_path=catalog_path,diagnose_content_failure=diagnose_content_failure)
     finally:
         os.close(fd)
         lock_path.unlink()

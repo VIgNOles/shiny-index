@@ -48,8 +48,8 @@ class BulkDetailTests(unittest.TestCase):
 
     def saved(self, directory, url, fetched_at=None):
         directory.mkdir(parents=True)
-        html = ('<html><head><meta charset="utf-8"><link rel="canonical" href="'+url+
-                '"></head><body><div id="content"><table><tr><td>'+('実データ '*300)+
+        html = ('<html><head><meta charset="utf-8"><title>'+url.split('/')[-1]+'</title><link rel="canonical" href="'+url+
+                '"></head><body><div id="content"><h2>スキルパネル</h2><table><tr><td>'+('実データ '*300)+
                 '</td></tr></table></div></body></html>').encode('utf-8')
         (directory/'response.html').write_bytes(html)
         write(directory/'fetch.json', {'url': url, 'status': 'fetched', 'http_status': 200,

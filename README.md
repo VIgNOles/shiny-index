@@ -5,7 +5,7 @@
 公開中のデータ版はv1-93a6a8b8d40e754a（収録確認日2026-10-08、P548/S918）。カード内容は前版と同じで、確認範囲を更新しました。
 UI版はui-v4です。旧UIはGitタグ ui-v1-20261008、ui-v2-20261008、ui-v3-20261008 に保存し、[UI設計記録](docs/ui-v4-spec.md)と[切り戻し手順](operations.md)を用意しました。
 ゲーム全網羅・公式照合は未完了です。P/S・分冊の重複・出典を監査しました。Wikiの凡例と補助ページで未確定だった入手分類21行を確認し、ローカル版へ反映しました。
-編集原本は指定アカウントの非公開Google Sheetsです。9タブ・1,466件を実エクスポートで照合済み。公開用のローカルXLSXは承認済みスナップショットとして保持し、更新手順はoperations.mdに記載しています。
+編集原本は指定アカウントの非公開Google Sheetsです。既存9タブ・1,466件を保持し、詳細6タブを加えた15タブを実エクスポートで照合済み。公開用のローカルXLSXは承認済みスナップショットとして保持し、更新手順はoperations.mdに記載しています。
 
 ## セットアップ
 
@@ -112,3 +112,17 @@ P/S各2件の詳細情報の非公開試験は [試験結果](docs/card-details-
 P2/S2の実HTML試験を経て、ユーザーの指示で全件詳細HTMLの取得を開始しました。対象は1,466カードに対応する1,363の一意な個別ページです。既存5ページは検証して再利用し、残りを60秒以上の間隔で順番に保存します。個別ページなし47件は保留、同じページを共有するアイドルロード84カードは派生ごとの対応確認待ちです。正式原本・公開版への詳細採用はまだ行っていません。
 
 [全件詳細の取得・停止・再開・オフライン監査](docs/card-details-full-acquisition.md) を参照してください。状況確認は `./.venv/Scripts/python.exe scripts/collect_detail_catalog.py status private/raw/detail-catalog-20261009`。実行中のrunを再初期化したり二重起動したりしないでください。旧一覧一括取得は無効のままです。
+
+
+## 詳細情報の接続（2026-10-09）
+
+UI v5と詳細60カード（P5/S55）・865項目を検証して公開準備済み。基礎カード1,466件と版は変更していません。スキル種別・名前・Link/Plus/Change/Grow/Refrainを検索でき、Pパネル/MB/S所持ライブを区別します。Wiki原文は配布せず、認識した参考数値を表示する段階です。全件詳細・発動条件の全面構造化は未完成です。原本・更新・検証・残件は[詳細接続手順](docs/card-details-integration.md)、全件取得は[取得手順](docs/card-details-full-acquisition.md)。公開URLでの結果は詳細接続手順の末尾で確認してください。
+
+```powershell
+node --test tests/search.test.mjs tests/detail-search.test.mjs
+$env:UI_EXPECTED_VERSION='ui-v5'
+node tests/ui-v4-smoke.mjs site
+node tests/ui-v5-smoke.mjs site
+```
+
+基礎・詳細を同じSheetsエクスポートからreview/applyできます。通常の基礎原本更新で詳細タブを消さず、詳細のみの手修正も取り込めます。新環境での詳細再生成は新規の基礎候補をprepare後、同じ原本XLSXから `scripts/export_detail_sheet.py <原本XLSX> <候補サイト>` を実行してください。詳細版は基礎版へ結合し、全カードの収録状態を出力します。既存の不変版を直接書き換えません。

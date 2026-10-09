@@ -41,6 +41,10 @@ def build_candidate(ref, source, output):
     if assets["index.html"].count(old) != 1:
         raise ValueError("tagged site has an unexpected data version marker")
     assets["index.html"] = assets["index.html"].replace(old, new)
+    if b"window.DETAIL_VERSION=" in assets["index.html"]:
+        detail=json.loads((source/"details/latest.json").read_text(encoding="utf-8"))["detail_version"]
+        assets["index.html"]=re.sub(rb"window\.DETAIL_VERSION='[^']*'",("window.DETAIL_VERSION='"+detail+"'").encode(),assets["index.html"])
+        assets["details.mjs"]=git("show",f"refs/tags/{ref}:site/details.mjs")
     shutil.copytree(source, output)
     for name, content in assets.items():
         (output / name).write_bytes(content)

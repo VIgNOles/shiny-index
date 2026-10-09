@@ -2,7 +2,7 @@
 
 ## 現在の原本
 
-編集原本は、指定されたGoogleアカウントが所有する非公開Google Sheets「enza P/S card master」です。SheetのURLとIDはGit対象外の `private/sheets-connection.json` に記録しています。所有者だけがアクセスできること、9タブ・1,466件・固定ID・取得値・手修正の往復一致、タイムゾーン Asia/Tokyo を確認しました。
+編集原本は、指定されたGoogleアカウントが所有する非公開Google Sheets「enza P/S card master」です。SheetのURLとIDはGit対象外の `private/sheets-connection.json` に記録しています。所有者だけがアクセスできること、既存9タブ・1,466件と追加6詳細タブ・固定ID・取得値・手修正の往復一致、タイムゾーン Asia/Tokyo を確認しました。
 
 `private/master.xlsx` は最後に承認したローカル作業スナップショットです。日常の手編集はSheetsだけで行い、配布前にSheetsからXLSXを出力して下記の review → apply を通し、ローカルスナップショットを追いつかせます。両方を同時に編集しません。取得候補の採用でローカル側を更新した場合は、後述の手順で完全原本を新しい非公開Sheetに取り込み、往復検証後に原本を切り替えます。
 
@@ -277,3 +277,12 @@ scripts/collect_one.py statusで現状を確認し、登録済みの1ページ�
 現在のrunはprivate/raw/detail-catalog-20261009。状態はscripts/collect_detail_catalog.py statusで実際に読み、HANDOFFの件数だけで完了・プロセス停止と判断しない。停止はstopサブコマンド、再開はstopped/worker_is_alive=false確認後のrun --clear-stop。成功した既存入力を再送しない。取得中でもtransform_detail_catalog.pyでオフライン変換できる。詳しい有限予算・PIDロック・不明結果の扱い・24時間復旧は [全件詳細取得の手順](docs/card-details-full-acquisition.md) を参照。
 
 原本Sheet r7、公開基礎索引1,466件、UI v4はこの取得では変更しない。原HTML、原文効果、全件候補・監査・ログはprivateのみで、Gitのforce addや自動採用・公開をしない。全入力を保存し終えても詳細公開版の完成ではない。
+
+
+## 最新: 詳細原本15タブとUI v5（2026-10-09）
+
+現在の編集原本は同じ指定アカウントのnativeコピーで、基礎revision7・詳細revision3、15タブです。旧9タブのr7はバックアップ。基礎更新は従来の「追加・手修正」、詳細名称/SP/効果/機能タグは「詳細項目」のG～Mを使い、理由・根拠・ISO日時を残します。詳細カード60件・865項目の実エクスポート、基礎差分0、1詳細追加/1名称修正・固定ID/手修正保持を確認しました。詳細エクスポートも非公開に保存します。
+
+基礎/詳細を同じエクスポートからreview/applyしてください。詳細のみの編集もdetail_changedで検出し、取得列・式・未知項目・ID/派生衝突は拒否します。再取得採用では既存の手修正を先に取り込み、正常原本を新しくnativeコピーして更新し、15タブを読み戻して切り替えます。詳細の編集・公開・復旧、現在の制約は[詳細接続手順](docs/card-details-integration.md)。古い「9タブのみ」や「詳細は前準備のみ」はその段階の履歴です。
+
+詳細は `details/<d1版>/details.json` と版情報を基礎v1版へ結びます。CSV画面導線は撤去したまま。スキル機能はライブ行だけに適用し、発動条件と効果全文は未構造化のものがあります。全件原入力取得を60秒以上で続行中ですが、今回の60詳細を全件版完成と扱いません。未収録・ロード対応・47件保留をcoverageと手順に残しています。

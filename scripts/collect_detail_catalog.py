@@ -178,8 +178,11 @@ def verify_completed_inputs(run, catalog, state, root):
 
 def failure_is_cooling(manifest, shared, current):
     backoff = manifest.get('single_page_failure_backoff_seconds', 86400)
+    reviewed=shared.get('last_failure_reason') in {'ValueError: unexpected Wiki content or security interstitial','ValueError: unexpected individual-card title or skill-panel structure'} and any(
+        review.get('failed_at')==shared.get('last_failure_at') and review.get('failure_reason','ValueError: unexpected Wiki content or security interstitial')==shared.get('last_failure_reason') and review.get('classification')=='local_validator_false_positive'
+        for review in shared.get('failure_reviews',[]))
     return any(shared.get(key) and current < as_utc(shared[key])+timedelta(seconds=backoff)
-               for key in ('last_failure_at', 'last_rate_limit_at')) or (
+               for key in ('last_failure_at', 'last_rate_limit_at') if not (key=='last_failure_at' and reviewed)) or (
         bool(shared.get('server_not_before_at')) and current < as_utc(shared['server_not_before_at']))
 
 

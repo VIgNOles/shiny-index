@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/search.test.mjs",
+    "test": "node --test tests/search.test.mjs tests/detail-search.test.mjs",
     "test:ui": "node tests/ui-v4-smoke.mjs",
-    "test:ui-v4": "node tests/ui-v4-smoke.mjs"
+    "test:ui-v4": "node tests/ui-v4-smoke.mjs",
+    "test:ui-v5": "node tests/ui-v5-smoke.mjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

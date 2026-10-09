@@ -1,3 +1,4 @@
+import {detailSearch,loadDetails,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -43,6 +44,21 @@ try{
  const doc=await response.json();
  if(doc.meta.dataset_version!==window.DATA_VERSION)throw Error('版不一致');
  const {cards,meta,coverage}=doc;
+ let detailDoc=null,detailError='';
+ try{detailDoc=await loadDetails(window.DATA_VERSION,window.DETAIL_VERSION);}
+ catch(error){detailError=error.message;}
+ const detailMap=new Map((detailDoc?.cards??[]).map(card=>[card.card_id,card]));
+ $('detail-coverage').textContent=detailDoc?
+  '詳細 '+detailDoc.coverage.detail_card_count+' / '+cards.length+'カード収録（順次取得中）。数値・条件は一部のみ収録。':
+  '詳細情報を読み込めませんでした：'+detailError+'。基本情報の検索は利用できます。';
+ $('skill-controls').disabled=!detailDoc;
+ if(detailDoc){
+  $('detail-version').textContent='詳細データ版 '+detailDoc.meta.detail_version+' / 更新日時 '+detailDoc.meta.published_at;
+  for(const [file,label] of [['details.json','詳細 JSON'],['manifest.json','詳細の版情報']]){
+   const link=add($('detail-downloads'),'a',label);link.href='details/'+detailDoc.meta.detail_version+'/'+file;
+  }
+ }
+
  const sourceUrls=new Map();
  for(const source of doc.sources??[]){
   const url=wikiLink(source.url);
@@ -74,6 +90,26 @@ try{
    history[mode==='replace'?'replaceState':'pushState'](null,'',next);
   render();
  };
+
+ for(const [value,label] of Object.entries(kindNames))$('skill-kind').add(new Option(label,value));
+ for(const [value,label] of Object.entries(mechanicNames)){
+  const wrapper=add($('skill-mechanics'),'label','','filter-option');
+  const input=document.createElement('input');input.type='checkbox';input.value=value;input.name='mechanic';
+  wrapper.append(input,document.createTextNode(label));
+ }
+ $('skill-q').addEventListener('input',event=>{
+  if(event.target.value)params.set('skill_q',event.target.value);else params.delete('skill_q');commitParams('replace');
+ });
+ $('skill-kind').addEventListener('change',event=>{
+  params.delete('skill_kind');if(event.target.value)params.set('skill_kind',event.target.value);commitParams();
+ });
+ $('skill-mechanics').addEventListener('change',()=>{
+  params.delete('mechanic');for(const input of $('skill-mechanics').querySelectorAll('input:checked'))params.append('mechanic',input.value);commitParams();
+ });
+ $('detail-available').addEventListener('change',event=>{
+  if(event.target.checked)params.set('detail_status','available');else params.delete('detail_status');commitParams();
+ });
+ $('skill-filters').open=['skill_q','skill_kind','mechanic','detail_status'].some(key=>params.has(key));
 
  const filterOrder={
   card_kind:['P','S'],rarity:['UR','SSR','SR','R','N'],
@@ -386,6 +422,10 @@ try{
     count++;
    }
   }
+  if(params.get('skill_q')){addChip('スキル検索：'+params.get('skill_q'),'skill_q',null);count++;}
+  for(const value of params.getAll('skill_kind')){addChip(kindNames[value]??value,'skill_kind',value);count++;}
+  for(const value of params.getAll('mechanic')){addChip(mechanicNames[value]??value,'mechanic',value);count++;}
+  if(params.get('detail_status')==='available'){addChip('詳細収録済み','detail_status',null);count++;}
   if(!count)active.textContent='絞り込み条件なし';
   const advancedCount=params.getAll('series_ids').length+
    params.getAll('acquisition_category').length+params.getAll('person').length+
@@ -399,6 +439,10 @@ try{
   }
  };
  const renderControls=()=>{
+  $('skill-q').value=params.get('skill_q')??'';
+  $('skill-kind').value=params.get('skill_kind')??'';
+  $('detail-available').checked=params.get('detail_status')==='available';
+  for(const input of $('skill-mechanics').querySelectorAll('input'))input.checked=params.getAll('mechanic').includes(input.value);
   for(const field of filterFields){
    const selected=params.getAll(field);
    for(const input of filterGroups.get(field).querySelectorAll('input'))
@@ -419,6 +463,42 @@ try{
  const detailLine=(list,term,value)=>{
   const row=add(list,'div','','detail-row');
   add(row,'dt',term);add(row,'dd',value);
+ };
+ const performanceNode=(parent,baseCard)=>{
+  const section=add(parent,'section','','performance');
+  add(section,'h4','スキル・詳細情報');
+  const card=detailMap.get(baseCard.card_id);
+  if(!card){add(section,'p',baseCard.wiki_url?'詳細は未収録です。取得・確認を順次進めています。':'個別ページ未確認のため詳細収録は保留中です。','detail-note');return;}
+  if(card.traits){
+   const list=add(section,'dl','','card-facts');
+   detailLine(list,'アイデア',card.traits.idea);detailLine(list,'ひらめき',card.traits.inspiration);
+   detailLine(list,'楽曲熟練度',card.traits.music_proficiencies.join('・'));
+   const stats=card.max_status;
+   detailLine(list,'最大Lv '+stats.level,['Vo','Da','Vi','Me'].map((label,i)=>label+' '+(stats[['vocal','dance','visual','mental'][i]]??'未記載')).join(' / '));
+  }
+  add(section,'p','効果は参考数値の一部を表示しています。発動条件・複合効果・Link等の追加効果はWikiで確認してください。','detail-note');
+  for(const [kind,label] of Object.entries(kindNames)){
+   const items=card.items.filter(item=>item.kind===kind);if(!items.length)continue;
+   const group=add(section,'details','','skill-section');add(group,'summary',label+'（'+items.length+'件）');
+   const list=add(group,'ul','','skill-list');
+   for(const item of items){
+    const row=add(list,'li','','skill-item');add(row,'strong',item.name);
+    const attrs=[];
+    if(item.sp!=null)attrs.push('SP '+item.sp);
+    if(item.unlock_star!=null)attrs.push('特訓 '+item.unlock_star);
+    if(item.unlock_event)attrs.push('イベント解放');
+    if(item.mb_stage)attrs.push('MB '+item.mb_stage+(item.mb_total_stages?'/'+item.mb_total_stages:''));
+    if(item.level!=null)attrs.push('Lv '+item.level);
+    if(item.acquired_at_level!=null)attrs.push('取得Lv '+item.acquired_at_level);
+    if(item.energy_cost!=null)attrs.push('気力 '+item.energy_cost);
+    attrs.push(...(item.mechanics??[]).map(value=>mechanicNames[value]));
+    if(attrs.length)add(row,'p',attrs.join(' · '),'skill-meta');
+    if(item.cap_delta!=null)add(row,'p',item.cap_targets.join(' / ')+' 上限 +'+item.cap_delta);
+    if(item.numeric_facts.length)add(row,'p','参考数値：'+item.numeric_facts.map(factText).join(' / '),'skill-values');
+    if(item.progression?.length)add(row,'p','取得Lv → スキルLv：'+item.progression.map(step=>step.support_level+' → '+step.skill_level).join(' / '),'skill-values');
+   }
+  }
+  add(section,'p','Wiki取得日 '+card.fetched_at.slice(0,10)+'。Pステージ・適正、Sファイトは今回の収録対象外です。','detail-note');
  };
  const cardNode=cardData=>{
   const row=add($('cards'),'li','','card');
@@ -446,6 +526,7 @@ try{
   detailLine(list,'確認状態',text(cardData.review_status));
   if(cardData.collab_work)detailLine(list,'コラボ作品',cardData.collab_work);
   if(cardData.variant_kind!=='base')detailLine(list,'派生種別','アイドルロード派生');
+  performanceNode(detail,cardData);
   const action=add(detail,'div','','card-action');
   const wiki=wikiLink(cardData.wiki_url);
   if(wiki){
@@ -477,7 +558,7 @@ try{
   return row;
  };
  function render(limit=100){
-  shown=search(cards,params);
+  shown=detailSearch(search(cards,params),params,detailMap);
   const ids=new Set(shown.map(card=>card.card_id));
   expandedIds=new Set([...expandedIds].filter(id=>ids.has(id)));
   renderControls();

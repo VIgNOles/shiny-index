@@ -420,3 +420,15 @@ D01で複合上限があり、対象を配列cap_targetsとしてすべて保存
 2. 取得中でもscripts/transform_detail_catalog.py RUN 新しいprivate/audits/...jsonで部分候補を作り、needs_structure_review/input_invalidを保存HTMLだけで確認する。原入力は書き換えない。
 3. complete後はworkflow-reportのcandidate_fileを開き、1466coverage行/P/S/各節/欠損/84派生を確認し、4試験カードから詳細ID・手修正台帳→原本コピー→構造化公開→Web/ファイルの少数一気通貫を進める。全件入力成功だけで公開・全件詳細完成と扱わない。
 4. 失敗/中断ならdocs/card-details-full-acquisition.mdのSTOP/所有PID/不明結果/24時間待機/明示1ページ再試行を使う。古いstdout.log、stdout-worker-002.logと対応stderr/launch記録も保持。wrapperの死んだlockはrelease-stale-lock --lock-kind workflow --expected-pidでのみ解除。共通取得lockを自動削除しない。
+
+
+## 2026-10-09 安全再開後の現在位置（2026-10-09T04:50:58+00:00、公開直前）
+
+- TASK.md冒頭の元指示を保持し、最新の「少し慎重になりすぎ」「中断してところから安全に再開して」を区別して追記。design.mdに本文長/URLタイトルの誤検知、最大Lv空欄、S固有アビリティ、詳細原本/公開の設計変更を記録した。既存編集は破棄していない。
+- 取得: private/raw/detail-catalog-20261009、現在status=running、page_status_counts={'fetched': 81, 'pending': 1277, 'reused': 5}。新しいworkflow-006（起動時1279試行上限）が60秒以上で逐次取得。実PIDはworker.lockを確認。旧005はHTTP200のタイトル記号差で停止し、保存本文から追加アクセスなしで回復。旧状態と失敗報告は保持した。HTTP429/Retry-Afterを解除していない。
+- 正式原本: 指定Driveのnativeコピー15タブ、基礎r7/P548/S918不変、詳細revision3・60カード(P5/S55)865項目。ID/URLはprivate/sheets-connection.json（spreadsheet_urlも更新済み）、旧原本とスナップショットはバックアップ保持。初期59/855と更新60/865で全値往復一致、既存9タブ差分0。1実P詳細追加・1名称修正の反映、再変換後の固定ID/手修正保持を確認。
+- Web: UI v5をsiteへ配置し、基本検索回帰とスキル検索をPC1280/390/320でPASS。詳細版d1-ee415ee7fa6b3d80、前段の59カード版d1-8619fca84091f29dも不変で保持。基礎版v1-93a6a8b8d40e754a不変。全32配信ファイル。旧UI v4切り戻し候補のcheck_siteとPC/スマホ回帰もPASS。スクリーンショットprivate/audits/ui-v5-final-20261009を目視確認。
+- 変更: src/wiki_response.py/detail_master.py/detail_public.py/card_details.py/detail_catalog.py/indexer.py、取得/変換/原本取込/出力/配信/切り戻しscripts、web/site、tests、package.json、README/operations/TASK/HANDOFF、docs/card-details-*。privateの原HTML/全文効果/Sheets値/台帳/監査とdesign.mdは公開Gitへ入れない。
+- 完了検査: Python/JS単体（最新件数は公開後節で追記）、原本2段階往復、既存9タブと全基礎配布不変、同一ライブ行の機能/種類/名前AND、思い出分離、公開許可項目/ID/式/欠損/ファイルSHA検査。原本1詳細追加は基礎新規カードの本番追加実証ではない。
+- 次の操作: 最終Python/JS/check_site → コードと検証済みsiteをGit保存 → ui-v5タグ → publish:コミット → Actionsと匿名URL全32ファイル一致 → 公開PC/390/320基本/詳細試験。公開成功とcommit/runを追記する。取得workerの実状態を最後にも確認する。
+- 未完了: 全件詳細取得/構造対応、84ロードIDの節対応、効果条件/追加効果の全面構造化、ゲーム公式独立全網羅、基礎新規1カード本番追加/修正実証、47個別リンク保留/初回日56不明、実機・スクリーンリーダー。現在の60詳細を全件完成とは報告しない。

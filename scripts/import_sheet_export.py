@@ -18,7 +18,9 @@ def file_hash(path):
 def sheet_rows(path, name):
     workbook = load_workbook(path, read_only=True, data_only=False)
     try:
-        if set(workbook.sheetnames) != set(TABS):
+        from src.detail_master import DETAIL_TABS
+        names=set(workbook.sheetnames)
+        if not set(TABS)<=names or names-set(TABS) not in (set(),set(DETAIL_TABS)):
             raise ValueError('unexpected master tabs')
         rows = []
         for row in workbook[name].iter_rows(values_only=True):
@@ -51,6 +53,14 @@ def review(master_path, export_path):
     added = sorted(set(new_registry) - set(old_registry))
     if any(new_registry[c]['aliases'] or new_registry[c]['family_id'] != c for c in added):
         raise ValueError('new manual card has an unexpected source alias or family')
+    from src.detail_master import DETAIL_TABS,from_workbook
+    detail_changed=False
+    book=load_workbook(export_path,read_only=True);has_details=set(DETAIL_TABS)<=set(book.sheetnames);book.close()
+    oldbook=load_workbook(master_path,read_only=True);had_details=set(DETAIL_TABS)<=set(oldbook.sheetnames);oldbook.close()
+    if had_details and not has_details:raise ValueError('Detail tabs removed from export')
+    if has_details:
+        incoming_detail=from_workbook(export_path)
+        detail_changed=not had_details or from_workbook(master_path)!=incoming_detail
     before, after = resolve(original), resolve(imported)
     def identity(card):
         return (card['idol_id'], card['card_kind'], card['variant_kind'], card['card_title'])
@@ -79,6 +89,7 @@ def review(master_path, export_path):
             for c in after if c['card_id'] in added
         ],
         'protected_tabs_unchanged': True,
+        'detail_changed': detail_changed,
     }
 
 
@@ -101,11 +112,11 @@ def main():
     current = review(args.master, args.export)
     if current != approved:
         raise ValueError('master or export changed since review; make a new review')
-    if not any(current[k] for k in ['added_ids', 'changed_edit_ids', 'removed_edit_ids', 'new_edit_ids']):
+    if not current['detail_changed'] and not any(current[k] for k in ['added_ids', 'changed_edit_ids', 'removed_edit_ids', 'new_edit_ids']):
         print('No manual changes; active master was not rewritten.')
         return
     imported = load_master(args.export)
-    save_master(imported, args.master)
+    save_master(imported, args.master, detail_source=args.export)
     if load_master(args.master) != imported:
         raise ValueError('applied master read-back mismatch')
     print(json.dumps({'applied_at': now(), 'result': current}, ensure_ascii=False, indent=2))

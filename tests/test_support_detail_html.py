@@ -71,8 +71,23 @@ class SupportDetailHtmlTests(unittest.TestCase):
             extract_html(s_fixture().replace('楽曲熟練度'.encode(),'未確認'.encode()),dict(CARD,card_kind='S'))
 
     def test_non_numeric_status_is_rejected_without_guessing(self):
-        with self.assertRaisesRegex(ValueError,'Missing S status value'):
-            extract_html(s_fixture().replace(b'<td>101</td>',b'<td>?</td>'),dict(CARD,card_kind='S'))
+        with self.assertRaisesRegex(ValueError,'Unrecognized S status value'):
+            extract_html(s_fixture().replace(b'<td>101</td>',b'<td>bad-number</td>'),dict(CARD,card_kind='S'))
+
+
+    def test_maximum_status_missing_values_keep_other_sections(self):
+        raw = s_fixture().replace(b'<td>101</td>',b'<td></td>')
+        card = extract_html(raw,dict(CARD,card_kind='S'))
+        self.assertIsNone(card['max_status']['vocal'])
+        self.assertEqual(card['max_status']['missing_fields'],['vocal'])
+        self.assertEqual(card['max_status']['level'],80)
+        self.assertEqual(card['coverage']['max_status'],'partial_missing_values')
+        self.assertTrue(card['panel_nodes'])
+
+    def test_non_maximum_status_blank_does_not_block_maximum(self):
+        raw=s_fixture().replace(b'<td>1</td><td>2</td><td>3</td><td>4</td>',b'<td></td><td></td><td></td><td></td>')
+        card=extract_html(raw,dict(CARD,card_kind='S'))
+        self.assertEqual(card['max_status']['vocal'],101)
 
 
 if __name__=='__main__':

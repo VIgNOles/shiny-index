@@ -228,10 +228,13 @@ def xlsx(spec, path):
             out.writestr(info,data)
     os.replace(tmp,path)
 
-def save_master(m,path):
+def save_master(m,path,*,detail_source=None):
     path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
     if path.exists(): shutil.copy2(path,path.with_name(path.stem+'.backup-'+datetime.now().strftime('%Y%m%d%H%M%S%f')+'.xlsx'))
     staged=path.with_name(path.stem+'.staged.xlsx'); xlsx(workbook_spec(m),staged)
+    if detail_source is not None or path.exists():
+        from src.detail_master import preserve_tabs
+        preserve_tabs(Path(detail_source) if detail_source is not None else path,staged)
     check=load_master(staged)
     expected={k:v for k,v in m.items() if k!='overrides'}
     actual={k:v for k,v in check.items() if k!='overrides'}
@@ -262,7 +265,7 @@ def prepare(m, output):
         verify_bundle(target)
         for p in (ROOT/'web').iterdir():
             if p.is_file():
-                if p.name=='index.html': (out/p.name).write_text(p.read_text(encoding='utf-8').replace('__VERSION__',version),encoding='utf-8')
+                if p.name=='index.html': (out/p.name).write_text(p.read_text(encoding='utf-8').replace('__VERSION__',version).replace('__DETAIL_VERSION__',''),encoding='utf-8')
                 else: shutil.copy2(p,out/p.name)
         write(out/'data/latest.json',{'dataset_version':version,'manifest':version+'/manifest.json'})
         return version
@@ -288,7 +291,7 @@ def prepare(m, output):
         if out.exists(): shutil.copytree(out,staging,dirs_exist_ok=True)
         for p in (ROOT/'web').iterdir():
             if p.is_file(): shutil.copy2(p,staging/p.name)
-        html=(staging/'index.html').read_text(encoding='utf-8').replace('__VERSION__',version)
+        html=(staging/'index.html').read_text(encoding='utf-8').replace('__VERSION__',version).replace('__DETAIL_VERSION__','')
         (staging/'index.html').write_text(html,encoding='utf-8')
         write(staging/'data/latest.json',{'dataset_version':version,'manifest':version+'/manifest.json'})
         out.mkdir(parents=True,exist_ok=True)
@@ -329,7 +332,7 @@ def rollback(output,version):
     output=Path(output)
     if not version.startswith('v1-') or len(version)!=19 or any(c not in '0123456789abcdef' for c in version[3:]): raise ValueError('invalid version')
     verify_bundle(output/'data'/version)
-    html=(ROOT/'web/index.html').read_text(encoding='utf-8').replace('__VERSION__',version)
+    html=(ROOT/'web/index.html').read_text(encoding='utf-8').replace('__VERSION__',version).replace('__DETAIL_VERSION__','')
     tmp=output/'index.html.next';tmp.write_text(html,encoding='utf-8');os.replace(tmp,output/'index.html')
     write(output/'data/latest.json',{'dataset_version':version,'manifest':version+'/manifest.json'})
 
@@ -353,23 +356,18 @@ def collect(url, directory, *, allow_limited=False):
         req=Request(quote(url,safe=':/%'),headers={'User-Agent':'ShinycolorsCardIndex/0.1 (limited research)'})
         with urlopen(req,timeout=25) as r:
             raw=r.read(); report.update({'http_status':r.status,'content_type':r.headers.get('Content-Type')})
-        if b'<html' not in raw.lower() or len(raw)<1000: raise ValueError('unexpected response')
-        from bs4 import BeautifulSoup
-        document=BeautifulSoup(raw,'html.parser')
-        canonical_link=document.find('link',rel='canonical')
-        canonical_url=canonical_link.get('href') if canonical_link else None
-        observed=urlsplit(canonical_url) if canonical_url else None
-        if not observed or observed.scheme!='https' or observed.netloc!='wikiwiki.jp' or unquote(observed.path)!=unquote(p.path):
-            raise ValueError('unexpected Wiki page or security interstitial')
-        content=document.select_one('#content')
-        if content is None or not content.find('table') or len(content.get_text(' ',strip=True))<1000:
-            raise ValueError('unexpected Wiki content or security interstitial')
+        from src.wiki_response import validate_response,registered_titles
+        validate_response(raw,url,registered_titles(ROOT,url))
         (directory/'response.html').write_bytes(raw)
         report.update({'status':'fetched','sha256':hashlib.sha256(raw).hexdigest()})
     except HTTPError as error:
         report.update({'http_status':error.code,'retry_after':error.headers.get('Retry-After') if error.headers else None})
         raise
-    finally: write(directory/'fetch.json',report)
+    finally:
+        if report['status']=='failed' and 'raw' in locals() and directory.resolve().is_relative_to((ROOT/'private/raw').resolve()):
+            (directory/'rejected-response.html').write_bytes(raw)
+            report['rejected_sha256']=hashlib.sha256(raw).hexdigest()
+        write(directory/'fetch.json',report)
 
 def main():
     p=argparse.ArgumentParser(); sub=p.add_subparsers(dest='cmd',required=True)

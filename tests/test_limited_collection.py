@@ -267,5 +267,55 @@ class LimitedCollectionTests(unittest.TestCase):
             self.assertEqual(report['status'],'failed')
 
 
+    def test_short_card_uses_title_and_panel_instead_of_commentary_length(self):
+        from src.wiki_response import validate_response
+        url='https://wikiwiki.jp/shinycolors/【合成】試験'
+        raw=('<html><head><title>【合成】試験 - Wiki</title><link rel="canonical" href="'+url+'"></head><body><div id="content"><h2>スキルパネル</h2><table><tr><td>SP</td></tr></table></div><!--'+('padding '*200)+'--></body></html>').encode()
+        validate_response(raw,url)
+        with self.assertRaisesRegex(ValueError,'skill-panel'):
+            validate_response(raw.replace('スキルパネル'.encode(),'別の節'.encode()),url)
+
+    def test_registered_title_may_differ_from_url_but_wrong_card_is_rejected(self):
+        from src.wiki_response import validate_response
+        url='https://wikiwiki.jp/shinycolors/【AKQJ10】試験'
+        raw=('<html><head><title>【♡AKQJ10】試験 - Wiki</title><link rel="canonical" href="'+url+'"></head><body><div id="content"><h2>スキルパネル</h2><table><tr><td>SP</td></tr></table></div><!--'+('padding '*200)+'--></body></html>').encode()
+        with self.assertRaisesRegex(ValueError,'title'):validate_response(raw,url)
+        validate_response(raw,url,['【♡AKQJ10】試験'])
+        with self.assertRaisesRegex(ValueError,'title'):
+            validate_response(raw.replace('♡AKQJ10'.encode(),'別カード'.encode()),url,['【♡AKQJ10】試験'])
+
+    def test_false_positive_review_does_not_cancel_http_backoff(self):
+        now=datetime(2026,10,9,3,0,tzinfo=timezone.utc)
+        manifest={'single_page_collection_enabled':True,'single_page_cooldown_seconds':60,
+                  'single_page_failure_backoff_seconds':86400}
+        failed=(now-timedelta(hours=2)).isoformat()
+        state={'last_attempt_at':failed,'last_failure_at':failed,'last_failure_reason':'HTTP 429',
+               'failure_reviews':[{'classification':'local_validator_false_positive','failed_at':failed}]}
+        self.assertFalse(limited.status(manifest,state,now)['can_fetch'])
+        state['last_failure_reason']='ValueError: unexpected Wiki content or security interstitial'
+        self.assertTrue(limited.status(manifest,state,now)['can_fetch'])
+        state['last_rate_limit_at']=failed
+        self.assertFalse(limited.status(manifest,state,now)['can_fetch'])
+
+    def test_diagnostic_is_one_same_page_and_keeps_server_deadline(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);current=datetime(2026,10,9,3,0,tzinfo=timezone.utc)
+            manifest={'single_page_collection_enabled':True,'single_page_cooldown_seconds':60,
+                      'single_page_failure_backoff_seconds':86400,'pages':[{'id':'W09','url':'https://wikiwiki.jp/shinycolors/ガシャ'}], 'audit_pages':[]}
+            indexer.write(root/'source_manifest.json',manifest)
+            state=root/'state.json';failed=(current-timedelta(hours=2)).isoformat()
+            indexer.write(state,{'last_attempt_at':failed,'last_failure_at':failed,'last_page_id':'W09',
+                                'last_failure_reason':'ValueError: unexpected Wiki content or security interstitial'})
+            calls=[]
+            def fake_fetch(url,directory,**kwargs):
+                calls.append(url);directory.mkdir()
+                indexer.write(directory/'fetch.json',{'status':'fetched'})
+            with patch.object(limited,'ROOT',root):
+                limited.fetch_one('W09',root/'first',current=current,state_path=state,fetcher=fake_fetch,diagnose_content_failure=True)
+                with self.assertRaises(RuntimeError):
+                    limited.fetch_one('W09',root/'second',current=current+timedelta(hours=2),state_path=state,fetcher=fake_fetch,diagnose_content_failure=True)
+            self.assertEqual(len(calls),1)
+
+
 if __name__=='__main__':
     unittest.main()
