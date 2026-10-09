@@ -244,6 +244,34 @@ def attach_random_options(number, table, anchor, nodes):
         matches[0]['source_positions'].extend([evidence(number,name,anchor),evidence(number,effect,anchor)])
 
 
+def cap_values(name: Cell, effect: Cell) -> dict:
+    attribute = r"(?:Vocal|Dance|Visual|メンタル)"
+    pattern = rf"({attribute}(?:\s*&\s*{attribute})*)\s*上限\+(\d+)"
+    match = re.fullmatch(pattern, effect.value)
+    repaired = False
+    if not match and effect.tag.find("br"):
+        # Some Wiki cells omit an ampersand at a line break. Accept only when
+        # the independently labelled panel heading confirms the identical targets.
+        clone = BeautifulSoup(str(effect.tag), "html.parser")
+        for br in clone.find_all("br"):
+            br.replace_with(" & ")
+        candidate = re.fullmatch(pattern, text(clone))
+        heading = re.fullmatch(rf"({attribute}(?:\s*&\s*{attribute})*)\s*上限UP(?:\s*[（(]☆\d+[)）])?", name.value)
+        targets = lambda value: [part.strip() for part in value.split("&")]
+        if candidate and heading and targets(candidate[1]) == targets(heading[1]):
+            match = candidate
+            repaired = True
+    if not match:
+        raise ValueError("Unparsed cap increase")
+    targets = [part.strip() for part in match[1].split("&")]
+    if len(set(targets)) != len(targets):
+        raise ValueError("Duplicate cap target")
+    result = {"cap_targets": targets, "cap_delta": int(match[2])}
+    if repaired:
+        result["cap_parse_note_private"] = "Attribute line break verified against panel heading; original cell preserved"
+    return result
+
+
 def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list[dict]]:
     panels = [(n, t, a) for n, t, a in tables
               if any(text(c) == "SP" for c in t.find_all(["th", "td"]))]
@@ -278,14 +306,7 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
                     "effect_private": value, "mechanics": mechanics(value) if kind == "panel_live" else [],
                     "source_positions": [evidence(number, name, anchor), evidence(number, effect, anchor)]}
             if kind == "cap_increase":
-                attribute = r"(?:Vocal|Dance|Visual|メンタル)"
-                match = re.fullmatch(rf"({attribute}(?:\s*&\s*{attribute})*)\s*上限\+(\d+)", value)
-                if not match:
-                    raise ValueError("Unparsed cap increase")
-                targets = [x.strip() for x in match[1].split("&")]
-                if len(set(targets)) != len(targets):
-                    raise ValueError("Duplicate cap target")
-                node.update(cap_targets=targets, cap_delta=int(match[2]))
+                node.update(cap_values(name, effect))
             if kind == "quick_skill":
                 match = re.search(r"\[コスト\s*:\s*(\d+)\]", value)
                 if not match:

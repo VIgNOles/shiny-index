@@ -132,6 +132,31 @@ try{
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-random.png')});
    await page.locator('#reset').click();
   }
+  const cheer=details.cards.find(card=>card.card_id==='ef2aca8d-9d14-48a0-8669-3d44b15c62d6');
+  if(cheer){
+   const baseCard=cards.find(card=>card.card_id===cheer.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   await page.locator('#skill-kind').selectOption('cap_increase');
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'上限UP'}).click();
+   assert.ok((await page.locator('.performance').textContent()).includes('Vocal / Dance / Visual 上限 +25'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-cheer-cap.png')});
+   await page.locator('#reset').click();
+  }
+  const scene=details.cards.find(card=>card.card_id==='be7cb223-2d49-4d67-8f0d-bdbb86893055');
+  if(scene){
+   const baseCard=cards.find(card=>card.card_id===scene.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   await page.locator('#skill-kind').selectOption('generated_live');
+   await page.locator('#skill-q').fill('[MB]Scene With You+++');
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'生成ライブスキル'}).click();
+   assert.ok((await page.locator('.performance').textContent()).includes('生成元 [MB]Scene With You++(4/5)'));
+   assert.ok(!(await page.locator('.performance').textContent()).includes('*1'));
+   await page.locator('#reset').click();
+  }
   const missing=details.cards.find(card=>card.max_status?.missing_fields?.length);
   if(missing){
    const baseCard=cards.find(card=>card.card_id===missing.card_id);

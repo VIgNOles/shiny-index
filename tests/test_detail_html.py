@@ -34,6 +34,20 @@ def fixture(panel=PANEL, memory=MEMORY, extra=''):
 
 class DetailHtmlTests(unittest.TestCase):
 
+    def test_cap_line_break_requires_independent_heading_agreement(self):
+        panel = PANEL.replace('Vocal上限UP (☆3)', 'Vocal & Dance & Visual上限UP (☆3)').replace('Vocal上限+100', 'Vocal & Dance<br>Visual 上限+25')
+        cap = extract_html(fixture(panel=panel), CARD)['panel_nodes'][1]
+        self.assertEqual(cap['cap_targets'], ['Vocal', 'Dance', 'Visual'])
+        self.assertEqual(cap['cap_delta'], 25)
+        self.assertEqual(cap['effect_private'], 'Vocal & Dance Visual 上限+25')
+        self.assertIn('original cell preserved', cap['cap_parse_note_private'])
+        for old, new in [('Dance<br>Visual', 'Dance Visual'),
+                         ('Dance & Visual上限UP', 'Dance上限UP'),
+                         ('Dance<br>Visual', 'Dance<br>Dance'),
+                         ('Dance<br>Visual', 'Dance<br>unknown')]:
+            with self.subTest(new=new), self.assertRaises(ValueError):
+                extract_html(fixture(panel=panel.replace(old, new)), CARD)
+
     def test_generated_diagram_keeps_children_separate_and_checks_parent_names(self):
         from src.card_details import parse_generated_live
         diagram = '<table><tr><th colspan="3">ライブスキル生成(連係図)</th></tr>'
