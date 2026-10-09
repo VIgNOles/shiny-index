@@ -242,6 +242,17 @@ class BulkDetailTests(unittest.TestCase):
         self.assertEqual(result['coverage']['card_status_counts'], {'needs_variant_mapping': 3, 'input_pending': 1})
         self.assertEqual(result['cards'], [])
 
+    def test_frozen_state_replay_is_unchanged_when_live_state_advances(self):
+        self.initialize();snapshot=self.root/'private/audits/frozen-state.json';write(snapshot,read(self.run/'state.json'))
+        first=transform_catalog(self.run,root=self.root,state_snapshot=snapshot)
+        self.run_worker(1,fetch=self.fetch_adapter())
+        second=transform_catalog(self.run,root=self.root,state_snapshot=snapshot)
+        self.assertEqual(first,second)
+        self.assertEqual(first['coverage']['card_status_counts'],{'input_pending':2})
+        self.assertNotEqual(first['content_hash'],transform_catalog(self.run,root=self.root)['content_hash'])
+        with self.assertRaisesRegex(ValueError,'remain private'):
+            transform_catalog(self.run,root=self.root,state_snapshot=self.root/'site/state.json')
+
     def test_checkpoint_input_mismatch_is_reported_without_candidate(self):
         self.saved(self.root/'private/raw/old', self.cards[0]['wiki_url'])
         self.initialize()
@@ -334,6 +345,27 @@ class BulkDetailTests(unittest.TestCase):
         self.assertEqual(read(self.run/'workflow-report.json')['phase'], 'audit_failed')
         self.assertFalse((self.run/'workflow.lock').exists())
         self.assertEqual(read(self.root/'site/data'/VERSION/'cards.json')['cards'], self.cards)
+
+    def test_prioritized_registered_page_keeps_cooldown_and_no_duplicate_fetch(self):
+        self.initialize();catalog=read(self.run/'catalog.json');priority=catalog['targets'][1]['id'];calls=[]
+        result=self.run_worker(priority_pages=[priority],fetch=self.fetch_adapter(calls=calls))
+        self.assertEqual(calls[0][0],catalog['targets'][1]['url'])
+        self.assertGreaterEqual((calls[1][1]-calls[0][1]).total_seconds(),60)
+        self.assertEqual(result['status'],'complete')
+        self.run_worker(priority_pages=[priority],fetch=lambda *a,**k:self.fail('Saved page fetched again'))
+
+    def test_invalid_or_duplicate_priority_rejected_before_request(self):
+        self.initialize();catalog=read(self.run/'catalog.json');page=catalog['targets'][0]['id']
+        for values in ([page,page],['unknown']):
+            with self.assertRaisesRegex(ValueError,'Priorities'):
+                self.run_worker(priority_pages=values,fetch=lambda *a,**k:self.fail('Invalid priority fetched'))
+        self.assertFalse((self.run/'worker.lock').exists())
+
+    def test_priority_cannot_bypass_global_failure_backoff(self):
+        self.initialize();catalog=read(self.run/'catalog.json')
+        write(self.state_path,{'last_attempt_at':self.current.isoformat(),'last_rate_limit_at':self.current.isoformat()})
+        result=self.run_worker(priority_pages=[catalog['targets'][1]['id']],fetch=lambda *a,**k:self.fail('Priority bypassed HTTP backoff'))
+        self.assertEqual(result['status'],'blocked_backoff')
 
     def test_worker_alive_status_uses_actual_process(self):
         self.initialize()

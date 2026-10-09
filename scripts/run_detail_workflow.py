@@ -57,9 +57,10 @@ def main():
     parser.add_argument('--max-attempts', type=int, required=True)
     parser.add_argument('--clear-stop', action='store_true')
     parser.add_argument('--retry-page')
+    parser.add_argument('--priority-page',action='append',default=[])
     args = parser.parse_args()
     result = run_workflow(args.run_dir, args.max_attempts,
-                          clear_stop=args.clear_stop, retry_page=args.retry_page)
+                          clear_stop=args.clear_stop, retry_page=args.retry_page,priority_pages=args.priority_page)
     print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
     if result.get('acquisition_error') or result['acquisition']['status'] in ('failed','needs_inspection','stopped_error','blocked_backoff'):
         raise SystemExit(1)

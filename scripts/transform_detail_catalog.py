@@ -8,17 +8,20 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.card_details import transform_run
+from src.detail_variants import transform_shared_run
 from src.detail_catalog import load_catalog, verify_saved_fetch
 from src.indexer import ROOT, read
 from scripts.collect_detail_catalog import SUCCESS, config, private_run, validate_state
 from scripts.transform_detail_html import load_cards, save_candidate
 
 
-def transform_catalog(path, *, root=ROOT, transformer=transform_run):
+def transform_catalog(path, *, root=ROOT, transformer=transform_run,variant_transformer=transform_shared_run,state_snapshot=None):
     run = private_run(path, root)
     catalog = load_catalog(root, run/'catalog.json', config(root))
     # state.json is atomically replaced by the worker: this is one consistent snapshot.
-    state = read(run/'state.json')
+    snapshot=Path(state_snapshot).resolve() if state_snapshot is not None else run/'state.json'
+    if not snapshot.is_relative_to((root/'private').resolve()):raise ValueError('State snapshots must remain private')
+    state = read(snapshot)
     validate_state(catalog, state)
     by_id = {card['card_id']: card for card in load_cards(root, catalog['base_dataset_version'])}
     candidates = []
@@ -44,9 +47,15 @@ def transform_catalog(path, *, root=ROOT, transformer=transform_run):
                         for cid in target['card_ids'])
             continue
         if target['variant_mapping_required']:
-            rows.extend(dict(entry, card_id=cid, card_kind=target['kind'], status='needs_variant_mapping',
-                             reason='Shared URL: base and idol-road variants must map to separate sections')
-                        for cid in target['card_ids'])
+            try:
+                document=variant_transformer(root/page['directory'],[by_id[cid] for cid in target['card_ids']],catalog['base_dataset_version'])
+                if len(document['cards'])!=len(target['card_ids']) or {c['card_id'] for c in document['cards']}!=set(target['card_ids']) or any(c['card_kind']!=target['kind'] for c in document['cards']):
+                    raise ValueError('Shared transformed identity/kind mismatch')
+                candidates.extend(document['cards'])
+                rows.extend(dict(entry,card_id=cid,card_kind=target['kind'],status='candidate_needs_review') for cid in target['card_ids'])
+            except (OSError,ValueError,KeyError,IndexError,TypeError) as error:
+                rows.extend(dict(entry,card_id=cid,card_kind=target['kind'],status='needs_variant_mapping',
+                                 error=type(error).__name__+': '+str(error)) for cid in target['card_ids'])
             continue
         cid = target['card_ids'][0]
         try:
@@ -90,8 +99,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('run_dir', type=Path)
     parser.add_argument('output', type=Path)
+    snapshots=parser.add_mutually_exclusive_group()
+    snapshots.add_argument('--state-snapshot',type=Path)
+    snapshots.add_argument('--save-state-snapshot',type=Path)
     args = parser.parse_args()
-    result = transform_catalog(args.run_dir)
+    snapshot=args.state_snapshot
+    if args.save_state_snapshot:
+        run=private_run(args.run_dir);catalog=load_catalog(ROOT,run/'catalog.json',config(ROOT));state=read(run/'state.json');validate_state(catalog,state)
+        save_candidate(state,args.save_state_snapshot);snapshot=args.save_state_snapshot
+    result = transform_catalog(args.run_dir,state_snapshot=snapshot)
     save_candidate(result, args.output)
     print(json.dumps({'output': str(args.output), 'content_hash': result['content_hash'],
                       'checkpoint_revision': result['checkpoint_revision'], **result['coverage']},

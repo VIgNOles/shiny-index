@@ -1,6 +1,6 @@
 # 詳細情報の原本・Web・配布データ接続（UI v5）
 
-2026-10-09 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。詳細は段階的な収録で、100カード（P15/S85）・1,435項目、`d1-523ec92ea52303c4`、詳細原本revision4。**全件詳細版は未完成**。公開URLでの最終検証結果は末尾へ追記する。
+2026-10-09 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。詳細は段階的な収録で、205カード（P102/S103）・2,825項目、`d1-0d933fce3b2fb3b6`、詳細原本revision6。**全件詳細版は未完成**。公開URLでの最終検証結果は末尾へ追記する。
 
 ## 原本と出力
 
@@ -54,7 +54,7 @@ node tests/ui-v5-smoke.mjs private/detail-update-candidate
 
 ## 取得・中断・復旧
 
-全件1,363個別ページの取得を1件ずつ60秒以上で続行中。正常保存済みページは再送しない。現在の処理状態は `private/raw/detail-catalog-20261009/state.json` とworker.lock、workflow-report.json、stdout/stderr-workflow-006.logで確認する。PC終了や利用上限でジョブが終わった場合、docs/card-details-full-acquisition.mdのPID確認・残留ロック・保存成功回復を先に行う。新しいジョブを重ねて起動しない。
+全件1,363個別ページの取得を1件ずつ60秒以上で続行中。正常保存済みページは再送しない。現在の処理状態は `private/raw/detail-catalog-20261009/state.json` とworker.lock、workflow-report.json、stdout/stderr-workflow-008.logで確認する。PC終了や利用上限でジョブが終わった場合、docs/card-details-full-acquisition.mdのPID確認・残留ロック・保存成功回復を先に行う。新しいジョブを重ねて起動しない。
 
 HTTP200短文の誤検知は `private/audits/detail-shape-false-positive-20261009.json` に根拠を保存し、履歴は削除していない。実HTTP失敗・Retry-Afterは解除していない。変換と原本採用、公開は取得とは独立し、異常入力は正常な原本・siteに自動反映しない。詳細数の異常・重複・未知P/S・孤児ID・ファイル改変は検査で拒否する。壊れた更新の復旧は正常な原本コピーと不変d1バンドルから新しい候補を作り、検査後に公開する。UI v4へはタグ `ui-v4-20261009` とbuild_ui_rollback.pyを使う。原本は切り戻さない。
 
@@ -80,3 +80,19 @@ HTTP200短文の誤検知は `private/audits/detail-shape-false-positive-2026100
 追加40カードを含む100カード（P15/S85）、1,435項目を取得済みHTMLから検証し、60件原本のnative完全コピーへ登録した。詳細revision4。実XLSX読戻しで全値一致、既存9タブの基礎内容差分0、既存865固定detail_idと名称手修正の保持を確認した。新旧の非公開原本・エクスポート・接続履歴は保持。計画はprivate/details/next-adoption-20261009-02、原本照合はprivate/audits/detail-native-100-roundtrip-20261009.json。
 
 S【Actors】の補足説明表は原文監査用に分離し、ライブスキルに誤分類しない。P【B!c,Cib】の専用節だけにある固有アビリティも収録するが、記載のないSPはnull（不明）とし無料と推定しない。詳細版d1-523ec92ea52303c4の候補は34配信ファイル、PC1280/390/320の基礎・詳細UI試験PASS。旧32ファイルのうち変更はindex.htmlとdetails/latest.jsonのみで、旧基礎3版・旧詳細2版のバイトは保持した。Python111/JS19 PASS。公開URLの検証はこれから行う。
+
+## 100件版の公開URL検証
+
+準備9320503、HTML改行維持f778dba、明示公開f409e8a。[Actions run 37888246800](https://github.com/VIgNOles/shiny-index/actions/runs/37888246800) success、[匿名公開URL](https://vignoles.github.io/shiny-index/)全34ファイルの生バイト一致、PC1280/390/320の基本/詳細検索・版・JSON取得PASS。公開d1-523ec92ea52303c4は原本r4の100件1435項目と一致し、旧865 detail_idと実名称修正も保持。実原本に追加した詳細を段階公開したもので、全件詳細・基礎新規1カード追加実証は未完了。報告はprivate/audits/detail100-public-verification-20261009.json。
+
+後続のCHILLY/CONTRAILの別リンク条件表は保存HTMLで対応した。画像そのものを取得せず、条件画像のalt/srcと原セルを非公開根拠として残す。公開効果条件の完全構造化とは区別する。
+
+## 205件・ロード全84カードの原本接続（2026-10-09、公開直前）
+
+156件/r5候補をnativeコピーと全値往復で検証した後、ロード28ページすべてを保存・変換できたため、205件P102/S103・2825項目/r6へ広げた。原本は指定Driveのnative完全コピー15タブ、全値読戻し一致、基礎9タブ差分0、既存1435固定IDと名称手修正保持を確認して切り替えた。切替前の100原本に編集が入っていないこともDrive更新日時と値で確認。旧100原本、156候補、各XLSX、接続履歴はprivateに保持。
+
+ロード84の各card_idに結ぶパネル・思い出の表集合が、同じURLの他派生と重ならないことを検証した。新詳細版d1-0d933fce3b2fb3b6、全36配信ファイル。PC1280/390/320の基本・詳細UI試験PASS、320px実表示画像も確認。公開URL照合は後続で行う。原本読戻しはprivate/audits/detail-native-205-roundtrip-20261009.json、ロード/固定IDはroad84-and-205-id-validation-20261009.json。
+
+凍結時点のcoverageは205収録・入力待ち1213・リンク保留47・構造対応待ち1（Cherish You）。全件収集と発動条件・生成技能等の全面構造化は未完了。公開中の収録状況は固定した原本スナップショットであり、取得ジョブの後続件数とは区別する。
+
+新しい原本書込計画は `scripts/prepare_detail_sheet_requests.py <新鮮な原本XLSX> <採用計画フォルダー> <nativeメタデータJSON> <新しいprivate出力>` で作れる。6詳細タブだけ、値更新・必要な行拡張・既存データ行からの書式複製・フィルター範囲を用意し、実際のAPI送信は行わない。必ず完全nativeコピーへ適用する。構造化requestsを順に送信し成功位置を記録する。ツールからJSONを読む場合はcompact JSONを使い、読取り打切りを検出してから送信する。送信結果が不明なら実値を確認し、確認せず次へ進まない。

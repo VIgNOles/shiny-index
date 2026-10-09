@@ -8,6 +8,7 @@ import json
 import re
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+from unicodedata import normalize
 
 from bs4 import BeautifulSoup, Tag
 
@@ -214,9 +215,24 @@ def parse_panel(tables, *, notes=None) -> tuple[list[dict], list[dict]]:
 
 
 def parse_memory(tables) -> list[dict]:
-    if len(tables) != 1:
+    main=[];conditions=[]
+    for number,table,anchor in tables:
+        grid=table_grid(table)
+        if {"スキル名","効果"}.issubset({cell.value for cell in grid[0]}):
+            main.append((number,table,anchor));continue
+        if len(grid)!=1 or len(grid[0])<2 or grid[0][0].value!="思い出アピールリンク条件":
+            raise ValueError("Unknown extra memory-appeal table")
+        cells=grid[0][1:]
+        if any(not cell.value and not cell.tag.find('img') for cell in cells):
+            raise ValueError("Empty memory-link condition")
+        conditions.append({'text_private':[cell.value for cell in cells],
+                           'image_refs_private':[{'alt':img.get('alt'),'title':img.get('title'),'src':img.get('src')}
+                                                 for cell in cells for img in cell.tag.find_all('img')],
+                           'source_positions':[evidence(number,cell,anchor) for cell in grid[0]]})
+    if len(main) != 1:
         raise ValueError("Expected one memory-appeal table")
-    number, table, anchor = tables[0]
+    if len(conditions)>1:raise ValueError("Duplicate memory-link condition table")
+    number, table, anchor = main[0]
     grid = table_grid(table)
     headers = {cell.value: c for c, cell in enumerate(grid[0])}
     if not {"スキル名", "効果"}.issubset(headers):
@@ -234,6 +250,8 @@ def parse_memory(tables) -> list[dict]:
             record[field] = cells[headers[label]].value if label in headers else None
             if label in headers:
                 record["source_positions"].append(evidence(number, cells[headers[label]], anchor))
+        if conditions:
+            record['link_condition_private']=conditions[0]
         records.append(record)
     levels = [x["level"] for x in records]
     if not levels or len(set(levels)) != len(levels) or sorted(levels) != list(range(1, max(levels) + 1)):
@@ -390,7 +408,7 @@ def parse_support_skills(tables) -> list[dict]:
     return records
 
 
-def extract_html(raw: bytes, card: dict) -> dict:
+def extract_html(raw: bytes, card: dict, *, variant_cards=None) -> dict:
     """Extract P/S facts without article commentary or excluded skill sections."""
     if card["card_kind"] not in ("P", "S"):
         raise ValueError("Unknown card kind")
@@ -399,21 +417,30 @@ def extract_html(raw: bytes, card: dict) -> dict:
     if len(links) != 1 or wiki_key(links[0].get("href", "")) != wiki_key(card["wiki_url"]):
         raise ValueError("Wiki canonical/card URL mismatch")
     content = soup.select_one("#content")
-    if not content or not soup.title or not text(soup.title).startswith(card["card_title"] + card["idol_name"]):
+    title_card=card
+    if variant_cards is not None:
+        from src.detail_variants import validate_variants,select_variant_tables
+        title_card=validate_variants(variant_cards)
+        if not any(c==card for c in variant_cards):raise ValueError('Shared card identity mismatch')
+    if not content or not soup.title or not normalize('NFKC',text(soup.title)).startswith(normalize('NFKC',title_card["card_title"] + title_card["idol_name"])):
         raise ValueError("Missing Wiki content or wrong card title")
+    def section(heading,optional=False):
+        tables=tables_in(content,heading,optional=optional)
+        return select_variant_tables(tables,variant_cards,card['card_id'],required=not optional) if variant_cards is not None else tables
     notes=[]
-    nodes, mb = parse_panel(tables_in(content, "スキルパネル"),notes=notes)
+    nodes, mb = parse_panel(section("スキルパネル"),notes=notes)
     record = {"card_id": card["card_id"], "card_kind": card["card_kind"], "card_title": card["card_title"],
               "wiki_url": card["wiki_url"], "source_kind": "saved_wiki_html",
               "source_sha256": hashlib.sha256(raw).hexdigest(), "panel_nodes": nodes,
               "coverage": {"skill_panel": "extracted", "review": "needs_review"}}
     if notes:record["skill_notes_private"]=notes
+    if variant_cards is not None:record["variant_mapping"]={"variant_kind":card["variant_kind"],"rarity":card["rarity"],"basis":"explicit_fold_labels"}
     if card["card_kind"] == "P":
         if tables_in(content, "所持スキル", optional=True):
             raise ValueError("P/S section mismatch")
-        match_abilities(nodes, tables_in(content, "アビリティ", optional=True))
+        match_abilities(nodes, section("アビリティ",optional=True))
         record["mb_live"] = mb
-        record["memory_appeals"] = parse_memory(tables_in(content, "思い出アピール"))
+        record["memory_appeals"] = parse_memory(section("思い出アピール"))
         record["coverage"].update({
             "memory_appeal": "extracted", "memory_boost": "extracted" if mb else "no_entry_confirmed",
             "unique_ability": "extracted" if any(n["kind"] == "unique_ability" for n in nodes) else "no_entry_confirmed",
@@ -432,7 +459,7 @@ def extract_html(raw: bytes, card: dict) -> dict:
     return record
 
 
-def transform_run(directory: Path, card: dict, base_version: str) -> dict:
+def transform_run(directory: Path, card: dict, base_version: str, *, variant_cards=None) -> dict:
     report = json.loads((directory / "fetch.json").read_text(encoding="utf-8"))
     raw = (directory / "response.html").read_bytes()
     if report.get("status") != "fetched" or report.get("http_status") != 200:
@@ -447,7 +474,7 @@ def transform_run(directory: Path, card: dict, base_version: str) -> dict:
             raise ValueError("Missing timestamp timezone")
     except (KeyError, TypeError, ValueError, AttributeError) as error:
         raise ValueError("Invalid acquisition timestamp") from error
-    record = extract_html(raw, card)
+    record = extract_html(raw, card,variant_cards=variant_cards)
     record["fetched_at"] = report["fetched_at"]
     result = {"pilot_schema": "0.3", "base_dataset_version": base_version,
               "input_kind": "saved_wiki_html", "cards": [record]}

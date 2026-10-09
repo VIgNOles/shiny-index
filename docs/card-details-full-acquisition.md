@@ -90,3 +90,16 @@ READMEのPython仮想環境と `requirements.txt` を使用する。新規依存
 可視文字数990の正常S-Rを1000文字の基準で拒否したため、個別カードはcanonical・登録タイトル・スキル表で検証する方式へ変更した。後続P【♡AKQJ10】は観測URLに♡がないため停止したが、失敗時に保存したHTTP200本文を正しい登録タイトルと照合し、追加リクエストなしで別の正常入力ディレクトリへ回復した。失敗報告・時刻・応答SHA・以前のstateは保持している。実際のHTTP429等ではない。レビュー済みの同じ失敗日時・同じローカル理由だけを停止条件から除外し、実HTTPのバックオフ・Retry-Afterは維持する。
 
 workflow-006は残り1279ページを有限予算で取得後、全カード監査を行う。PIDと現在の残数はHANDOFF.mdの最新記録と実stateで照合する。workflow-005の終了報告はworkflow-report-005-finished.jsonへ保存した。60カード865項目の原本/公開接続は別工程で実施し、現在は[詳細接続手順](card-details-integration.md)を使う。旧報告のdetails_adopted_or_published=falseはその取得ジョブが自動採用していない意味で、独立工程の段階採用・公開実績とは区別する。
+
+## 登録済みページの取得順と凍結再変換
+
+workflow007は登録済みロード28ページだけを優先し、取得頻度・共通ロック・HTTP停止を維持した。28ページは全件正常保存。通常順へ戻す008は残数1213の有限予算で、現行の派生変換器を読込み起動した。旧006/007の終了報告とログは保持。取得完了の監査も正式原本/公開へ自動採用しない。
+
+優先指定は `run_detail_workflow.py RUN --max-attempts 残数 --clear-stop --priority-page DC-登録済ID`。複数指定できる。未知ID・重複は通信前に拒否する。成功済みを再送しない。429/Retry-Afterを回避する指定には使えない。
+
+```powershell
+./.venv/Scripts/python.exe scripts/transform_detail_catalog.py private/raw/detail-catalog-20261009 private/audits/new-candidate-a.json --save-state-snapshot private/audits/new-frozen-state.json
+./.venv/Scripts/python.exe scripts/transform_detail_catalog.py private/raw/detail-catalog-20261009 private/audits/new-candidate-b.json --state-snapshot private/audits/new-frozen-state.json
+```
+
+初回は同じ原子的stateをprivateへ保存し、次回はそのstateと不変catalog/原HTMLを使う。取得が進行してlive stateが変わっても同じ内容SHAになることを実156件と合成境界で確認した。古いstateの入力が改変・消失していれば拒否して不足を記録する。原本・公開・取得状態は更新しない。状態スナップショットを公開先へ保存することも拒否する。

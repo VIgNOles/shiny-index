@@ -186,11 +186,21 @@ def failure_is_cooling(manifest, shared, current):
         bool(shared.get('server_not_before_at')) and current < as_utc(shared['server_not_before_at']))
 
 
+def ordered_targets(catalog, priority_pages=()):
+    priority_pages=tuple(priority_pages)
+    ids={target['id'] for target in catalog['targets']}
+    if len(set(priority_pages))!=len(priority_pages) or set(priority_pages)-ids:
+        raise ValueError('Priorities must be distinct registered catalogue page IDs')
+    order={page:i for i,page in enumerate(priority_pages)}
+    return sorted(catalog['targets'],key=lambda target:order.get(target['id'],len(order)))
+
+
 def run_worker(path, max_attempts, *, root=ROOT, state_path=STATE, fetch=fetch_one,
-               clock=utcnow, sleep=time.sleep, clear_stop=False, retry_page=None):
+               clock=utcnow, sleep=time.sleep, clear_stop=False, retry_page=None, priority_pages=()):
     run = private_run(path, root)
     manifest = config(root)
     catalog = load_catalog(root, run/'catalog.json', manifest)
+    targets=ordered_targets(catalog,priority_pages)
     cap = manifest['detail_catalog_expected_pages']
     if (not isinstance(max_attempts, int) or isinstance(max_attempts, bool) or
             not 1 <= max_attempts <= cap or catalog['unique_pages'] != cap):
@@ -233,8 +243,12 @@ def run_worker(path, max_attempts, *, root=ROOT, state_path=STATE, fetch=fetch_o
         state.pop('stop_reason', None)
         state['worker_pid'] = os.getpid()
         checkpoint(run, state)
+        if priority_pages:
+            state['history'].append({'event':'prioritized_registered_pages','at':stamp(clock()),'page_ids':list(priority_pages),
+                                     'cooldown_and_failure_gates_unchanged':True})
+            checkpoint(run,state)
         attempts = 0
-        for target in catalog['targets']:
+        for target in targets:
             if state['pages'][target['id']]['status'] in SUCCESS:
                 continue
             if attempts >= max_attempts:
@@ -416,6 +430,7 @@ def main():
             command.add_argument('--max-attempts', type=int, required=True)
             command.add_argument('--clear-stop', action='store_true')
             command.add_argument('--retry-page')
+            command.add_argument('--priority-page',action='append',default=[])
         if name == 'resolve-unknown':
             command.add_argument('--page-id', required=True)
             command.add_argument('--reason', required=True)
@@ -426,7 +441,7 @@ def main():
     if args.command == 'init':
         result = initialize(args.run_dir)
     elif args.command == 'run':
-        result = run_worker(args.run_dir, args.max_attempts, clear_stop=args.clear_stop, retry_page=args.retry_page)
+        result = run_worker(args.run_dir, args.max_attempts, clear_stop=args.clear_stop, retry_page=args.retry_page,priority_pages=args.priority_page)
     elif args.command == 'stop':
         run = private_run(args.run_dir)
         if not (run/'state.json').exists():

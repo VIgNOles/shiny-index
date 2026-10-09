@@ -49,6 +49,20 @@ class DetailHtmlTests(unittest.TestCase):
         self.assertEqual(nodes[0]['source_positions'][0]['section_anchor'],'ability')
         self.assertEqual(len(nodes),1)
 
+    def test_separate_memory_link_condition_keeps_image_evidence_private(self):
+        condition='<table><tr><th>思い出アピールリンク条件</th><td><img alt="Link_test.png" src="https://cdn.example.test/test.png"></td><td>相手甲</td></tr></table>'
+        card=extract_html(fixture(memory=MEMORY+condition),CARD)
+        self.assertEqual(len(card['memory_appeals']),2)
+        info=card['memory_appeals'][0]['link_condition_private']
+        self.assertEqual(info['image_refs_private'][0]['alt'],'Link_test.png')
+        self.assertEqual(info['text_private'],['','相手甲'])
+        self.assertEqual(len(info['source_positions']),3)
+        self.assertEqual(info,card['memory_appeals'][1]['link_condition_private'])
+        with self.assertRaisesRegex(ValueError,'Duplicate memory-link'):
+            extract_html(fixture(memory=MEMORY+condition+condition),CARD)
+        with self.assertRaisesRegex(ValueError,'Unknown extra memory'):
+            extract_html(fixture(memory=MEMORY+condition.replace('思い出アピールリンク条件','未知の表')),CARD)
+
     def test_combined_cells_and_inline_spans_keep_names_and_evidence(self):
         card = extract_html(fixture(), CARD)
         nodes = card['panel_nodes']
