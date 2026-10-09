@@ -669,3 +669,16 @@ UI v9は複数の明示生成元を表示・検索する。生成先を1技能�
 計画private/details/after420-adoption631-20261010（6578旧ID/手修正保持、211カード/3827項目追加）。source420をfresh exportし全15タブ実値一致、owner-only/mtime不変を確認してnative全コピーを作成した。新ID/URL・実ACKはprivate/details/sheet-write-after420-checkpoint-20261010.jsonが正とする。458元バッチ/642requestsを同順序152バッチへ再編成。25ACK完了境界で残りを4バッチずつ最大340KBの関連する原子的グループへまとめた。未知バッチなしを確認して再開し、元バッチ番号の完了範囲をcheckpointへ保存。Wiki取得012には停止・再起動・設定変更を行っていない。原本接続/master/site/公開はまだ420を維持。
 
 次の必須操作：全152バッチ相当ACKとunknown=nullを確認→native631の全値読戻し/基礎9タブ保護/6578IDと手修正/書込106106セルと3827新出典リンク/フィルター・書式確認→エクスポート表示→nativeから公開候補再生成→PC/スマホ/切戻し検証→バックアップ後に正式原本切替→明示publish:・Actions・匿名全ファイル/画面確認。結果不明な書込みはcheckpointと実セルを照合し、盲目的に再送しない。631を全件版完成や採用上限として扱わない。
+
+
+## 2026-10-10 631件原本・公開準備の検証
+
+原本r14・631件(P264/S367)・10405項目へ更新し、420から211カード/3827項目を追加した。frozen state1733/575保存ページの最新全再変換は候補b4c4534b60243e75ca6ca5978c9451eed7a803ba6c32381176617f41848bb82dと全JSON一致。構造保留0、入力待ち788、個別リンク47ユーザー保留。基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754aは不変。
+
+指定アカウントの420nativeをfresh exportし全15タブ実値一致/owner-onlyを確認して全コピー。458元バッチ/642requestsを順序不変で152バッチへまとめ、25ACK境界から残りを4つずつ最大340KBの原子的グループで実行。152相当すべてACK、unknownなし。nativeの全値読戻しが計画と一致、基礎9タブ実値不変、旧420カードの全source/6578 detail_id/手修正1件保持。全106106書込セルの書式/validation/chips/数式、追加3827出典URLの実リンクと表示値、全5フィルター使用範囲をnative APIで確認。参照/コピーにnative tablesなし。no-match probe後のcomplete exportを使用し、最終mtime16:09:55.090UTC不変を再確認。元420nativeは12:21:27.396UTC不変。
+
+nativeから再生成した54公開ファイルは、PC1280/390/320で基本/詳細/MBランダムの表示・検索・通常技能への非混入を検証した候補と全バイト一致。UI v9・詳細d1-c4c54f3692bd4473。旧52ファイルの変更はindex.html/details/latest.jsonだけで、旧不変データを全バイト保持。631データを保持した旧UI v8候補も3幅基本/詳細PASS（複数生成元は先頭だけ/親名検索なし）。Python143/JS25 PASS、新依存/UIコード変更なし。最大Lv能力値が未掲載のS41件は4能力値を未記載のまま保持する。全面構造化とは扱わない。
+
+原本/接続/siteを切り替え、旧420native/XLSX/接続/siteを保存した。新原本ID/URLはprivate/sheets-connection.json、ACKと切替はprivate/details/sheet-write-after420-checkpoint-20261010.jsonが正とする。公開Actions/匿名54ファイル/公開画面は後続に追記する。Google実画面はCUA不可、API確認済み・XLSX代替表示を描画中。証拠：private/audits/detail-native-631-roundtrip-20261010.json、native631-format-and-links-20261010.json、detail631-site-preservation-20261010.json、ui-v9-details631-preliminary-20261010、ui-v8-rollback-details631-preliminary-20261010。
+
+取得012/worker29464/launcher28492は60秒以上/1ページで継続し、原本/公開へ自動採用しない。後続frozen1802/598保存ページから654候補(P273/S381)・構造保留0を作成、旧631カード内容不変。private/audits/after631-next-candidate-20261010.json（hash478350d08ef199bcae793f9d1a419f380f5bf4b2f612ba5be1d7910bea07e735）。これは未採用/未公開。最新native631のfresh exportから次計画を作る。631/654を上限にしない。全件詳細取得/採用/公開、複合効果・条件の全面構造化、公式独立網羅、基礎新規実在カード1追加/1修正の本番実証、日付不明56、全面実機/スクリーンリーダー検証は未完了。47リンク保留とPステージ/適正・Sファイト対象外は維持する。

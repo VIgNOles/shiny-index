@@ -249,6 +249,8 @@ def attach_random_options(number, table, anchor, nodes, *, memory_boost=False):
         matches=[n for n in nodes if n['kind']==('mb_live' if memory_boost else 'panel_live') and key(n['name'])==key(label_text(name.tag))]
         if len(matches)!=1 or key(label_text(name.tag)) in seen or 'ランダム効果' not in matches[0]['effect_private']:
             raise ValueError('Random-effect parent ambiguous or missing')
+        if 'random_effect_options' in matches[0]:
+            raise ValueError('Duplicate random-effect supplement for one skill')
         seen.add(key(label_text(name.tag)));options=[]
         pieces=effect.value.split('・')
         if pieces[0].strip():raise ValueError('Random-effect bullet layout mismatch')

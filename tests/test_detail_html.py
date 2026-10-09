@@ -62,6 +62,8 @@ class DetailHtmlTests(unittest.TestCase):
                 extract_html(fixture(extra=mb+altered),CARD)
         with self.assertRaisesRegex(ValueError,'ambiguous'):
             extract_html(fixture(extra=mb+mb+supplement),CARD)
+        with self.assertRaisesRegex(ValueError,'Duplicate random-effect supplement'):
+            extract_html(fixture(extra=mb+supplement+supplement),CARD)
 
     def test_cap_line_break_requires_independent_heading_agreement(self):
         panel = PANEL.replace('Vocal上限UP (☆3)', 'Vocal & Dance & Visual上限UP (☆3)').replace('Vocal上限+100', 'Vocal & Dance<br>Visual 上限+25')
