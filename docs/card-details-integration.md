@@ -246,3 +246,18 @@ nativeから再生成した54公開ファイルは、PC1280/390/320で基本/詳
 原本/接続/siteを切り替え、旧420native/XLSX/接続/siteを保存した。新原本ID/URLはprivate/sheets-connection.json、ACKと切替はprivate/details/sheet-write-after420-checkpoint-20261010.jsonが正とする。公開Actions/匿名54ファイル/公開画面は後続に追記する。Google実画面はCUA不可、API確認済み・XLSX代替表示を描画中。証拠：private/audits/detail-native-631-roundtrip-20261010.json、native631-format-and-links-20261010.json、detail631-site-preservation-20261010.json、ui-v9-details631-preliminary-20261010、ui-v8-rollback-details631-preliminary-20261010。
 
 取得012/worker29464/launcher28492は60秒以上/1ページで継続し、原本/公開へ自動採用しない。後続frozen1802/598保存ページから654候補(P273/S381)・構造保留0を作成、旧631カード内容不変。private/audits/after631-next-candidate-20261010.json（hash478350d08ef199bcae793f9d1a419f380f5bf4b2f612ba5be1d7910bea07e735）。これは未採用/未公開。最新native631のfresh exportから次計画を作る。631/654を上限にしない。全件詳細取得/採用/公開、複合効果・条件の全面構造化、公式独立網羅、基礎新規実在カード1追加/1修正の本番実証、日付不明56、全面実機/スクリーンリーダー検証は未完了。47リンク保留とPステージ/適正・Sファイト対象外は維持する。
+
+
+## 2026-10-10T01:21 JST 公開確認完了・次の工程
+
+631件(P264/S367)・10405項目・原本r14、UI v9・詳細d1-c4c54f3692bd4473を公開確認済み。準備b4bde4e、公開be82002c22506a1b11412754b841ab4b01b59565、タグui-v9-details631-20261010、Actions37957724500 success。匿名54/54ファイルがsiteと生バイト一致。公開PC1280/390/320の基本/詳細・MBランダム選択肢表示/検索・通常技能への非混入・複数生成元・JSON版/SHA/欠損表示PASS、公開320pxのMB画像を視認。631データ保持のUI v8切戻し候補も3幅PASS。private/audits/detail631-public-verification-20261010.json参照。
+
+Googleの後続エクスポートでmtime16:10:24.240UTCとZIP包装差を観測したが、全15タブ実値・詳細セル書式/フィルターが同一で、意味ハッシュ72dfd5ef40cf814b919bcb21becfb7798603ce9786c5dffa8d9deb94cd5d7191は不変。最新包装をactive masterへ保存し接続ハッシュ/最終mtimeを更新。途中の読取監査は空filterの文字列化に失敗したが、原本/公開に変更はなく、Noneを許容して書式実体を比較する修正後にPASS。Google実画面はCUA不可、native全値/API確認済み、XLSX代替描画は継続中（保存原本は変更しない）。
+
+後続654件(P273/S381)・10780項目・原本r15予定の計画をprivate/details/after631-adoption654-20261010へ保存。fresh native631 exportとactiveの全15値・書式一致から作成。入力master hash72dfd5ef40cf814b919bcb21becfb7798603ce9786c5dffa8d9deb94cd5d7191、候補hash478350d08ef199bcae793f9d1a419f380f5bf4b2f612ba5be1d7910bea07e735、出力hash77bdb7f1d6d5ea44cecd55a31fafe6c61e3d690616f88287fbdcc36f2b0eef8c。追加23カード/375項目、10405旧ID/手修正保持、構造保留0。654は未採用・未公開。取得済み入力はさらに増加しており、654を上限にせず次のバッチを最新frozenから広げてもよい。
+
+取得012/worker29464/launcher28492は稼働を維持。2026-10-10T01:20:42JST時点state1865、619保存ページ(新規614/再利用5)/1363、pending744、active_attemptなし、stderr0、STOPなし。60秒以上/1ページ、実HTTP失敗/Retry-After停止、共有ゲートは不変。取得終了後の旧コードによる構造保留は最新の保存入力再変換で確認し、HTMLを再取得しない。原本/公開への自動採用はない。
+
+次操作：取得012のPID/state/locks/active_attempt/logを実照合し二重起動しない→現在nativeのfresh exportと次計画input hash照合（変われば手修正を保って再計画）→詳細だけを書き込むnative全コピー→全値/基礎9タブ/旧ID/override/全書込セル/出典/フィルター確認→別site候補/PCスマホ/旧版保持→原本切替/publish/Actions/匿名確認。631登録checkpointはprivate/details/sheet-write-after420-checkpoint-20261010.jsonで全152相当ACK・unknownなし・published=true。原本/公開の破損、データ欠落、新たなWiki HTTP失敗は確認していない。
+
+未完了：全件詳細取得/原本採用/公開、効果・条件の全面構造化、公式独立網羅、基礎新規実在カードの本番追加/修正実証、日付不明56、全面実機/スクリーンリーダー確認。個別リンク47件はユーザー指定で保留。Pステージ/適正・Sファイトは今回収集対象外。ユーザー操作待ちはなく、取得は継続中であり、安全停止やプロジェクト完成としては扱わない。
