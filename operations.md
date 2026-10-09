@@ -350,3 +350,6 @@ P【Scene With You】の既知[MB]ランダム効果付与2行表を非公開監
 
 
 2026-10-09現在の原本: 基礎r7/1466、詳細r12/397(P168/S229)/6179項目。接続はprivate/sheets-connection.jsonを使う。旧319原本・master-r7-details-r11-before397-20261009.xlsx・sheets-connection-before397-20261009.json・site-details319-before397-20261009を保持。取得012終端監査にcheer+の構造保留が残った場合は、保存入力を最新scripts/transform_detail_catalog.pyで再変換する（再取得不要）。採用/公開はfresh native exportから別工程で行う。
+
+
+2026-10-09現在の原本は基礎r7/1466、詳細r13/420(P175/S245)/6578項目。旧397はmaster-r7-details-r12-before420-20261009.xlsx、sheets-connection-before420-20261009.json、site-details397-before420-20261009とnative原本を保持。UI v9からui-v8-details397-20261009へ戻す場合も420データを保持できることを3幅で検証。旧UIは複数生成元を先頭だけ表示し生成元検索を省く。原本を編集するときは常にprivate/sheets-connection.jsonの現在URLを使う。

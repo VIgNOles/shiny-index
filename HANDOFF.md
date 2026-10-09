@@ -636,3 +636,12 @@ UI v8・基礎v1-93a6a8b8d40e754aは不変、詳細候補d1-5c20f6531f1c8fb1、4
 397件UI v8の公開は準備215f7c3/公開06d4b6df4c0d315dbf9e40b7bd0f1416d740a1af、Actions37927628092 success、匿名50/50一致、PC1280/390/320基本/詳細/cheer上限/SceneMB生成PASS。native XLSXの6詳細タブ先頭/端11画像を確認（固定150px長文省略は継承、Google実画面はCUA起動不可）。397データ維持のUI v7切戻し候補も3幅PASS。private/audits/detail397-public-verification-20261009.json参照。
 
 次工程は420原本r13/6578項目の登録中。旧419候補の内容不変を確認して、複数親の同一生成先を1件で保存する修正を行った（docs/card-details-design参照、Python140/JS25）。397のfresh exportはactive原本と全15タブ実値一致。新nativeコピーはprivate/details/sheet-write-after397-checkpoint-20261009.json、23バッチ（元78/114requests、90KB未満同順序）のackを保存する。397原本/公開を維持し、420の全値/基礎9タブ/6179旧IDと手修正/書式・リンクを検証後に切替。UI v9候補はprivate/site-details420-ui9-candidate-20261009。公開397を420と混同せず、420完了後も全件完成とは扱わない。
+
+
+## 2026-10-09 420件原本・UI v9公開前検証
+
+397のfresh native exportとactive原本の全15タブ実値一致から、frozen state1100/364保存ページ・候補53df759cd4480c2f00ca5bb08478aeeaacaf48ca8bd7dfb09c0850273b4ce120を採用。原本r13・420(P175/S245)/6578項目。397から23カード/399項目追加、今回開始時319から101カード/1782項目追加。新native全コピーへ23バッチ（元78/114requests、同順序90KB未満）を適用。全値読戻し一致、基礎9タブ/1466不変、6179旧固定ID/手修正1件保持、15601書込セルの書式/validation/chips/数式、399追加出典URL/実リンク、5フィルターを確認した。no-match metadata probe後にfresh exportして全15タブ実値不変を再確認し、旧397native/XLSX/接続/siteバックアップを保持して切替。元397の更新時刻11:57:16.837UTC不変。
+
+UI v9は複数の明示生成元を表示・検索する。生成先を1技能として保持し、固定ID/スキーマの互換性と生成先自身のChange等の区分を維持。詳細d1-e227c840bd91a50b、公開候補52ファイル、旧50ファイルの変更はindex/app/details.mjs/details/latest.jsonのみで全旧データバンドル不変。HTML/JSは既存改行を維持。Python140/JS25、PC1280/390/320の基本/詳細と実new or …の複数生成元表示/親名検索PASS、320px画像を確認。420データ維持の旧UI v8切戻し候補も3幅基本/詳細PASS（複数生成元は先頭表示のみ）。依存追加なし。Google実画面はCUA不可、native API検証済み・XLSX代替表示を描画中。公開Actions/匿名確認は後続追記。
+
+証拠: private/audits/detail-native-420-roundtrip-20261009.json、native420-format-and-links-20261009.json、detail420-site-preservation-20261009.json、ui-v9-details420-local-20261009、ui-v8-rollback-details420-20261009、private/details/sheet-write-after397-checkpoint-20261009.json。取得012/PID29464は通常60秒以上/1ページで全残件へ継続。終端監査が旧パーサー由来の2形式を保留と出した場合は、保存入力を最新版で再変換する。420は採用上限ではない。全件詳細/複合効果と条件の全面構造化/公式独立網羅/基礎新規カードの本番追加実証等は未完了。日付不明56、リンク47保留、Pステージ/適正・Sファイト対象外を維持する。
