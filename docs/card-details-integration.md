@@ -1,6 +1,6 @@
 # 詳細情報の原本・Web・配布データ接続（UI v5）
 
-2026-10-09 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。詳細は段階的な収録で、60カード（P5/S55）・865項目、`d1-ee415ee7fa6b3d80`、詳細原本revision3。**全件詳細版は未完成**。公開URLでの最終検証結果は末尾へ追記する。
+2026-10-09 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。詳細は段階的な収録で、100カード（P15/S85）・1,435項目、`d1-523ec92ea52303c4`、詳細原本revision4。**全件詳細版は未完成**。公開URLでの最終検証結果は末尾へ追記する。
 
 ## 原本と出力
 
@@ -54,7 +54,7 @@ node tests/ui-v5-smoke.mjs private/detail-update-candidate
 
 ## 取得・中断・復旧
 
-全件1,363個別ページの取得を1件ずつ60秒以上で続行中。正常保存済みページは再送しない。現在の処理状態は `private/raw/detail-catalog-20261009/state.json` とworker.lock、workflow-report.json、stdout/stderr-workflow-005.logで確認する。PC終了や利用上限でジョブが終わった場合、docs/card-details-full-acquisition.mdのPID確認・残留ロック・保存成功回復を先に行う。新しいジョブを重ねて起動しない。
+全件1,363個別ページの取得を1件ずつ60秒以上で続行中。正常保存済みページは再送しない。現在の処理状態は `private/raw/detail-catalog-20261009/state.json` とworker.lock、workflow-report.json、stdout/stderr-workflow-006.logで確認する。PC終了や利用上限でジョブが終わった場合、docs/card-details-full-acquisition.mdのPID確認・残留ロック・保存成功回復を先に行う。新しいジョブを重ねて起動しない。
 
 HTTP200短文の誤検知は `private/audits/detail-shape-false-positive-20261009.json` に根拠を保存し、履歴は削除していない。実HTTP失敗・Retry-Afterは解除していない。変換と原本採用、公開は取得とは独立し、異常入力は正常な原本・siteに自動反映しない。詳細数の異常・重複・未知P/S・孤児ID・ファイル改変は検査で拒否する。壊れた更新の復旧は正常な原本コピーと不変d1バンドルから新しい候補を作り、検査後に公開する。UI v4へはタグ `ui-v4-20261009` とbuild_ui_rollback.pyを使う。原本は切り戻さない。
 
@@ -65,3 +65,18 @@ HTTP200短文の誤検知は `private/audits/detail-shape-false-positive-2026100
 - PC1280px・390px・320pxの基礎回帰と詳細検索/開閉/URL再読込/数値/JSON取得をEdgeでPASS。スマホ幅の実表示画像も確認。最高Lv空欄を低いLv値へ置き換えない。
 - 原本1詳細追加・1項目修正がローカルWeb/配布データへ反映し、再変換後も修正/IDを保持。これは基礎カードの新規追加を本番反映した実証ではない。
 - 未完了: 全件詳細取得・全節構造対応・84ロード関連card_idの派生対応・効果条件の全面構造化・公式独立照合。個別ページなし47件は指示により保留、初回実装日不明56件は未解決。実機スマホ/スクリーンリーダー全面検査も未実施。
+
+
+## 公開URLでの結果（2026-10-09）
+
+準備コミット0de2db2とタグui-v5-20261009をoriginへ保存。明示公開コミットb82cebbの[Actions run 37886161208](https://github.com/VIgNOles/shiny-index/actions/runs/37886161208)はsuccess。匿名の[公開サイト](https://vignoles.github.io/shiny-index/)で32/32ファイルがsiteとバイト一致し、基礎・詳細のPC1280px/390px/320pxの操作、MB Plusと通常Linkの分離、最高Lv欠損表示、版とJSON取得がPASS。画面と詳細JSONはd1-ee415ee7fa6b3d80で一致する。基礎v1版と1,466カードは不変。
+
+名称訂正とP詳細追加の原本内容が、公開JSONと表示へ反映された。再取得入力のオフライン再採用でも固定IDと手修正を保持した。未取得の全カードへ拡張した実証とは扱わない。検証画像はprivate/audits/ui-v5-public-20261009、実原本の読戻しと更新反映報告はprivate/audits/detail-native-final-roundtrip-20261009.json、detail-update-reflection-20261009.json。
+
+後続候補は、新鮮な原本エクスポートと保存入力監査から `scripts/prepare_detail_adoption.py <原本XLSX> <候補JSON> <新しいprivate計画フォルダー>` で準備できる。固定ID・手修正を確認しmaster.json/tables.json/review.jsonを生成する。取得済み入力だけを使い、原本書込・公開はしない。計画作成後に原本を編集した場合は古い計画を使わず、再度エクスポートして再準備する。
+
+## 100件への拡張（2026-10-09、公開前検査完了）
+
+追加40カードを含む100カード（P15/S85）、1,435項目を取得済みHTMLから検証し、60件原本のnative完全コピーへ登録した。詳細revision4。実XLSX読戻しで全値一致、既存9タブの基礎内容差分0、既存865固定detail_idと名称手修正の保持を確認した。新旧の非公開原本・エクスポート・接続履歴は保持。計画はprivate/details/next-adoption-20261009-02、原本照合はprivate/audits/detail-native-100-roundtrip-20261009.json。
+
+S【Actors】の補足説明表は原文監査用に分離し、ライブスキルに誤分類しない。P【B!c,Cib】の専用節だけにある固有アビリティも収録するが、記載のないSPはnull（不明）とし無料と推定しない。詳細版d1-523ec92ea52303c4の候補は34配信ファイル、PC1280/390/320の基礎・詳細UI試験PASS。旧32ファイルのうち変更はindex.htmlとdetails/latest.jsonのみで、旧基礎3版・旧詳細2版のバイトは保持した。Python111/JS19 PASS。公開URLの検証はこれから行う。

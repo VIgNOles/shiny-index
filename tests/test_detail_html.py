@@ -33,6 +33,22 @@ def fixture(panel=PANEL, memory=MEMORY, extra=''):
 
 
 class DetailHtmlTests(unittest.TestCase):
+    def test_explanation_table_is_private_and_does_not_add_live_tags(self):
+        note='<table><tr><th>付与効果甲</th></tr><tr><td>合成の説明 (Plus)</td></tr></table>'
+        card=extract_html(fixture(extra=note),CARD)
+        self.assertEqual(len(card['panel_nodes']),2)
+        self.assertEqual(card['skill_notes_private'][0]['name'],'付与効果甲')
+        self.assertEqual(card['panel_nodes'][0]['mechanics'],['link'])
+        self.assertEqual(len(card['skill_notes_private'][0]['source_positions']),2)
+
+    def test_dedicated_only_ability_has_unknown_sp_and_own_source(self):
+        from src.card_details import match_abilities
+        table=BeautifulSoup('<table><tr><th>能力甲</th><td>合成の効果</td></tr></table>','html.parser').table
+        nodes=[];match_abilities(nodes,[(4,table,'ability')])
+        self.assertEqual(nodes[0]['kind'],'unique_ability');self.assertIsNone(nodes[0]['sp'])
+        self.assertEqual(nodes[0]['source_positions'][0]['section_anchor'],'ability')
+        self.assertEqual(len(nodes),1)
+
     def test_combined_cells_and_inline_spans_keep_names_and_evidence(self):
         card = extract_html(fixture(), CARD)
         nodes = card['panel_nodes']

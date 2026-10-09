@@ -28,6 +28,13 @@ class DetailPublicTests(unittest.TestCase):
  def test_coverage_cannot_silently_drop_missing_card(self):
   c=candidate();m=adopt(empty(c['base_dataset_version']),c)
   with self.assertRaisesRegex(ValueError,'Missing base coverage'):public_document(m,[{'card_id':CID,'card_kind':'P'},{'card_id':'00000000-0000-4000-8000-000000000002','card_kind':'S'}])
+ def test_new_base_card_gets_explicit_uncollected_coverage(self):
+  c=candidate();m=adopt(empty(c['base_dataset_version']),c)
+  bases=[{'card_id':CID,'card_kind':'P'},{'card_id':'00000000-0000-4000-8000-000000000002','card_kind':'S'}]
+  d=public_document(m,bases,'v1-ffffffffffffffff')
+  self.assertEqual(d['coverage']['base_card_count'],2)
+  self.assertEqual(d['coverage']['status_counts']['not_in_acquisition_catalog'],1)
+  self.assertEqual(d['meta']['source_base_dataset_version'],c['base_dataset_version'])
  def test_ps_mismatch_rejected(self):
   c=candidate();m=adopt(empty(c['base_dataset_version']),c)
   with self.assertRaisesRegex(ValueError,'mixed P/S'):public_document(m,[{'card_id':CID,'card_kind':'S'}])

@@ -129,7 +129,7 @@ def node_kind(effect: Cell) -> str:
     raise ValueError("Unclassified panel effect; no candidate adopted")
 
 
-def parse_panel(tables) -> tuple[list[dict], list[dict]]:
+def parse_panel(tables, *, notes=None) -> tuple[list[dict], list[dict]]:
     panels = [(n, t, a) for n, t, a in tables
               if any(text(c) == "SP" for c in t.find_all(["th", "td"]))]
     if len(panels) != 1:
@@ -184,6 +184,13 @@ def parse_panel(tables) -> tuple[list[dict], list[dict]]:
         if table is panels[0][1]:
             continue
         if "メモリーブースト" not in text(table) and "[MB]" not in text(table):
+            explanation=table_grid(table)
+            if (notes is not None and len(explanation)==2 and all(len(row)==1 for row in explanation)
+                    and explanation[0][0].tag.name=='th' and explanation[1][0].tag.name=='td'
+                    and explanation[0][0].value and explanation[1][0].value):
+                notes.append({'name':explanation[0][0].value,'effect_private':explanation[1][0].value,
+                              'source_positions':[evidence(number,row[0],anchor) for row in explanation]})
+                continue
             raise ValueError("Unknown extra table in skill-panel section")
         grid = table_grid(table)
         for r, cells in enumerate(grid):
@@ -245,6 +252,13 @@ def match_abilities(nodes, tables):
             if name.value in ("スキル名", "アビリティ名", "名称"):
                 continue
             entries.append((name.value, effect.value, evidence(number, name, anchor), evidence(number, effect, anchor)))
+    if not abilities and entries:
+        if len({(entry[0],entry[1]) for entry in entries})!=len(entries):raise ValueError("Duplicate dedicated ability")
+        for name,effect,*positions in entries:
+            nodes.append({'kind':'unique_ability','name':name,'sp':None,'effect_private':effect,
+                          'mechanics':[],'source_positions':positions,'origin':'ability_section',
+                          'second_section_confirmed':False})
+        return
     if len(entries) != len(abilities):
         raise ValueError("Panel/ability section counts differ")
     for ability in abilities:
@@ -387,11 +401,13 @@ def extract_html(raw: bytes, card: dict) -> dict:
     content = soup.select_one("#content")
     if not content or not soup.title or not text(soup.title).startswith(card["card_title"] + card["idol_name"]):
         raise ValueError("Missing Wiki content or wrong card title")
-    nodes, mb = parse_panel(tables_in(content, "スキルパネル"))
+    notes=[]
+    nodes, mb = parse_panel(tables_in(content, "スキルパネル"),notes=notes)
     record = {"card_id": card["card_id"], "card_kind": card["card_kind"], "card_title": card["card_title"],
               "wiki_url": card["wiki_url"], "source_kind": "saved_wiki_html",
               "source_sha256": hashlib.sha256(raw).hexdigest(), "panel_nodes": nodes,
               "coverage": {"skill_panel": "extracted", "review": "needs_review"}}
+    if notes:record["skill_notes_private"]=notes
     if card["card_kind"] == "P":
         if tables_in(content, "所持スキル", optional=True):
             raise ValueError("P/S section mismatch")

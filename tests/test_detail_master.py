@@ -66,6 +66,19 @@ class DetailMasterTests(unittest.TestCase):
         self.assertEqual(len({r['detail_id'] for r in m['registry']}),2)
         self.assertEqual(adopt(m,c),m)
 
+    def test_manual_cap_effect_updates_structured_value(self):
+        c=candidate();n=c['cards'][0]['panel_nodes'][0];n.update(kind='cap_increase',name='上限UP',effect_private='Visual 上限+50',cap_targets=['Visual'],cap_delta=50);rehash(c)
+        m=adopt(empty(c['base_dataset_version']),c);row=m['registry'][0]
+        row.update(override={'effect_private':'Vocal & Visual 上限+100'},reason='訂正',source_ref='Wiki',updated_at='2026-10-09T04:00:00Z')
+        item=resolve(m)[0]['items'][0];self.assertEqual(item['cap_delta'],100);self.assertEqual(item['cap_targets'],['Vocal','Visual'])
+
+    def test_manual_live_effect_updates_tags_without_erasing_explicit_override(self):
+        c=candidate();m=adopt(empty(c['base_dataset_version']),c);row=m['registry'][0]
+        row.update(override={'effect_private':'Vocal3倍アピール (Plus)'},reason='訂正',source_ref='Wiki',updated_at='2026-10-09T04:00:00Z')
+        self.assertEqual(resolve(m)[0]['items'][0]['mechanics'],['plus'])
+        row['override']['mechanics']=['change']
+        self.assertEqual(resolve(m)[0]['items'][0]['mechanics'],['change'])
+
     def test_hash_tampering_rejected(self):
         c=candidate();c['cards'][0]['panel_nodes'][0]['sp']=999
         with self.assertRaisesRegex(ValueError,'hash'):adopt(empty(c['base_dataset_version']),c)

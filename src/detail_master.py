@@ -26,6 +26,21 @@ def alias(card_id,node):
     return card_id+':'+digest(identity)
 
 
+def resolved_item(row):
+    source=row['source'];manual=row.get('override',{})
+    item={**copy.deepcopy(source),**manual}
+    if 'effect_private' in manual:
+        if item['kind'] in {'panel_live','mb_live','possessed_live'} and 'mechanics' not in manual:
+            from src.card_details import mechanics
+            item['mechanics']=mechanics(item['effect_private'])
+        if item['kind']=='cap_increase':
+            attribute=r'(?:Vocal|Dance|Visual|メンタル)'
+            match=re.fullmatch(rf'({attribute}(?:\s*&\s*{attribute})*)\s*上限\+(\d+)',item['effect_private'])
+            if not match:raise ValueError('Manual cap effect must specify targets and increase')
+            item.update(cap_targets=[part.strip() for part in match[1].split('&')],cap_delta=int(match[2]))
+    return item
+
+
 def validate(master):
     ids=set();aliases=set()
     coverage_ids=[row['card_id'] for row in master['coverage']]
@@ -44,7 +59,7 @@ def validate(master):
         if manual and (not row.get('reason') or not row.get('source_ref') or not row.get('updated_at')):
             raise ValueError('Manual override requires reason, source and date')
         if source['kind'] not in KINDS[master['cards'][row['card_id']]['source']['card_kind']]:raise ValueError('P/S detail mismatch')
-        resolved={**source,**manual}
+        resolved=resolved_item(row)
         if not resolved.get('name'):raise ValueError('Missing detail name')
         if resolved.get('sp') is not None and (type(resolved['sp']) is not int or resolved['sp']<0):raise ValueError('Invalid SP')
         if set(resolved.get('mechanics',[]))-{'link','plus','change','grow','refrain'}:raise ValueError('Invalid mechanics')
@@ -113,7 +128,7 @@ def resolve(master):
     for cid,card in master['cards'].items():
         cards[cid].update(card.get('override',{}));cards[cid]['items']=[]
     for row in master['registry']:
-        item={**copy.deepcopy(row['source']),**row.get('override',{}),'detail_id':row['detail_id']}
+        item={**resolved_item(row),'detail_id':row['detail_id']}
         if row.get('override'):item['manual_source_ref']=row['source_ref']
         cards[row['card_id']]['items'].append(item)
     return sorted(cards.values(),key=lambda card:card['card_id'])
