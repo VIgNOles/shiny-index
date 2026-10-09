@@ -27,6 +27,24 @@ def s_fixture(max_level=80, last_column='最大', bad_value=None):
 
 
 class SupportDetailHtmlTests(unittest.TestCase):
+    def test_explicit_maximum_label_does_not_imply_limit_break(self):
+        from bs4 import BeautifulSoup
+        from src.card_details import parse_s_status
+        html='<table><tr><th>Lv</th><th>Vo</th><th>Da</th><th>Vi</th><th>メンタル</th></tr><tr><th>1</th><td>1</td><td>2</td><td>3</td><td>4</td></tr><tr><th>10(MAX)</th><td>50</td><td>60</td><td>70</td><td>80</td></tr></table>'
+        parse=lambda raw:parse_s_status([(1,BeautifulSoup(raw,'html.parser').table,'status')])
+        status=parse(html)
+        self.assertEqual(status['level'],10)
+        self.assertIsNone(status['limit_break'])
+        self.assertEqual(status['vocal'],50)
+        self.assertEqual(status['source_positions'][0]['row'],3)
+        self.assertEqual(parse(html.replace('10(MAX)','10（MAX）'))['level'],10)
+        for raw in (html.replace('<th>1</th>','<th>1(MAX)</th>'),
+                    html.replace('10(MAX)','10').replace('<th>1</th>','<th>1(MAX)</th>'),
+                    html.replace('10(MAX)','10(MIX)'),
+                    html.replace('10(MAX)','MAX')):
+            with self.subTest(raw=raw),self.assertRaises(ValueError):parse(raw)
+
+
     def test_traits_spans_maximum_level_and_excluded_sections(self):
         card=extract_html(s_fixture(),dict(CARD,card_kind='S'))
         self.assertEqual(card['traits']['music_proficiencies'],['歌唱力','集中力'])

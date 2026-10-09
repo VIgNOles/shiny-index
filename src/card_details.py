@@ -508,16 +508,19 @@ def parse_s_status(tables) -> dict:
     if set(labels) != expected or len(labels) != len(expected):
         raise ValueError("Unknown S status columns")
     columns = {label: labels.index(label) for label in labels}
-    rows = []
+    rows = []; explicit_maximum = []
     for cells in grid[1:]:
         lv = cells[columns["Lv"]]
-        match = re.fullmatch(r"(\d+)(?:[（(]☆(\d+)[）)])?", lv.value.replace(" ", ""))
+        match = re.fullmatch(r"(\d+)(?:[（(](?:☆(\d+)|(MAX))[）)])?", lv.value.replace(" ", ""))
         if not match:
             raise ValueError("Unknown S status level")
         rows.append((int(match[1]), int(match[2]) if match[2] else None, cells))
+        if match[3]: explicit_maximum.append(int(match[1]))
     if not rows or len({row[0] for row in rows}) != len(rows):
         raise ValueError("Missing or duplicate S status levels")
     level, star, cells = max(rows, key=lambda row: row[0])
+    if explicit_maximum and explicit_maximum != [level]:
+        raise ValueError("Explicit maximum contradicts highest S status level")
     record = {"level": level, "limit_break": star, "source_positions": [evidence(number, cells[columns["Lv"]], anchor)]}
     missing = []
     for label, field in (("Vo", "vocal"), ("Da", "dance"), ("Vi", "visual"), ("メンタル", "mental")):

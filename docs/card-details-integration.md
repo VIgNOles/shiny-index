@@ -261,3 +261,12 @@ Googleの後続エクスポートでmtime16:10:24.240UTCとZIP包装差を観測
 次操作：取得012のPID/state/locks/active_attempt/logを実照合し二重起動しない→現在nativeのfresh exportと次計画input hash照合（変われば手修正を保って再計画）→詳細だけを書き込むnative全コピー→全値/基礎9タブ/旧ID/override/全書込セル/出典/フィルター確認→別site候補/PCスマホ/旧版保持→原本切替/publish/Actions/匿名確認。631登録checkpointはprivate/details/sheet-write-after420-checkpoint-20261010.jsonで全152相当ACK・unknownなし・published=true。原本/公開の破損、データ欠落、新たなWiki HTTP失敗は確認していない。
 
 未完了：全件詳細取得/原本採用/公開、効果・条件の全面構造化、公式独立網羅、基礎新規実在カードの本番追加/修正実証、日付不明56、全面実機/スクリーンリーダー確認。個別リンク47件はユーザー指定で保留。Pステージ/適正・Sファイトは今回収集対象外。ユーザー操作待ちはなく、取得は継続中であり、安全停止やプロジェクト完成としては扱わない。
+
+
+## 2026-10-10 631件原本の代替表示確認とN最大Lv対応
+
+native631のcomplete exportをArtifact Toolで読み取り、詳細6タブの先頭/追加端11画像を視認。値/見出し/手修正G:Mの青/出典リンク/収録範囲/原本r14を確認。固定150pxのID・JSON・長文列は参照のCLIPを維持し、全文値は別の全値照合で確認済み。描画は読み込みに約17分かかったが正常終了し、原本/公開/取得入力を書き換えていない。画像private/audits/native631-export-preview-20261010、証拠native631-format-and-links-20261010.json。Google実画面はCUAを1回再確認してもwindows sandbox helper_unknown_errorで起動不可、native APIとXLSX表示を代替確認した。
+
+後続frozen1874/622保存ページでは676候補とS2件の10(MAX)表記保留を検出した。docs/card-details-designの通りMAX明示と特訓☆を分ける修正・境界試験を追加しPython144 PASS、JS25のコードは変更なし。S【アイドルのたまご】甜花はLv10/4能力60、夏葉はLv10/Vo40 Da80 Vi60 Me60、特訓回数null。676既存候補の内容不変、678(P281/S397)候補・構造保留0へ補完。候補hash365e12b9101a57229b01d2bb7c705f7e2c76dcc0190bd1d58f14611cbccee920、private/audits/after631-latest-fixed-candidate-20261010.json。保存入力全件の追加再変換を実行中で、終了後に全JSON一致を照合する。取得済みページを再取得しない。公開631/原本r14はこの修正で変更しない。
+
+private/details/after631-adoption678-20261010は631のfresh exportから作成した後続計画で、654旧計画を上限にしない。まだnativeコピー/書込/原本採用/公開は行っていない。631原本/公開を保護し、現在nativeのfresh export・入力hash照合を行ってから次の採用へ進む。全件取得は通常60秒以上/1ページで012が継続中。
