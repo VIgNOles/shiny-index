@@ -8,7 +8,7 @@
 - サポートのLv式・発動場面、固有アビリティの制約、ライブ/思い出の効果・期間・発動/Grow条件を表示・検索できます。UI v17ではリザレクション、観客解除、デュエット、最小興味、魅了、熱狂を208項目/244効果追加しました。
 - 継続ターンの絞込みは範囲の最短値で判定し、最大期間だけの記載・即時効果は最低継続を保証する検索に含めません。複合効果全体の検索対応は未完成です。
 - 原本・固定ID・手修正6件・過去の不変版を保持。UI版は画面/操作を変えた時だけ上げ、データの内容版とは分離しています。
-- Python254/JavaScript52、PC1280/390/320の基本・詳細・特殊効果・キーボード操作、旧UI16への切戻しをローカルで確認。公開確認とクリーンCIの最新実績は[完成条件別の検証結果](docs/verification.md)を参照してください。
+- Python255/JavaScript52、PC1280/390/320の基本・詳細・特殊効果・キーボード操作、旧UI16への切戻しをローカルで確認。公開確認とクリーンCIの最新実績は[完成条件別の検証結果](docs/verification.md)を参照してください。
 - r19原本・82サイトファイル・接続の隔離復旧と、ZIPからの166ファイル実復元を確認済み。本番やGoogle原本を破損する演習は行っていません。
 
 47件の個別リンク/詳細追加と実在新規基礎カードの本番追加実証はユーザー指定で保留。S90カードの最大Lv360セルは原文空欄、日付不明56件です。収録確認済みの実装日は2018-04-24〜2026-10-02。全ゲームの独立公式網羅、全複合効果・発動制限、全面実機・Google実画面は未完了です。
@@ -17,7 +17,7 @@
 
 ## セットアップ
 
-Windows PowerShell、Codex同梱Python 3.12.14、Node.js 24.19.0で検証しました。通常のWindowsセットアップ向けにはPython 3.13.16をクリーンCIで検証します。actions/python-versionsにはWindows用3.12.14がないため、同じpatch版を通常Windowsへ導入できるという前提は置きません。検証結果は下記の自動検証とdocs/verification.mdを参照してください。
+Windows PowerShell、Codex同梱Python 3.12.14、Node.js 24.19.0で検証しました。通常のWindowsセットアップ向けのPython 3.13.16とLinuxの3.12.14はクリーンCIで合格しました。actions/python-versionsにはWindows用3.12.14がないため、同じpatch版を通常Windowsへ導入できるという前提は置きません。検証結果は下記の自動検証とdocs/verification.mdを参照してください。
 
 ```powershell
 python -m venv .venv
@@ -74,7 +74,7 @@ node tests/ui-v4-smoke.mjs
 - 不変版のJSON/CSV/XLSX、同一内容検証、版選択の復旧
 - レスポンシブな縦一覧と詳細開閉、複数選択、階層人物・8区分の近道・系列／入手区分、部分日付、公式順
 
-ユーザー指定アカウントの非公開Google Sheetsへの原本移行は完了しました。現行原本は基礎revision 7・詳細revision 18、基礎1,466件・詳細1,419件、15タブで、実XLSXエクスポートとの往復一致を確認済みです。Sheetの自動読書き同期は未実装のため、XLSXエクスポートの検証・採用CLIと、取得値採用時の新Sheet切替手順をoperations.mdに記載しています。
+ユーザー指定アカウントの非公開Google Sheetsへの原本移行は完了しました。現行原本は基礎revision 7・詳細revision 19、基礎1,466件・詳細1,419件、15タブで、実XLSXエクスポートとの往復一致を確認済みです。Sheetの自動読書き同期は未実装のため、XLSXエクスポートの検証・採用CLIと、取得値採用時の新Sheet切替手順をoperations.mdに記載しています。
 公開先は https://github.com/VIgNOles/shiny-index です。ユーザーの明示方針とsources-policy.mdに従い、検証済みの事実索引だけを配置します。Wikiへの問い合わせ回答は未取得です。
 
 ## 全件版のオフライン再変換
@@ -144,4 +144,4 @@ node tests/ui-v5-smoke.mjs site
 2026-10-09の最新確認: 319件版をActions37919802687で公開し、48ファイル一致・PC1280/390/320の基本/詳細操作を確認。MB補足表/生成技能脚注を保存HTMLから修正しPython136 PASS。全件入力はworkflow012で通常60秒以上/1ページずつ取得中。354件の採用計画は未登録・未公開で、全件詳細版は未完成です。詳細と次の操作はHANDOFF.md末尾を参照してください。
 
 ## クリーン環境での自動検証
-.github/workflows/verify.ymlはWindows/Linuxの新しいrunnerで、LinuxのPython3.12.14／WindowsのPython3.13.16・Node24.19.0・固定Python依存からPython/JSテストと全公開バンドル検査を行います。XLSX_BACKEND=stdlibを使い、Codex固有のArtifact Toolなしの経路を検証します。WikiやGoogleへの取得・書込、デプロイは行いません。私的原本/全生応答はGitに含まれないため、その全件再変換や実機スマホ・別の利用者PCの検証とは区別します。初回実行結果はdocs/verification.mdへ記録します。
+.github/workflows/verify.ymlはWindows/Linuxの新しいrunnerで、LinuxのPython3.12.14／WindowsのPython3.13.16・Node24.19.0・固定Python依存からPython/JSテストと全公開バンドル検査を行います。XLSX_BACKEND=stdlibを使い、Codex固有のArtifact Toolなしの経路を検証します。WikiやGoogleへの取得・書込、デプロイは行いません。私的原本/全生応答はGitに含まれないため、その全件再変換や実機スマホ・別の利用者PCの検証とは区別します。最終[Windows/LinuxクリーンCI38089807084](https://github.com/VIgNOles/shiny-index/actions/runs/38089807084)は両OSで成功しました。Windowsの短縮パス/正式パスの混在で起きる取得CLIの不具合も修正・回帰検証済みです。詳細はdocs/verification.mdに記録しています。

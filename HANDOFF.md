@@ -1,51 +1,55 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
-## 最新状態（2026-10-11：UI v16とデータのみの効果補完を公開検証済み）
-ユーザー「進めてください」に従って継続。元の要件・後続変更を保持し、プロジェクト全体の完成扱いではない。47個別ページと新規基礎カードの本番追加実証は保留。Pステージ/適正・Sファイト対象外、CSV画面非表示。UI番号は画面/操作変更時だけ更新する。
+## 最新状態（2026-10-11：UI v17公開検証済み・クリーン環境CIを追加）
+元の要件と後続変更を保持して続行。プロジェクト全体の完成ではない。47個別ページと実在新規基礎カードの本番追加実証は保留。Pステージ/適正・Sファイト対象外、CSV画面非表示、0円・低負荷取得。UI番号は画面/操作変更時のみ更新する。
 
 ### 現在の正常版
-公開 https://vignoles.github.io/shiny-index/ 、UI v16、基礎r7/1466/v1-93a6a8b8d40e754a、詳細原本r19/1419(P548/S871)/24025、公開詳細d1-f0bdf90d3d6d9358。
-最終公開11c90c0b8cf45135acd9d7538df93aa125d6d9cb、Actions38086532401 success、tag ui-v16-live-facts-verified-20261011。原本SHA aa4a6fc70c85d6c60803e4109faa4d4a3119b3d20be05fd53b359c779e5f5d46不変。canonical JSON private/details/master-r19-corrections-authoritative-20261011.json、SHA09d40aa02a5adeb78312d82da4c4278533cf62cfae0c6036c179bad4f0bda929。固定ID・手修正6件・取得値・パッシブ5890条件を保持。
-指定native原本のmtime2026-10-10T16:21:51.833Zを本人用接続で再取得しbaseline一致。Google書込0。接続記録のdetail_dataset_version=d1-f5c5c8ded775d398は最後のnative反映時の履歴であり、公開最新版はsite/details/latest.jsonと本節/最新publicationを使う。
+公開 https://vignoles.github.io/shiny-index/ 、UI v17、基礎r7/1466/v1-93a6a8b8d40e754a、詳細原本r19/1419(P548/S871)/24025、公開詳細d1-a0e7716b08316259。
+実装8ff828c、公開52fce447a63c16363154db9170569fb9e580475d、Pages Actions38088847914 success、push済みtag ui-v17-special-effects-verified-20261011。
+原本SHA aa4a6fc70c85d6c60803e4109faa4d4a3119b3d20be05fd53b359c779e5f5d46、canonical JSON private/details/master-r19-corrections-authoritative-20261011.json SHA09d40aa02a5adeb78312d82da4c4278533cf62cfae0c6036c179bad4f0bda929、いずれも不変。全固定ID・手修正6件・パッシブ5890条件を保持。
+指定native原本のmtime2026-10-10T16:21:51.833ZをAPIで再確認しbaseline一致。今回Google書込0。接続のdetail_dataset_version=d1-f5c5c8ded775d398はnative更新時の履歴。最新派生版はsite/details/latest.json・publication receipt・本節を使う。
 
-### 今回完成したこと
-- UI v15時点の未対応49原文区間を対応（Plus/Refrain発動27、Grow22）。現在発動中のパッシブ個数・人物別倍率UP個数・AND/OR・Growの付与/履歴追加/反応対象イベントを区別した。Growは翌ターン反映・端数繰越・使用後Lv0を表示・検索。原本とパッシブ文法を変更せず、新規文法をsrc/live_conditions.pyに分離。
-- 旧activation_condition未構造化fallbackを維持し、optional mechanic_conditionを新UIで優先。数値効果のない区間の条件はmechanic_conditionsへ独立収録し、別の通常効果の数値と結合しない。キーワード単独検索でも一致項目を先に出して該当グループを開き、同じ条件/効果だけを強調する。
-- 最初のUI v16でGrow最大UP14効果を追加。追加棚卸しで全観客の興味・ダメージまでの期間・日本語属性・クイックのコスト括弧・ランダム候補と併存する確定効果を補完。データのみの追加131項目/142効果はUI v16のまま。JS/CSS全バイト不変、HTMLは詳細版markerだけ変更したことをGit/候補で証明。
-- UI v15比176項目/156効果を追加・補完。認識済み効果への区間条件589対応/未対応0、数値効果と独立したGrow条件2。旧UI用fallback49は意図的に残り、新たな未解決条件ではない。49原文区間、589効果条件、パッシブ5890は別の分母。全効果/全発動制限の網羅率ではない。
-- 効果を1つも構造化できなかった項目23→6。残6はリザレクション3、観客ステータス解除2、デュエット追加1で、取得済みだが検索用の型は未実装。ほかに部分認識の複合効果、Growの最小興味/魅了・熱狂なども残る。明確な原文なので、この6件についてユーザーの手入力/判断待ちではない。
-- データのみの更新で正常版を拒否していた復旧CLIの版一致前提を修正。原本SHA・native履歴版・canonical revision・基礎版・全非effect_details値を照合し、ID/手修正等が変われば拒否する。接続履歴を見かけの最新番号へ上書きしない。
+### 今回の完成事項
+- 取得済み208項目へ244効果を追加：リザレクション29、全観客のステータス解除2、通常デュエット172、当ターンのデュエット追加1、Grow最小興味3、魅了23、熱狂14。以前の全効果型未対応6項目は0。ただしライブ各項目はpartialのままであり、複合効果全体の完成ではない。
+- メンタル0時の回復/使用回数、解除から興味変動無効を除外、デュエットの編成/正式ユニット/指定人物・複数呼出を区別。魅了/熱狂の資料にある固定倍率をカード原文にない追加数値として代入しない。
+- 最小興味と固定倍率を別型にし、期間幅turn_rangeと最大のみturns_maximumを確定期間と区別。継続フィルターは下限で判定し、最大のみ・即時処理は最低継続の保証として扱わない。画面に説明したためUI v17。
+- 数値効果のなかったGrow2区間にも効果が付き、条件を効果へ結合。認識済み効果の区間条件664構造化/未対応0。旧UI用fallback57は保持。以前解消した5パッシブ条件や5890条件とは別集計。
+- src/special_live_effects.pyへ限定文法を分離し、型/名前/期間/除外/条件の公開検証を追加。原文全文や不明な対象名を公開しない。原本・基礎/既存全非effect_details値/coverageを全件照合し、旧効果は全て保持。
+- READMEに残っていたUI13/未解決5条件等の古い現況を更新した。
 
-### 実際に確認した検証
-保存35HTML/96セル位置/48フィールドと、追加57HTML/328位置/185フィールドのSHA/全原セル一致（監査範囲は重複あり）。R01 extra_004と参照先R02 growup_appealを根拠にした。新Wiki通信はR02本文1＋robots1、成功・再試行0。追加効果は保存入力だけから変換。実429なし（テストログの429はmock）。
-Python245/JS49 PASS。最初のUI v16でローカル/公開の基本・詳細と新条件3幅PASS、最終データのローカル/公開で既存条件＋追加効果10ケースが1280/390/320 PASS、公開最終詳細3幅もPASS。最終データ＋旧UI v15詳細3幅PASS。公開80/80ファイルが匿名HTTP200・ローカル全バイト一致、全80 Git blob一致。ローカル390と公開最終320の画像を視認。実機スマホ・Google実画面・スクリーンリーダーの全面検証ではない。
-原本r19・最終80サイトファイル・接続を使った隔離復旧で4障害検出、全保存版を実復元・全バイト一致、XLSX読み戻しr19/1419/24025。原入力は無変更、本番障害は起こしていない。さらに旧UI80＋原本付き最終82ファイルのZIPを実展開して全162ファイル照合・原本関連付けを確認。
+### 実施済み検証
+新Wiki通信0。保存101HTML/438セル位置/216フィールドのSHA・原セルが全一致。
+公開時Python254/JS52 PASS。Windowsパス修正の回帰1件を加えた最終Python255/JS52 PASS、クリーンWindows/Linuxのstdlib経路もPASS（ログ内429はmock、実429なし）。
+ローカルの基本/詳細/従来効果/既存条件10ケース/特殊効果11ケース＋否定5/キーボード操作・可視入力ラベルが1280/390/320 PASS。
+匿名公開の基本/詳細/特殊11＋否定5/キーボード操作・ラベルも3幅PASS。公開82/82ファイルがHTTP200・ローカル全バイト一致、全82 Git blob一致。ローカル320のGrow熱狂、公開320の観客解除画像を視認。全面実機/スクリーンリーダーの検証とは区別する。
+新データ＋旧UI16の基本/詳細が3幅PASS。旧UI16は新型の日本語選択肢・表示や期間幅の検索に未対応で、完全な旧状態は元verifiedタグで戻せる。
+隔離したr19/82サイトファイル/接続で4障害検出と保存版からの全復元が合格。XLSX読戻しr19/1419/24025、元入力不変。旧UI82＋原本付き84のZIPを実展開し全166ファイル照合・原本と派生版の関連付けPASS。本番に障害を起こす演習ではない。
 
-実装91954df、最初の公開611dcec7bae3b5a56285ec3599ab61e7cd3723bf/d1-99245e2abb6bc370（Actions38085554042 success、tag ui-v16-live-conditions-verified-20261011）、データ補完2fdf214、最終公開11c90c0/f0bdf90。再開基準は最終版にする。基本検索の公開試験は初回UI v16で、最終データでも画面コード・基礎値は全バイト不変と照合済み。
+### 別環境の検証と環境差
+.github/workflows/verify.ymlを追加。固定Python依存・Node24.19.0・XLSX_BACKEND=stdlibでPython/JSテストと全公開バンドル検査をWindows/Linuxの新しいrunnerで行う。取得/Google書込/デプロイを行うjobではない。
+最初のCI38089154150はLinux成功、WindowsはPython3.12.14がWindows2025向けに提供されておらずsetup前提が不成立だった。公式actions/python-versions manifestでWindows用3.13.16の提供を確認し、Windows3.13.16/Linux3.12.14のmatrixへ修正。依存追加なし。ローカル同梱3.12.14の実績は維持。
+Windows用Python変更daf55d9の後、短縮TEMP名RUNNER~1と正式名runneradminの比較不一致をCIで検出した。af1024be72441cbba88fcdc04ffdf1548dec6c12で取得CLIの公開API境界のrootをresolveし、private/raw限定検査を維持。等価パスの回帰1件と既存完了runの読取専用比較を追加し、状態/原本/接続/JSON不変、通信0を確認した。
+最終[Windows/LinuxクリーンCI38089807084](https://github.com/VIgNOles/shiny-index/actions/runs/38089807084)はWindows3.13.16/Linux3.12.14ともsuccess。Python255/JS52と全公開バンドル検査が合格。証拠はprivate/audits/ui17-cross-platform-final-actions-20261011.json、final-jobs、ui17-path-fix-actual-catalog-20261011.json。CI/ローカル処理は終了しており、新規取得や原本更新は起動していない。
+Google実画面はBrowser Useがwindows sandbox helper_unknown_error setup refreshで起動せず、Computer Useもtrusted Node process exitedで状態を取得できなかった。未知の画面入力や原本書込はない。API/exportの既存証拠を維持し、実画面確認は未完了。
 
 ### 保存・整理・復旧
-最新checkpoint private/audits/ui16-final-checkpoint-20261011.json、累積ui16-cumulative-structure-20261011.json、追加ui16-facts-structure-20261011.json、原セルui16-source-proof-20261011.jsonとui16-facts-source-proof-20261011.json、区間根拠ui16-condition-inventory-20261011.json、次の残件ui16-final-next-effect-triage-20261011.json。
-公開ui16-final-public-files-20261011.json、Actions ui16-final-actions-20261011.json、UIバイト不変ui16-final-ui-byte-preservation-20261011.json、原本mtime ui16-final-native-metadata-20261011.json、試験ログ/画像はui16-*。
-最終復旧報告 private/recovery/ui16-live-facts-final-20261011/report.json、ZIP展開ui16-final-archive-restore-proof-20261011.json。元のr18/UI13復旧報告を最終r19の証拠と混同しない。
+主要証拠：private/audits/ui17-special-checkpoint-20261011.json、ui17-special-structure-20261011.json、ui17-special-source-proof-20261011.json、ui17-publication-preservation-20261011.json、ui17-public-files-20261011.json、ui17-actions-20261011.json、ui17-native-metadata-20261011.json。試験ログ/画像はui17-*。復旧報告private/recovery/ui17-special-20261011/report.json、ZIP復元証拠ui17-archive-restore-proof-20261011.json。
+C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-ui17-recovery-20261011/ にui16-with-ui17-data.zip(82ファイル/47,375,537bytes)、ui17-r19-recovered-snapshot.zip(84ファイル/53,801,960bytes)。対応表private/ui17-recovery-archive.json、同Cのui17-recovery-manifest.json。design.mdはGit ignoreのままローカル保存し、同Cへdesign-ui17-20261011.mdをコピーする。過去Cアーカイブも保持。
+復元例（fresh private出力へ。既存へ上書きしない）：
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui17-ui16-rollback-20261011 private/restored-ui16-with-ui17 --manifest private/ui17-recovery-archive.json
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui17-special-20261011/restored private/restored-ui17-r19 --manifest private/ui17-recovery-archive.json
+後者は出力先/siteとmaster.xlsx/connection.jsonをcheck_site/check_pairで照合して使う。
 
-C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-ui16-recovery-20261011/ に検証済みZIPを保存。対応表private/ui16-final-recovery-archive.json（同Cにui16-final-recovery-manifest.json）。最終はui15-with-final-ui16-data.zip（80ファイル）とui16-r19-final-recovered-snapshot.zip（site80＋原本/接続2）。初回UI16・未公開中間派生のZIPも履歴として保持する。
+候補・旧UI切戻しコピー・復旧/restored・ZIP実展開2コピー、計5フォルダー2,002,642,278bytesを、正常site/検証ZIPと全照合し削除直前にも再ハッシュして整理した。証拠private/audits/ui17-cleanup-proof-20261011.json（removed=true）、D空き10,244,882,432bytes。
+private/site-ui17-special-candidate-20261011、private/site-ui17-ui16-rollback-20261011、private/recovery/ui17-special-20261011/restored、private/ui17-archive-restore-*は現在存在しない。報告/原本/raw/監査/接続/Git/正常siteを保持した。古い候補パスを直接再利用せずZIPから復元する。
 
-復元CLI（fresh privateディレクトリへ。既存へ上書きしない）：
-.venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui16-final-ui15-rollback-20261011 private/restored-ui15-final-data --manifest private/ui16-final-recovery-archive.json
-.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui16-live-facts-final-20261011/restored private/restored-ui16-r19-final --manifest private/ui16-final-recovery-archive.json
-後者のサイトは出力先/site、原本はmaster.xlsx、接続はconnection.json。check_siteとcheck_pairを照合してから使う。
-
-今回の候補・切戻し・復旧コピー・展開試験10フォルダー合計3,387,811,090bytesを、現行site/検証済みZIPと全ファイル照合後、削除直前にも再ハッシュして重複だけ整理。証拠private/audits/ui16-cleanup-proof-20261011.json（removed=true）、D空き10,272,915,456bytes。これら元private/site-ui16-*、private/ui16-*-archive-restore-*、復旧/restored、中間派生フォルダーは存在しない。元原本・raw HTML・監査・reports・Git・正常site・以前のCアーカイブは保持。
-
-### 残件と次の具体操作
-新たなユーザー判断待ち・未解決の中断更新・原本破損はない。取得catalog complete4098/active_attemptなし、今回の取得/書込/試験/復旧/公開/整理処理は終了。プロジェクト全体の完了や新たな一時停止ではない。
-1. git status/logとsite/details/latest.json、最終checkpoint、原本SHA/native mtimeを実照合。正常版はUI16/f0bdf90/11c90c0。UI15や初回992版を最新として再採用しない。
-2. ui16-final-next-effect-triage-20261011.jsonから、リザレクション3・観客ステータス解除2・デュエット1と、最小興味/魅了・熱狂の型・フィルターを保存原表/R01と照合して進める。現時点で原文の意味をユーザーに尋ねる必要はない。表示や選択肢を変える次の改修ではUI v17、データのみならv16維持。
-3. 型追加時は旧UI/不変バンドル互換と、確定効果・ランダム候補・期間/回数を区別する。部分認識の複合効果はこの6件以外にも残る。旧全値/ID/手修正/正常版保持の監査後に公開する。
-4. 原本編集はfresh native export・owner確認から。47件と本番の新規基礎カード実証はユーザーの保留解除後のみ。取得済みカードを再取得する必要はない。
-
-そのほかS90最大Lv360セルは原文空欄、日付不明56、独立公式網羅、全面実機/Google実画面/別PC実行/本番障害からの全面復旧は未検証。取得不足と、構造化未対応と、保留/対象外を混同しない。
+### 未完了と次の操作
+1. 現在のGit/原本SHA/site/details/latest.json/checkpointを実照合。再開基準はUI17/a0e771/52fce44、原本r19。旧UI16/f0や旧READMEのUI13を最新として採用しない。
+2. クリーンCI38089807084は両OSで検証済み。コード変更時は同workflowの結果を確認する。私的原本/全HTMLの再変換や別の利用者PC・実機スマホをCI成功だけで完成扱いしない。
+3. private/audits/ui17-next-effect-source-inventory-20261011.jsonから興味反転/限定、メランコリー、回避時の遅延付与、消去等を保存原表/R01と照合して進める。この一覧は候補語を含む原文の棚卸しで、既に型対応済みも含む。未対応の件数/網羅率の分母として使わない。全効果型未対応0は全複合効果の完成ではない。
+4. UI変更時だけ次v18、データのみならv17維持。新型で旧UIの読み方が限られる場合は明記し、旧値/ID/6手修正/原本/不変版を保って公開確認する。
+47件・新規基礎カード実証保留、S90最大Lv空欄、日付不明56、独立公式網羅、全面実機/Google実画面/本番全面復旧は残る。新規のユーザー判断待ちや未解決の中断更新はない。今回のローカル処理は終了。新たな一時停止指示ではない。
 <!-- /current-state -->
 
 

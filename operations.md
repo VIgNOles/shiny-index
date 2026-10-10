@@ -522,3 +522,17 @@ Cのshiny-index-ui15-recovery-20261011/ui14-with-final-ui15-data.zipと対応表
 旧UIは .venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui16-final-ui15-rollback-20261011 private/restored-ui15-final-data --manifest private/ui16-final-recovery-archive.json 。
 原本付きは .venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui16-live-facts-final-20261011/restored private/restored-ui16-r19-final --manifest private/ui16-final-recovery-archive.json 。後者にはsite/、master.xlsx、connection.jsonが入り、全82ファイルのSHAを照合してから展開する。
 新しい6効果項目の型（リザレクション/観客ステータス解除/デュエット）や最小興味等のUI対応は未実装。すでに原文を取得済みのため、型の実装のために全カードを再取得しない。新しい表示/選択肢を追加する場合はUI v17とし、データのみの追加ではv16のままにする。
+
+## UI v17の正常版・復旧・環境差（2026-10-11）
+検証済み公開タグui-v17-special-effects-verified-20261011、詳細d1-a0e7716b08316259、原本r19。期間幅は最短値でフィルターし、最大のみや即時処理は最低継続を保証する条件から除外する。データだけの変更でUI番号を上げない。
+
+今回の候補/切戻し/復旧コピーは重複整理済み。元パスを直接参照せず、Cのshiny-index-ui17-recovery-20261011とprivate/ui17-recovery-archive.jsonからfresh private出力へ復元する。
+
+    .venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui17-ui16-rollback-20261011 private/restored-ui16-with-ui17 --manifest private/ui17-recovery-archive.json
+    .venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui17-special-20261011/restored private/restored-ui17-r19 --manifest private/ui17-recovery-archive.json
+
+後者はsite/、master.xlsx、connection.jsonを含む。check_siteとcheck_pairを検査してから利用する。今回も原本SHAとnative履歴版・全非効果値を比較し、接続履歴を派生公開版へ見かけ上書きしない。
+
+クリーンCI .github/workflows/verify.ymlはLinux Python3.12.14/Windows Python3.13.16、Node24.19.0、固定requirements、XLSX_BACKEND=stdlibでテストと全公開成果物を検査する。actions/python-versionsはWindows3.12.14を提供しないため通常Windowsで同じpatchの配布を仮定しない。取得/原本書込/デプロイを行わず、私的原本・生応答もアップロードしない。環境を入れ替えた実行結果をdocs/verificationへ記録する。
+
+最終検証は[Windows/LinuxクリーンCI38089807084](https://github.com/VIgNOles/shiny-index/actions/runs/38089807084)、両OSでPython255/JS52・全公開バンドル検査が合格。Windowsの短縮TEMP名と正式名が混ざる場合があるため、取得CLIは公開API境界でrootをresolveしてから相対パスを計算する。private/raw限定検査や取得間隔/停止条件は変更しない。既存完了runの通常root/等価rootで状態・入力SHA一致を確認済み。再開時もstatusで完了/worker/active_attemptを確認し、完了runを無条件に再取得しない。診断用scripts/run_unit_tests_ci.pyはunittestの失敗をGitHub annotationへ出す。ローカル通常テストと同じsuiteを使用し、証拠取得のために認証情報を探索する必要はない。
