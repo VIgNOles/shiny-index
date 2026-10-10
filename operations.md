@@ -382,3 +382,11 @@ Googleの後続エクスポートでmtime16:10:24.240UTCとZIP包装差を観測
 ## 2026-10-10 拡大版の運用確認
 
 詳細1293カード/21868項目・r15をnative全コピーで採用し、公開d1-b89ba62ab2260b7d/UI v9を匿名56ファイルと3幅で検証した。原本の現行ID/URL・旧631backup・export・全write checkpointはprivateへ保存。編集前はprivate/sheets-connection.jsonのspreadsheet_urlを確認し、古いリンクや過去の停止記録を現行指示として使用しない。今回の359バッチは全ACK/unknownなし。必要な修復は未知範囲の実読戻し後に限定し、成功済みの要求を無条件に再送しない。新規範囲の85KB判定はupdateCellsの行ラッパー/座標を含む実UTF-8オブジェクト全体で行う。詳細原本の複製・検証・昇格と公開は別工程とし、Wikiの取得中stateを原本へ自動反映しない。
+
+## 2026-10-10 全個別ページ分の取得完了後
+
+現在の基礎は1466件、詳細は1419件・r18。編集するSheetはprivate/sheets-connection.jsonのspreadsheet_urlで確認し、古いバックアップへ書かない。取得runはcomplete・workerなし・active_attemptなし。全1363保存ページを再利用でき、新しいWiki通信は通常の詳細再変換に不要。
+
+保存入力からやり直す場合は、scripts/transform_detail_catalog.py private/raw/detail-catalog-20261009 private/audits/<新しい候補名>.jsonを使い、正式原本や旧候補を上書きしない。全件1419候補・47保留を基準に、構造例外・件数・旧値/固定ID/手修正を確認する。古いworkflow-report.jsonは稼働時コードの監査履歴で、正式公開結果は同runのlatest-verified-publication.jsonとdocs/verification.mdを読む。
+
+原本への追加・修正は前述の編集列と根拠・日時を使う。fresh exportをreview/applyし、基礎と詳細を同じエクスポートから新候補へ生成→check_site→PC/スマホ検索→不変版保持→明示公開→匿名確認。検証前に現行原本/サイトへ上書きしない。再取得結果の採用もnative全コピーへの差分登録から始め、元Sheetを保持する。現行版のタグはui-v10-details1419-20261010。UIだけの切戻しではbuild_ui_rollback.pyに現行siteをsourceとして指定し、データを古い版へ戻さない。
