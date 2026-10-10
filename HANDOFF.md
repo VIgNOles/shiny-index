@@ -1,11 +1,13 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
-## 最新状態（2026-10-10 UI v11候補検証中）
-現在の公開はUI v10・詳細d1-7a9722efb8a845e1。原本r18/1419カード・24025項目、基礎r7/1466は不変。全1363入力の取得はcomplete4098、再取得workerは起動しない。
-今回、パッシブ発動条件の表示/検索/種類フィルターを実装し、別候補private/site-ui11-conditions-candidate-20261010に詳細d1-bf15cd59d9002994/UI v11を生成。5890原本ソースを保存HTML/SHA/原セルと全件照合、4946対応/944未対応（複合等）、Wiki通信0。元XLSX SHA不変、native mtime04:56:30.698Zとownerを再確認済み。原本への新規書込みなし。
-Python167/JS33 PASS。候補と旧UI v10切戻しの3幅実画面試験中。試験の詳細再開閉は既存の展開保持に合わせ修正した。現行公開/siteはまだ変更していない。進行セッションは再開時に実際の結果と照合する。次は全画面試験/旧データ保持→site昇格→明示publish→Actions/匿名全ファイルと3幅確認→記録更新。
-47保留、S90最大Lv原文空欄、条件944/全複合効果、公式独立網羅、本番基礎新規追加実証、全面実機/Google実画面/全面復旧は残る。過去の記録は以下に保持。
+## 最新状態（2026-10-10 17:44 JST）
+UI v11・詳細d1-bf15cd59d9002994を公開確認済み。基礎r7/1466/v1-93a6a8b8d40e754a、詳細原本r18/1419(P548/S871)/24025は不変。Google現行URL/hashはprivate/sheets-connection.jsonを使う。今回のWiki通信/Googleセル書込み0。
+全5890パッシブ原本ソースを保存HTML/SHA/原セルと照合し、発動条件4946対応/944未対応。表示・検索・種類フィルターを追加し、同じ技能内の名称/数値/条件一致、未知を無条件扱いしないことを試験。旧全カード/項目/固定ID/手修正/coverage/不変版保持。
+公開64bdb5f02e424450199857aa8789e53e042b34ac、tag ui-v11-conditions-20261010、Actions38038517584 success。匿名64/64一致、公開/ローカル/旧UI v10切戻しの1280/390/320基本/詳細PASS。Python167/JS33 PASS（429はmock）、画像ローカル3/公開2枚確認。旧site/接続をbackup保存、private/audits/ui11-condition-release-checkpoint-20261010.jsonはpublished_verified。
+取得1363ページはcomplete4098・workerなし・active_attemptなし。新たな収集を起動しない。現在の変換・検証・公開処理は完了し、結果不明の書込みはない。未対応944の分類・出典はprivate/audits/passive-condition-unsupported-triage-20261010.json。
+次操作：保存HTMLの略記リンク/脚注を読み、人物略記381の意味を確認→ユニット全員137とAND/ORの量化・結合を保つschema/境界試験→新候補生成/元情報保持/旧UI互換/公開確認。入力の再取得は不要。原本手編集があれば先にowner/profile/現在mtime・fresh exportを確認して手修正を保つ。
+47リンク保留、S90最大Lv原文空欄、944条件/全複合効果、公式独立全網羅、本番の実在基礎新規追加実証、全面実機/Google実画面/全面復旧は残る。Pステージ/適正・Sファイトは対象外。ユーザー操作待ちやプロジェクト完成として扱わない。過去の記録は以下に保持。
 <!-- /current-state -->
 
 
@@ -793,3 +795,10 @@ UI v10・詳細d1-fe052456be3b2b43。実原本候補と同じ1380データのUI 
 取得runはcomplete4098・active_attemptなし、worker/workflow正常終了・ロックなし。古い稼働コードの最終監査22保留は現行コードの全再変換で解消済み、元ログを保持。collect_detail_catalog.py statusは取得状況の確認用。正式原本/公開記録は同runのlatest-verified-publication.jsonを読む。取得を二重起動しない。証拠はprivate/audits/detail1419-public-verification-20261010.json、full-linked-replay-comparison-20261010.json、full-linked-worker-finished-20261010.json、detail1419-content-coverage-20261010.json。
 
 残件: 47ページなし保留、S90カード最大Lv360セルの原文空欄（SHA/原セル全件照合済み）、全効果/条件構造化、独立公式全件照合、本番の実在基礎カード新規追加実証、全面実機/スクリーンリーダー・Google実画面・本番障害全面復旧。Pステージ/適正、Sファイトは今回対象外。全リンク付きカードの取得・登録・公開確認と、全項目/全ゲームの完成を区別する。
+
+
+## 2026-10-10 UI v11・発動条件の公開確認
+原本r18/1419カード・24025項目からパッシブ発動条件を導出し、UI v11・詳細d1-bf15cd59d9002994へ反映。全5890原本ソースを保存1363ページのSHA/原セル位置と照合、4946対応/944未対応（P1679/396、S3267/548）。原本JSON/XLSX、全旧カード・項目・coverage、既存58ファイルを生バイト保持（旧不変バンドルを含む）。変更はUI3ファイル/詳細pointerと新不変バンドル2ファイル。新Wiki通信/Google原本書込み0。
+実装9d1c764、公開準備421f21e、公開64bdb5f02e424450199857aa8789e53e042b34ac、tag ui-v11-conditions-20261010、Actions38038517584 success。匿名64/64ファイルの生バイト一致。ローカル/公開/旧UI v10切戻しの3幅基本・詳細PASS、P/S条件・未対応表示・URL保持・同一項目検索・JSON版を確認、画像ローカル3/公開2枚を視認。Python167/JS33 PASS（429ログは模擬）。
+未対応944項目はprivate監査へ分類保存：人物略記381、ユニット全員137、3属性全て20、明示論理結合22、その他/暗黙の複合384。分類は意味の推測や採用ではない。次は保存HTML内のリンク/脚注・表見出しを確認して略記の意味を確定し、全員・AND/ORを失わないschemaと境界試験から対応する。ユーザー回答待ちはない。
+原本/native mtime04:56:30.698Z・ownerを再確認。接続の公開詳細版参照だけ更新し、nativeセルは変更していない。旧siteと接続backup、release checkpoint、provenance/preservation/public確認・未対応triageはprivateへ保存。原本の編集手順は従来どおりfresh export→review/apply→別候補→検証→publish→匿名確認。全面解析・公式独立網羅・本番基礎新規追加実証・全面実機/Google実画面/全面復旧は未完了。
