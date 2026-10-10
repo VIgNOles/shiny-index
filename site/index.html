@@ -79,12 +79,13 @@
           <p id="detail-coverage" class="filter-help">詳細情報を読み込み中…</p>
           <fieldset id="skill-controls">
             <legend class="visually-hidden">スキルの条件</legend>
-            <label for="skill-q">スキル名・構造化した数値で検索</label>
-            <input id="skill-q" type="search" placeholder="例：Visual 4.5倍" autocomplete="off" aria-controls="cards">
+            <label for="skill-q">スキル名・数値・発動条件で検索</label>
+            <input id="skill-q" type="search" placeholder="例：Vocal メンタル75%以上" autocomplete="off" aria-controls="cards">
             <label for="skill-kind">スキルの種類<select id="skill-kind"><option value="">すべて</option></select></label>
+            <label for="skill-condition">パッシブの発動条件<select id="skill-condition"><option value="">指定なし</option></select></label>
             <div id="skill-mechanics" class="filter-options" role="group" aria-label="ライブスキルの機能"></div>
             <label class="filter-option"><input id="detail-available" type="checkbox">詳細収録済みのカードだけ</label>
-            <p class="filter-help">機能はライブスキルが対象です。種類・キーワード・機能は同じスキルに一致するカードを表示します。未収録のカードはスキル検索に含まれません。</p>
+            <p class="filter-help">機能はライブスキル、発動条件は対応済みのパッシブが対象です。種類・キーワード・機能・発動条件は同じスキルに一致するカードを表示します。未収録のカードはスキル検索に含まれません。</p>
           </fieldset>
         </details>
         <div class="selected-row">
@@ -115,12 +116,12 @@
       <nav id="detail-downloads" aria-label="詳細データ取得"></nav>
       <details>
         <summary>データの確認状況</summary>
-        <p>対象はenza版です。詳細情報の収録件数と保留範囲は画面・配布JSONに表示します。スキルの数値は一部のみ構造化し、発動条件や複合効果はWikiで確認してください。画像・Wiki本文は配布しません。Wiki掲載情報は公式の独立照合を終えていません。不明項目を推測で補いません。編集原本の変更は、検証して新しい版を公開した時に反映します。</p>
+        <p>対象はenza版です。詳細情報の収録件数と保留範囲は画面・配布JSONに表示します。スキルの数値と発動条件は対応分のみ構造化しています。未対応の条件や複合効果はWikiで確認してください。画像・Wiki本文は配布しません。Wiki掲載情報は公式の独立照合を終えていません。不明項目を推測で補いません。編集原本の変更は、検証して新しい版を公開した時に反映します。</p>
         <pre id="audit"></pre>
       </details>
     </footer>
   </main>
-  <script>window.DATA_VERSION='v1-93a6a8b8d40e754a';window.UI_VERSION='ui-v10';window.DETAIL_VERSION='d1-7a9722efb8a845e1';</script>
+  <script>window.DATA_VERSION='v1-93a6a8b8d40e754a';window.UI_VERSION='ui-v11';window.DETAIL_VERSION='d1-bf15cd59d9002994';</script>
   <script type="module" src="app.mjs"></script>
 </body>
 </html>
