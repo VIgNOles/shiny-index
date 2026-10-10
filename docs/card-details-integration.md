@@ -45,7 +45,7 @@ Copy-Item -LiteralPath site -Destination private/detail-update-candidate -Recurs
 ./.venv/Scripts/python.exe scripts/export_detail_sheet.py private/sheets-exports/<日時>.xlsx private/detail-update-candidate --master-snapshot private/details/<日時>.json
 ./.venv/Scripts/python.exe scripts/check_site.py private/detail-update-candidate
 $env:UI_BROWSER_PATH='C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-$env:UI_EXPECTED_VERSION='ui-v9'
+$env:UI_EXPECTED_VERSION = [regex]::Match((Get-Content -LiteralPath 'private/detail-update-candidate/index.html' -Raw), "window.UI_VERSION='([^']+)'").Groups[1].Value
 node tests/ui-v4-smoke.mjs private/detail-update-candidate
 node tests/ui-v5-smoke.mjs private/detail-update-candidate
 ```

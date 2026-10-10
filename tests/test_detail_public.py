@@ -4,6 +4,21 @@ from src.detail_public import public_document,validate_public
 from tests.test_detail_master import candidate,CID,rehash
 
 class DetailPublicTests(unittest.TestCase):
+ def test_acquisition_and_held_gaps_are_not_conflated_with_effect_structure(self):
+  c=candidate();m=adopt(empty(c['base_dataset_version']),c);bases=[{'card_id':CID,'card_kind':'P'}]
+  d=public_document(m,bases)
+  self.assertNotIn('Full detail acquisition',d['coverage']['unverified'])
+  self.assertIn('Complete effect/condition structure',d['coverage']['unverified'])
+  self.assertFalse(d['coverage']['complete'])
+  held='00000000-0000-4000-8000-000000000002';bases.append({'card_id':held,'card_kind':'S'})
+  m['coverage'].append({'card_id':held,'card_kind':'S','status':'missing_page_on_hold'})
+  d=public_document(m,bases)
+  self.assertNotIn('Full detail acquisition',d['coverage']['unverified'])
+  self.assertIn('Unlinked pages on hold',d['coverage']['unverified'])
+  m['coverage'][-1]['status']='input_pending';d=public_document(m,bases)
+  self.assertIn('Full detail acquisition',d['coverage']['unverified'])
+  self.assertNotIn('Unlinked pages on hold',d['coverage']['unverified'])
+
  def test_shared_normal_mb_origin_kinds_are_public_and_validated(self):
   c=candidate();c['cards'][0]['generated_live']=[{'kind':'generated_live','name':'child','sp':None,'generation_stage':1,
     'generated_from_name':'スキル','generated_from_names':['スキル','[MB]スキル(2/5)'],

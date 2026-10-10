@@ -65,11 +65,16 @@ def public_document(master,base_cards,base_version=None):
         represented={r['card_id'] for r in coverage}
         coverage.extend({'card_id':cid,'card_kind':bases[cid]['card_kind'],'status':'not_in_acquisition_catalog'} for cid in sorted(set(bases)-represented))
     counts=Counter(row['status'] for row in coverage)
+    unverified=['Complete effect/condition structure','Independent official verification']
+    if any(state not in {'available_partial','missing_page_on_hold'} for state in counts):
+        unverified.insert(0,'Full detail acquisition')
+    if counts.get('missing_page_on_hold'):
+        unverified.append('Unlinked pages on hold')
     body={'cards':cards,'coverage':{'complete':False,'base_card_count':len(bases),'detail_card_count':len(cards),
           'detail_item_count':sum(len(c['items']) for c in cards),'by_kind':dict(Counter(c['card_kind'] for c in cards)),
           'status_counts':dict(counts),'card_status':coverage,
           'not_collected':['P.stage_skill','P.aptitude','S.fight_skill'],
-          'unverified':['Full detail acquisition','Complete effect/condition structure','Independent official verification']}}
+          'unverified':unverified}}
     version='d1-'+digest({'base_dataset_version':base_version,**body})[:16]
     doc={'meta':{'detail_schema':'1.0','detail_version':version,'base_dataset_version':base_version,'source_base_dataset_version':master['base_dataset_version'],
                  'canonical_detail_revision':master['revision'],'published_at':now(),'source_fetched_from':min(c['fetched_at'] for c in cards),

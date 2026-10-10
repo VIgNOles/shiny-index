@@ -120,7 +120,7 @@ UI v7の詳細256カード（P126/S130）・3,685項目を原本へ登録し、�
 
 ```powershell
 node --test tests/search.test.mjs tests/detail-search.test.mjs
-$env:UI_EXPECTED_VERSION='ui-v7'
+$env:UI_EXPECTED_VERSION = [regex]::Match((Get-Content -LiteralPath 'site/index.html' -Raw), "window.UI_VERSION='([^']+)'").Groups[1].Value
 node tests/ui-v4-smoke.mjs site
 node tests/ui-v5-smoke.mjs site
 ```
