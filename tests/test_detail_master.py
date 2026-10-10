@@ -15,6 +15,17 @@ def candidate(kind='P'):
 def rehash(c):c['content_hash']=digest({k:v for k,v in c.items() if k!='content_hash'});return c
 
 class DetailMasterTests(unittest.TestCase):
+    def test_shared_mb_parent_addition_keeps_the_existing_generated_id(self):
+        c=candidate();c['cards'][0]['generated_live']=[{'kind':'generated_live','name':'child','sp':None,'generation_stage':1,
+          'generated_from_name':'スキル','generation_origin_kind':'panel_live','effect_private':'Vocal5倍(Plus)','mechanics':['plus']}];rehash(c)
+        before=adopt(empty(c['base_dataset_version']),c);old_id=before['registry'][1]['detail_id']
+        child=c['cards'][0]['generated_live'][0]
+        child.update(generated_from_names=['スキル','[MB]スキル(2/5)'],generation_origin_kinds=['panel_live','mb_live']);rehash(c)
+        after=adopt(before,c)
+        self.assertEqual(after['registry'][1]['detail_id'],old_id)
+        self.assertEqual(len(after['registry']),2)
+        self.assertEqual(from_rows(table_rows(after)),after)
+
     def test_new_lower_id_appends_without_shifting_native_card_rows(self):
         first=candidate();before=adopt(empty(first['base_dataset_version']),first)
         newer=copy.deepcopy(first);new_id='00000000-0000-4000-8000-000000000000'

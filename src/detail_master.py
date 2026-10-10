@@ -42,6 +42,11 @@ def resolved_item(row):
 
 
 def validate_generation_parents(item):
+    if 'generation_origin_kinds' in item:
+        kinds=item['generation_origin_kinds']
+        if (item.get('kind')!='generated_live' or kinds!=['panel_live','mb_live']
+                or item.get('generation_origin_kind')!='panel_live' or 'generated_from_names' not in item):
+            raise ValueError('Invalid generated-live origin kinds')
     if 'generated_from_names' not in item:return
     names=item['generated_from_names']
     if (item.get('kind')!='generated_live' or not isinstance(names,list) or len(names)<2

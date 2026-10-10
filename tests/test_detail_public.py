@@ -4,6 +4,18 @@ from src.detail_public import public_document,validate_public
 from tests.test_detail_master import candidate,CID,rehash
 
 class DetailPublicTests(unittest.TestCase):
+ def test_shared_normal_mb_origin_kinds_are_public_and_validated(self):
+  c=candidate();c['cards'][0]['generated_live']=[{'kind':'generated_live','name':'child','sp':None,'generation_stage':1,
+    'generated_from_name':'スキル','generated_from_names':['スキル','[MB]スキル(2/5)'],
+    'generation_origin_kind':'panel_live','generation_origin_kinds':['panel_live','mb_live'],
+    'effect_private':'Vocal5倍(Plus)','mechanics':['plus'],'mb_shared_target_private':True}];rehash(c)
+  m=adopt(empty(c['base_dataset_version']),c);d=public_document(m,[{'card_id':CID,'card_kind':'P'}]);child=d['cards'][0]['items'][1]
+  self.assertEqual(child['generation_origin_kinds'],['panel_live','mb_live'])
+  self.assertNotIn('mb_shared_target_private',child)
+  for bad in [[],['panel_live'],['mb_live','panel_live'],['panel_live','possessed_live'],'panel_live']:
+   broken=copy.deepcopy(d);broken['cards'][0]['items'][1]['generation_origin_kinds']=bad
+   with self.subTest(bad=bad),self.assertRaisesRegex(ValueError,'origin kinds'):validate_public(broken,[{'card_id':CID,'card_kind':'P'}])
+
  def build(self):
   c=candidate();m=adopt(empty(c['base_dataset_version']),c)
   return public_document(m,[{'card_id':CID,'card_kind':'P'}])

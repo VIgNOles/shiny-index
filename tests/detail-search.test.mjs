@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {detailSearch,factText,generationParentText} from '../web/details.mjs';
+import {detailSearch,factText,generationParentText,detailCoverageText} from '../web/details.mjs';
 const cards=[{card_id:'P1'},{card_id:'S1'},{card_id:'pending'}];
 const details=new Map([
  ['P1',{items:[{name:'通常',kind:'panel_live',mechanics:['link'],numeric_facts:[]},{name:'MB限定',kind:'mb_live',mechanics:['plus'],numeric_facts:[]},{name:'思い出',kind:'memory_appeal',mechanics:['link'],numeric_facts:[]}]}],
@@ -51,4 +51,28 @@ test('shared generated skill searches both parents without mixing panel mechanic
  assert.equal(generationParentText({generated_from_name:'root'}),'root');
  assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=generated_live&skill_q=root+B(☆4)&mechanic=change'),d),[cards[0]]);
  assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=panel_live&skill_q=root+B(☆4)'),d),[]);
+});
+
+
+test('coverage distinguishes uncollected cards from missing pages on hold',()=>{
+ assert.equal(detailCoverageText({detail_card_count:1344,status_counts:{available_partial:1344,input_pending:75,missing_page_on_hold:47}},1466),'詳細 1344 / 1466カード収録。未収録 75件／個別ページなし 47件（保留）。数値・条件は一部のみ収録。');
+});
+test('all linked details no longer imply acquisition is still in progress',()=>{
+ const text=detailCoverageText({detail_card_count:1419,status_counts:{available_partial:1419,missing_page_on_hold:47}},1466);
+ assert.ok(text.includes('個別ページなし 47件（保留）'));
+ assert.ok(!text.includes('未収録')&&!text.includes('順次取得'));
+ assert.ok(text.includes('数値・条件は一部のみ収録'));
+});
+test('all card records still do not claim complete skill effects',()=>{
+ assert.equal(detailCoverageText({detail_card_count:1466,status_counts:{available_partial:1466}},1466),'詳細 1466 / 1466カード収録。数値・条件は一部のみ収録。');
+});
+
+test('a shared normal and MB child keeps its own Plus and both searchable parents',()=>{
+ const d=new Map([['P1',{items:[
+  {name:'root',kind:'panel_live',mechanics:['link']},
+  {name:'[MB]root(4/5)',kind:'mb_live',mechanics:['refrain']},
+  {name:'child',kind:'generated_live',generated_from_name:'root',generated_from_names:['root','[MB]root(4/5)'],generation_origin_kind:'panel_live',generation_origin_kinds:['panel_live','mb_live'],mechanics:['plus']}
+ ]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=generated_live&skill_q=[MB]root(4/5)&mechanic=plus'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=generated_live&skill_q=[MB]root(4/5)&mechanic=refrain'),d),[]);
 });

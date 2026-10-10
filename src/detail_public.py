@@ -9,7 +9,7 @@ from src.indexer import digest,read,write,now
 
 MECHANICS={'link','plus','change','grow','refrain'}
 COVERAGE_FIELDS={'skill_panel','review','memory_appeal','memory_boost','generated_live','unique_ability','stage_skill','aptitude','fight_skill','max_status','possessed_live','quick_skill','support_skills','traits'}
-ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost','generation_stage','generated_from_name','generated_from_names','generation_origin_kind','random_effect_options','memory_link_facts','memory_charge_facts','memory_link_present','memory_charge_present']
+ITEM_FIELDS=['detail_id','kind','name','sp','unlock_star','unlock_event','mb_stage','mb_total_stages','level','acquired_at_level','mechanics','cap_targets','cap_delta','energy_cost','generation_stage','generated_from_name','generated_from_names','generation_origin_kind','generation_origin_kinds','random_effect_options','memory_link_facts','memory_charge_facts','memory_link_present','memory_charge_present']
 
 def numeric_facts(item):
     # Individual numeric facts do not imply unconditional or complete skill effects.

@@ -33,6 +33,24 @@ def fixture(panel=PANEL, memory=MEMORY, extra=''):
 
 
 class DetailHtmlTests(unittest.TestCase):
+    def test_shared_normal_mb_child_requires_explicit_same_note_and_identical_effect(self):
+        panel=PANEL.replace('Vocal2倍<br>(Link)追撃','Vocal2倍/ライブスキル生成[child](Link)')
+        normal='<table><tr><th>生成されるライブスキル</th></tr><tr><th>child</th></tr><tr><td style="background-color:gainsboro">Vocal5倍(Plus)</td></tr></table>'
+        mb='<table><tr><th>メモリーブースト</th></tr><tr><th>[MB]技能甲(2/5)</th></tr><tr><td style="background-color:gainsboro">Vocal3倍/ライブスキル生成[child](Refrain)</td></tr></table>'
+        shared='<table><tr><th>[MB]生成されるライブスキル</th></tr><tr><th>child<a class="note_super tooltip" id="notetext_1" data-tooltip-content="&lt;p&gt;MB前と同じ&lt;/p&gt;">*1</a></th></tr><tr><td style="background-color:gainsboro">Vocal5倍(Plus)</td></tr></table>'
+        parse=lambda extra:extract_html(fixture(panel=panel,extra=extra),CARD)
+        card=parse(normal+mb+shared);self.assertEqual(len(card['generated_live']),1)
+        child=card['generated_live'][0]
+        self.assertEqual(child['name'],'child')
+        self.assertEqual(child['generated_from_names'],['技能甲','[MB]技能甲(2/5)'])
+        self.assertEqual(child['generation_origin_kinds'],['panel_live','mb_live'])
+        self.assertEqual(child['mechanics'],['plus'])
+        self.assertEqual(card['mb_live'][0]['mechanics'],['refrain'])
+        self.assertEqual(len(child['source_positions']),4)
+        for extra in [normal+mb+shared.replace('MB前と同じ','別の意味'),normal+mb+shared.replace('notetext_1','ordinary'),
+                      normal+mb+shared.replace('Vocal5倍','Vocal6倍'),mb+shared,normal+mb+shared+shared]:
+            with self.subTest(extra=extra),self.assertRaises(ValueError):parse(extra)
+
     def test_history_appeal_lookup_requires_contiguous_counts_and_matching_maximum(self):
         effect='Vocal最大6.5倍アピール[スキル履歴が多いほど効果UP]'
         panel=PANEL.replace('Vocal2倍<br>(Link)追撃',effect)

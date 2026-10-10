@@ -13,6 +13,12 @@ export function factText(fact){
  return '';
 }
 export function generationParentText(item){return (item.generated_from_names??(item.generated_from_name?[item.generated_from_name]:[])).join(' / ');}
+export function detailCoverageText(coverage,total){
+ const held=coverage.status_counts.missing_page_on_hold??0;
+ const missing=Math.max(0,total-coverage.detail_card_count-held);
+ const notes=[missing?'未収録 '+missing+'件':'',held?'個別ページなし '+held+'件（保留）':''].filter(Boolean);
+ return '詳細 '+coverage.detail_card_count+' / '+total+'カード収録。'+(notes.length?notes.join('／')+'。':'')+'数値・条件は一部のみ収録。';
+}
 export function detailSearch(cards,params,details){
  const q=normalized(params.get('skill_q')).trim().split(/\s+/).filter(Boolean);
  const kinds=params.getAll('skill_kind'),mechanics=params.getAll('mechanic');

@@ -201,7 +201,8 @@ def parse_compact_generated(number, table, anchor, parents, *, memory_boost=Fals
             raise ValueError('Compact generated-live name/effect mismatch')
         # A Wiki footnote marker belongs to the cell's evidence, not the skill name.
         name_value=label_text(name.tag)
-        if memory_boost != name_value.startswith('[MB]'):
+        shared_before_mb=memory_boost and not name_value.startswith('[MB]') and same_before_mb_note(name.tag)
+        if memory_boost != name_value.startswith('[MB]') and not shared_before_mb:
             raise ValueError('Generated-live MB context mismatch')
         target=key(name_value.removeprefix('[MB]'))
         if target in seen:raise ValueError('Duplicate compact generated-live target')
@@ -218,11 +219,41 @@ def parse_compact_generated(number, table, anchor, parents, *, memory_boost=Fals
                         'generated_from_name':parent['name'],'generation_origin_kind':parent['kind'],
                         'effect_private':effect.value,'mechanics':mechanics(effect.value),
                         'source_positions':[evidence(number,name,anchor),evidence(number,effect,anchor)]})
+        if shared_before_mb:records[-1]['mb_shared_target_private']=True
         if len(matches)>1:
             records[-1]['generated_from_names']=[parent['name'] for parent in matches]
     targets={key(t) for parent in parents for t in re.findall(r'ライブスキル生成\s*\[([^\]]+)\]',parent['effect_private'])}
     if targets!=seen:raise ValueError('Compact generated-live target coverage mismatch')
     return records
+
+
+def same_before_mb_note(tag):
+    notes=tag.select('a.note_super[id]')
+    if len(notes)!=1:return False
+    note=notes[0]
+    if not re.fullmatch(r'notetext_\d+',note.get('id','')) or not re.fullmatch(r'\*\d+',text(note)):return False
+    paragraphs=BeautifulSoup(note.get('data-tooltip-content',''),'html.parser').find_all('p')
+    return len(paragraphs)==1 and text(paragraphs[0])=='MB前と同じ'
+
+
+def merge_shared_generated(records, incoming):
+    key=lambda value:re.sub(r'\s+','',normalize('NFKC',value))
+    for child in incoming:
+        if not child.get('mb_shared_target_private'):
+            records.append(child);continue
+        matches=[old for old in records if key(old['name'])==key(child['name'])]
+        if (len(matches)!=1 or matches[0].get('generation_origin_kind')!='panel_live'
+                or matches[0].get('generation_origin_kinds')
+                or child.get('generation_origin_kind')!='mb_live'
+                or key(matches[0]['effect_private'])!=key(child['effect_private'])
+                or matches[0]['mechanics']!=child['mechanics']
+                or matches[0]['generation_stage']!=child['generation_stage']):
+            raise ValueError('Shared normal/MB generated-live content or origin mismatch')
+        original=matches[0]
+        names=original.get('generated_from_names',[original['generated_from_name']])+child.get('generated_from_names',[child['generated_from_name']])
+        if len({key(name) for name in names})!=len(names):raise ValueError('Shared normal/MB duplicate parent')
+        original.update(generated_from_names=names,generation_origin_kinds=['panel_live','mb_live'],mb_shared_target_private=True)
+        original['source_positions'].extend(child['source_positions'])
 
 
 def attach_random_options(number, table, anchor, nodes, *, memory_boost=False):
@@ -444,7 +475,7 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
             raise ValueError("MB table without parsed skills")
     for number,table,anchor,is_mb in compact:
         if generated is None:raise ValueError('Generated-live collection unavailable')
-        generated.extend(parse_compact_generated(number,table,anchor,mb if is_mb else [n for n in nodes if n['kind']=='panel_live'],memory_boost=is_mb))
+        merge_shared_generated(generated,parse_compact_generated(number,table,anchor,mb if is_mb else [n for n in nodes if n['kind']=='panel_live'],memory_boost=is_mb))
     if generated and len({n['name'] for n in generated})!=len(generated):raise ValueError('Duplicate generated-live name across tables')
     for number,table,anchor in random_tables:attach_random_options(number,table,anchor,nodes)
     for number,table,anchor in mb_random_tables:attach_random_options(number,table,anchor,mb,memory_boost=True)

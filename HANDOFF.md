@@ -748,3 +748,12 @@ frozen3872・保存1288ページから1344候補(P523/S821)/22746項目を生成
 ### 1,344件版の公開確認完了
 
 公開3ace6e5f1c596e68ca549f1024a0b791e6eb6b7f、準備367b141、タグui-v9-details1344-20261010、Actions38022645805 success。匿名58/58ファイルがHTTP200・生バイト一致。PC1280/390/320の基本/詳細・条件付き最大倍率・旧性能非混入・2種固有アビリティがPASS。公開3画像を確認。private/audits/detail1344-public-verification-20261010.json参照。原本/公開とも1344、書込unknownなし。次は取得012の残ページを引き続き60秒以上で保存し、全終了後に最新コードで全入力をオフライン再変換する。native1293/1344代替renderはread-only import実行中、正式Google画面はCUA環境障害で未確認。全件詳細/条件全面構造化/独立公式網羅/基礎新規本番追加実証等は未完了、47リンクはユーザー保留。今回は作業継続中で停止指示ではない。
+
+
+### 2026-10-10 後続1,380候補・UI v10準備
+
+frozen3980（保存1324/1363、新規1319/再利用5、pending39）から1379候補＋1構造例外。通常/MB共有生成先の明示脚注を検証して1件補完、after1344-expanded-fixed-candidate-20261010.json・1380候補(P535/S845)・hashb28fe4572a44be82d38130d7bb99abdd89617af8d4261e1228583cc91773e05c、既存1379値不変。全同一frozen再変換はsession25833で実行中。fresh1344native全15タブ/22746registry/1344カード/手修正1一致、意味hash7f8fe6...不変、mtime03:47:48.879UTC不変。after1344-expanded-adoption-20261010計画を準備中(session94849)。まだ新native書込/原本昇格/公開はしていない。
+
+UI v10は未収録と47件保留を分ける表示へ修正。1344データ維持のローカルpreviewで3幅基本/詳細PASS。公開はUI v9・1344のまま。共有生成元の検索と子自身のPlus/MB親Refrainの非混同回帰を追加、Python155/JS29 PASS（HTTP429のログは合成fault試験であり実Wiki障害ではない）。
+
+1293/1344native代替表示は各6詳細タブの先頭/末尾11画像を確認済み。全体importが20〜45分を超えたため、所有者確認済みread-only検証node27256/9508だけを終了した。原本/公開/完全exportは不変。代わりに標準ZIP/XMLで実exportから対象行だけを抽出し、保持セル値/書式ID/位置とstyles.xml不変・元file SHA不変を検証したexcerptをArtifact Toolへimport/renderした。Google実画面や完全workbookの再描画成功とは主張しない。全native値/書式/linksはAPI/完全exportの別検証で確認済み。private/audits/native1293/1344-bounded-preview-provenance*、whole-native-visual-import-cancellation-20261010.json参照。再開時は重い全体renderを二重起動せず、この境界を保持する。取得012は継続中、停止待機ではない。

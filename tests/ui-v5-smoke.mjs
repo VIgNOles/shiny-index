@@ -41,6 +41,15 @@ try{
   assert.equal(await page.locator('#count').textContent(),total+' / '+total+' 件');
   assert.ok((await page.locator('#detail-version').textContent()).includes(dl.detail_version));
   assert.equal(await page.locator('#skill-controls').isDisabled(),false);
+  if(Number((process.env.UI_EXPECTED_VERSION??'').match(/^ui-v(\d+)/)?.[1])>=10){
+   const coverageText=await page.locator('#detail-coverage').textContent();
+   const held=details.coverage.status_counts.missing_page_on_hold??0;
+   assert.ok(coverageText.includes('詳細 '+details.cards.length+' / '+total+'カード収録'));
+   if(held)assert.ok(coverageText.includes('個別ページなし '+held+'件（保留）'));
+   assert.ok(!coverageText.includes('順次取得中'));
+   assert.ok(coverageText.includes('数値・条件は一部のみ収録'));
+  }
+
   await page.locator('#skill-filters summary').click();
   await page.locator('#detail-available').check();
   assert.equal(await page.locator('#count').textContent(),details.cards.length+' / '+total+' 件');
@@ -214,6 +223,28 @@ try{
    await page.locator('.performance summary').filter({hasText:'生成ライブスキル'}).click();
    assert.ok((await page.locator('.performance').textContent()).includes('生成元 new or … / new or …+(☆4)'));
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-shared-generation.png')});
+   await page.locator('#reset').click();
+  }
+  const sharedNormalMb=details.cards.find(card=>card.card_id==='7dee45c8-9de0-462d-b941-1204d57fac45');
+  if(sharedNormalMb){
+   const baseCard=cards.find(card=>card.card_id===sharedNormalMb.card_id);
+   const children=sharedNormalMb.items.filter(item=>item.kind==='generated_live');
+   assert.equal(children.length,2);
+   assert.ok(children.every(item=>JSON.stringify(item.generation_origin_kinds)==='["panel_live","mb_live"]'));
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   await page.locator('#skill-kind').selectOption('generated_live');
+   await page.locator('#skill-q').fill('[MB]連綿と、桜++(4/5)');
+   await page.locator('input[name="mechanic"][value="plus"]').check();
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'生成ライブスキル'}).click();
+   const parents='生成元 連綿と、桜++(☆4) / [MB]連綿と、桜++(4/5)';
+   assert.ok((await page.locator('.performance').textContent()).includes(parents));
+   await page.getByText(parents,{exact:false}).first().scrollIntoViewIfNeeded();
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-shared-normal-mb.png')});
+   await page.locator('input[name="mechanic"][value="plus"]').uncheck();
+   await page.locator('input[name="mechanic"][value="refrain"]').check();
+   assert.equal(await page.locator('#count').textContent(),'0 / '+total+' 件');
    await page.locator('#reset').click();
   }
   const kite=details.cards.find(card=>card.card_id==='cd191d49-a396-4b8d-864c-37cc36d9c29d');
