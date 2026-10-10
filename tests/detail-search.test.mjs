@@ -1,3 +1,4 @@
+import {effectFactText,effectSearchMatches} from '../web/details.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {detailSearch,factText,generationParentText,detailCoverageText,activationConditionText,activationConditionType,activationConditionTypes,itemActivationCondition} from '../web/details.mjs';
@@ -175,4 +176,37 @@ test('level formulas and group restrictions are searchable without implying nume
 });
 test('legacy data safely does not match new effect filters',()=>{
  assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_target=Vocal'),details),[]);
+});
+
+
+test('live conditions and scaling stay attached to the matching effect',()=>{
+ const d=new Map([['P1',{items:[{name:'複合',kind:'panel_live',effect_details:{effects:[
+  {metric:'appeal',targets:['Vocal'],value:5,unit:'multiplier',scope:'base',maximum:true,restrictions:{scaling:'attention_descending'}},
+  {metric:'rate_up',targets:['Dance'],value:40,unit:'percent',scope:'plus',turns:3,activation_condition:{status:'structured',expression:{field:'turn',operator:'lte',value:2}}},
+  {metric:'refrain',targets:['過去のアピール'],value:2,unit:'points',scope:'refrain',activation_condition:{status:'unsupported'}}
+ ]}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_target=Vocal&skill_q=2ターン以前'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_target=Dance&skill_q=2ターン以前'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=appeal&skill_q=注目度が低いほど'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=refrain&skill_q=2ターン前'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=refrain&effect_turns=2'),d),[]);
+ const text=effectFactText(d.get('P1').items[0].effect_details.effects[2]);
+ assert.ok(text.includes('発動条件：未構造化'));assert.ok(!text.includes('undefined'));
+});
+test('instant recovery and passive strengthening do not become duration buffs',()=>{
+ const d=new Map([['S1',{items:[{name:'heal',kind:'panel_live',effect_details:{effects:[
+ {metric:'mental_recovery',targets:['メンタル'],value:20,unit:'percent',scope:'base'},
+ {metric:'passive_boost',targets:['パッシブスキル'],value:10,unit:'percent',scope:'base',turns:3}
+ ]}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=mental_recovery'),d),[cards[1]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=mental_recovery&effect_turns=3'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=passive_boost&effect_turns=3'),d),[cards[1]]);
+});
+
+test('highlight and search use exactly the same effect and keyword predicate',()=>{
+ const item={name:'test',kind:'panel_live'},params=new URLSearchParams('effect_target=Dance&skill_q=2ターン以前');
+ const unconditional={metric:'rate_up',targets:['Dance'],scope:'base',unit:'percent',value:100,turns:4};
+ const conditional={...unconditional,scope:'plus',activation_condition:{status:'structured',expression:{field:'turn',operator:'lte',value:2}}};
+ assert.equal(effectSearchMatches(item,unconditional,params),false);
+ assert.equal(effectSearchMatches(item,conditional,params),true);
 });

@@ -20,11 +20,12 @@ const browser=await chromium.launch({headless:true,executablePath:process.env.UI
 try{
  for(const width of [1280,390,320]){
   const page=await browser.newPage({viewport:{width,height:900},...(width<500?{isMobile:true,hasTouch:true}:{})});const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(base,{waitUntil:'networkidle'});assert.equal(await page.evaluate(()=>window.UI_VERSION),'ui-v14');
+  await page.goto(base,{waitUntil:'networkidle'});assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v14');
   await page.locator('#skill-filters > summary').click();
   assert.ok(await page.locator('#effect-type').isVisible());
   assert.equal(await page.locator('#effect-type').getAttribute('id'),'effect-type');
   const cases=[['support_recovery','体力',''],['support_cost_down','体力',''],['rate_up','Dance','5'],['appeal_boost','アピール値',''],['appeal','Vocal','']];
+  if(process.env.UI_EXPECTED_VERSION==='ui-v15')cases.push(['mental_recovery','メンタル',''],['memory_gauge_gain','思い出ゲージ',''],['rate_up','パッシブスキル発動率','3'],['passive_boost','パッシブスキル','3'],['refrain','過去のアピール',''],['exchange_count_up','交換数','']);
   for(const [metric,target,turns] of cases){
    await page.locator('#reset').click();
    if(!await page.locator('#skill-filters').evaluate(n=>n.open))await page.locator('#skill-filters > summary').click();
@@ -38,12 +39,21 @@ try{
    assert.ok((await match.textContent()).includes(target));
    if(turns)assert.ok(/\[\d+ターン\]/.test(await match.textContent()));
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-   if(output&&['support_recovery','rate_up','appeal_boost'].includes(metric))await page.screenshot({path:path.join(output,width+'-'+metric+'.png')});
+   assert.ok(!(await match.textContent()).includes('undefined'));
+   if(output&&['mental_recovery','refrain'].includes(metric))await page.screenshot({path:path.join(output,width+'-'+metric+'.png')});
   }
   await page.locator('#reset').click();assert.equal(await page.locator('#effect-type').inputValue(),'');assert.equal(await page.locator('#effect-target').inputValue(),'');
   await page.locator('#effect-type').selectOption('support_bond');await page.locator('#effect-target').selectOption('絆');await page.locator('#skill-q').fill('プロデュース開始時 スキルLv×5');
   assert.ok(Number((await page.locator('#count').textContent()).split(' / ')[0])>0);
   await page.locator('.detail-toggle').first().click();assert.ok((await page.locator('.performance').first().textContent()).includes('取得表の最大スキルLv'));
+  if(process.env.UI_EXPECTED_VERSION==='ui-v15'){
+   await page.locator('#reset').click();await page.locator('#effect-type').selectOption('rate_up');await page.locator('#effect-target').selectOption('Dance');await page.locator('#skill-q').fill('2ターン以前');
+   assert.ok(Number((await page.locator('#count').textContent()).split(' / ')[0])>0);
+   await page.locator('.detail-toggle').first().click();const m=page.locator('.matched-effect').first();await m.scrollIntoViewIfNeeded();
+   assert.ok((await m.textContent()).includes('発動条件：'));assert.ok((await m.textContent()).includes('2ターン以前'));
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   if(output)await page.screenshot({path:path.join(output,width+'-live-condition.png')});
+  }
   await page.locator('#reset').click();await page.locator('#effect-type').selectOption('interest');
   await page.goBack({waitUntil:'networkidle'});assert.equal(await page.locator('#effect-type').inputValue(),'');await page.goForward({waitUntil:'networkidle'});assert.equal(await page.locator('#effect-type').inputValue(),'interest');
   assert.deepEqual(errors,[]);await page.close();console.log(width+' effects PASS');

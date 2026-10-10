@@ -3,11 +3,24 @@ Support rules match whole cells. Live duration is attached only to the adjacent
 recognised effect, with its mechanic scope; it is never copied to other effects.
 """
 import math,re,unicodedata
+from src.skill_conditions_v2 import parse as parse_condition, validate_extension, join
 LIVE={'panel_live','mb_live','generated_live','possessed_live','memory_appeal','quick_skill'}
 TARGETS={'Vocal','Dance','Visual','メンタル','SP','体力','絆','テンション','トラブル率','注目度','思い出ゲージ','リアクション回避率','メンタルダメージ','興味','影響力','アピール値','基礎能力値','施設Lv','パーフェクト','エクセレント','イベント発生率','ノウハウ発現率','アドバイス抽選率','交換数','Excellent'}
 METRICS={'support_gain','support_recovery','support_cost_down','support_trouble_down','support_rest_gain','support_bond','support_tension_protection','appeal_boost','memory_gain_boost','base_stat_boost','rate_up','rate_down','rate_cut','interest','support_presence_up','support_event_rate','support_knowhow_rate','support_location_level','support_perfect','support_excellent','support_advice_rate','exchange_count_up','appeal'}
 TRIGGERS={'produce_start','missed_promise','rest','lesson_or_work','unit_member_present','tension_max','audition_first','vocal_lesson','dance_lesson','visual_lesson','radio','talk','magazine','talk_event','solo_vocal_lesson','solo_dance_lesson','solo_radio','no_trouble','excellent','knowhow_acquired','always','say_halo','appeal_phase_start','turn_2'}
 SCOPES={'base','link','plus','change','grow','refrain','memory_link','memory_charge'}
+TARGETS.update({'パッシブスキル発動率','パッシブスキル','リラックス','過去のアピール'})
+METRICS.update({'mental_recovery','mental_cost','memory_gauge_gain','relax','passive_boost','refrain'})
+SCALING={
+ 'メンタルが多いほど効果UP':'mental','メンタルが少ないほど効果UP':'mental_descending',
+ 'メンタルが低いほど効果UP':'mental_descending','Meが少ない程効果UP':'mental_descending',
+ '注目度が高いほど効果UP':'attention','注目度が低いほど効果UP':'attention_descending',
+ '注目度が低い程効果UP':'attention_descending','回復回数増加で効果UP':'heal_count',
+ '回避率が高いほど効果UP':'evasion','スキル履歴が多いほど効果UP':'history',
+ '履歴が多いほど効果UP':'history','思い出ゲージが多いほど効果UP':'memory',
+ '所属ユニットが多いほど効果UP':'unit_types','減少値が多いほど効果UP':'mental_spent',
+ '経過ターンが短いほど効果UP':'turns_descending','経過ターンが長いほど効果UP':'turns_ascending',
+}
 ACTIVITIES={'ボーカルレッスン':'vocal_lesson','ダンスレッスン':'dance_lesson','ビジュアルレッスン':'visual_lesson','ラジオ':'radio','トークショー':'talk','雑誌の撮影':'magazine','トークイベント':'talk_event'}
 def normalized(value):
  return re.sub(r'\s+','',unicodedata.normalize('NFKC',value or ''))
@@ -118,41 +131,89 @@ def ability(text,known_idols):
  return {'status':'partial' if partial and out else 'structured' if out else 'unsupported','effects':out}
 # A match includes its own adjacent duration; target aliases are normalized facts.
 ATTR=r'(?:Vocal|Dance|Visual|Vo|Da|Vi)'
-RATE=re.compile(r'(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|注目度|思い出ゲージ|リアクション回避率|メンタルダメージ|メンタル|影響力)(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN|CUT)\[(?P<turns>\d+)ターン\]')
-APPEAL=re.compile(r'(?P<audience>全観客に)?(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|Excellent)(?P<maximum>最大)?(?:(?P<minimum>\d+(?:\.\d+)?)[～〜~])?(?P<value>\d+(?:\.\d+)?)倍アピール')
+RATE=re.compile(r'(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|注目度|思い出ゲージ|リアクション回避率|回避率|メンタルダメージ|メンタル|影響力|パッシブスキル発動率)(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN|CUT)\[(?P<turns>\d+)ターン\]')
+APPEAL=re.compile(r'(?P<order>必ず最初に|必ず最後に)?(?P<audience>全観客に)?(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|Excellent)(?P<maximum>最大)?(?:(?P<minimum>\d+(?:\.\d+)?)[～〜~])?(?P<value>\d+(?:\.\d+)?)倍アピール')
 INTEREST=re.compile(r'興味(?P<value>\d+(?:\.\d+)?)倍\[(?P<turns>\d+)ターン\]')
-def live(text,scope='base'):
+LIVE_EXTRA=[
+ (re.compile(r'メンタル(?P<value>\d+(?:\.\d+)?)%回復'),'mental_recovery','メンタル','percent'),
+ (re.compile(r'自身のメンタルを(?P<value>\d+(?:\.\d+)?)%減ら(?:す|し)'),'mental_cost','メンタル','percent'),
+ (re.compile(r'思い出ゲージ(?P<value>\d+(?:\.\d+)?)%UP(?!\[|\d)'),'memory_gauge_gain','思い出ゲージ','percent'),
+ (re.compile(r'リラックス効果(?P<value>\d+(?:\.\d+)?)%付与\[(?P<turns>\d+)ターン\]'),'relax','リラックス','percent'),
+ (re.compile(r'パッシブスキル(?P<value>\d+(?:\.\d+)?)%強化\[(?P<turns>\d+)ターン\]'),'passive_boost','パッシブスキル','percent'),
+ (re.compile(r'交換数UP\[(?P<value>\d+)回\]'),'exchange_count_up','交換数','points'),
+ (re.compile(r'リフレイン\[(?P<value>\d+)ターン前\]'),'refrain','過去のアピール','points'),
+]
+
+def effect_condition(part,ctx):
+ """Only leading mechanic brackets apply to the following mechanic block."""
+ matches=re.match(r'((?:\[[^\[\]]*\])+)',part)
+ if not matches:return None
+ if ctx is None:return {'status':'unsupported'}
+ terms=[parse_condition(b.removeprefix('条件:'),ctx) for b in re.findall(r'\[([^\[\]]*)\]',matches[1])]
+ if not all(terms):return {'status':'unsupported'}
+ result={'status':'structured','expression':terms[0] if len(terms)==1 else join('all',terms)}
+ try:validate_extension(result,ctx)
+ except ValueError:return {'status':'unsupported'}
+ return result
+
+def adjacent_restrictions(part,end):
+ # Read consecutive brackets only; intervening text ends this effect's suffix.
+ r={}
+ while (m:=re.match(r'\[([^\[\]]*)\]',part[end:])):
+  b=m[1]
+  if b in SCALING:r['scaling']=SCALING[b]
+  elif b=='興味無視':r['ignore_interest']=True
+  elif b=='ダメージを受けるまで':r['until_damage']=True
+  end+=m.end()
+ return r
+
+def live(text,scope='base',ctx=None):
  n=normalized(text);out=[]
  # Only the known mechanic markers change scope. Raw conditions are not distributed.
- pieces=re.split(r'\((Link|Plus|Change|GrowUp|Grow|Refrain)\)',n)
+ pieces=re.split(r'\((Link|Plus|Change|GrowUp|Grow|Refrain|Reflain)\)',n,flags=re.I)
  current=scope
  for idx,part in enumerate(pieces):
   if idx%2:
-   current=scope if scope in {'memory_link','memory_charge'} else {'GrowUp':'grow'}.get(part,part.lower());continue
-  in_piece=[]
+   current=scope if scope in {'memory_link','memory_charge'} else {'growup':'grow','reflain':'refrain'}.get(part.lower(),part.lower());continue
+  in_piece=[];condition=effect_condition(part,ctx) if idx else None
   for pattern,metric in [(RATE,None),(INTEREST,'interest'),(APPEAL,'appeal')]:
    for m in pattern.finditer(part):
     # Reject a suffix match inside a longer status or '最大' conditional number.
     if m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]) and part[m.start()-1] not in ']':continue
-    targets=['興味'] if metric=='interest' else [{'Vo':'Vocal','Da':'Dance','Vi':'Visual'}.get(x,x) for x in m['targets'].split('&')]
+    if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
+    targets=['興味'] if metric=='interest' else [{'Vo':'Vocal','Da':'Dance','Vi':'Visual','回避率':'リアクション回避率'}.get(x,x) for x in m['targets'].split('&')]
     e=effect(metric or 'rate_'+m['direction'].lower(),targets,'multiplier' if metric else 'percent',scope=current,value=float(m['value']),restriction_status='partial')
     if metric=='appeal':
      if m['minimum'] is not None:e['minimum']=float(m['minimum'])
      if m['maximum']:e['maximum']=True
      if m['audience']:e['audience']='all'
+     if m['order']:e['appeal_order']='first' if m['order']=='必ず最初に' else 'last'
     else:e['turns']=int(m['turns'])
+    r=adjacent_restrictions(part,m.end())
+    if r:e['restrictions']=r
+    if condition:e['activation_condition']=condition
+    in_piece.append((m.start(),e))
+  for pattern,metric,target,unit in LIVE_EXTRA:
+   for m in pattern.finditer(part):
+    if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
+    if m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]):continue
+    e=effect(metric,[target],unit,scope=current,value=float(m['value']),restriction_status='partial')
+    if m.groupdict().get('turns'):e['turns']=int(m['turns'])
+    r=adjacent_restrictions(part,m.end())
+    if r:e['restrictions']=r
+    if condition:e['activation_condition']=condition
     in_piece.append((m.start(),e))
   out.extend(e for _,e in sorted(in_piece,key=lambda pair:pair[0]))
  return out
-def effect_details(item,known_idols=()):
+def effect_details(item,known_idols=(),condition_context=None):
  kind=item['kind']
  if kind=='support_skill':
   effects=support(item.get('effect_private',''),item.get('name',''));return {'status':'structured' if effects else 'unsupported','effects':effects}
  if kind=='unique_ability':return ability(item.get('effect_private',''),known_idols)
  if kind in LIVE:
-  effects=[] if item.get('random_effect_options') else live(item.get('effect_private',''))
+  effects=[] if item.get('random_effect_options') else live(item.get('effect_private',''),ctx=condition_context)
   if kind=='memory_appeal':
-   for slot in ('link','charge'):effects+=live(item.get(slot+'_appeal_private',''),'memory_'+slot)
+   for slot in ('link','charge'):effects+=live(item.get(slot+'_appeal_private',''),'memory_'+slot,condition_context)
   return {'status':'partial' if effects else 'unsupported','effects':effects}
  return None
 
@@ -164,12 +225,17 @@ def validate_amount(v,probability=False):
   f=v['formula']
   if set(f)!={'variable','coefficient','offset'} or f['variable']!='skill_level' or any(type(f[k]) not in (int,float) or not math.isfinite(f[k]) or f[k]<0 for k in ('coefficient','offset')):raise ValueError('Invalid effect formula')
  else:raise ValueError('Invalid effect amount')
-def validate_effect_details(doc,known_idols):
+def validate_effect_details(doc,known_idols,condition_context=None):
  if set(doc)!={'status','effects'} or doc['status'] not in {'structured','partial','unsupported'} or not isinstance(doc['effects'],list) or bool(doc['effects'])!=(doc['status']!='unsupported'):raise ValueError('Invalid effect structure')
  for e in doc['effects']:
-  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience'}:raise ValueError('Non-public effect field')
+  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order'}:raise ValueError('Non-public effect field')
   if e.get('metric') not in METRICS or not isinstance(e.get('targets'),list) or not e['targets'] or len(e['targets'])!=len(set(e['targets'])) or set(e['targets'])-TARGETS or e.get('unit') not in {'points','percent','multiplier','boolean'} or e.get('scope') not in SCOPES:raise ValueError('Invalid effect fact')
   validate_amount({k:e[k] for k in ('value','formula','amount_unknown') if k in e})
+  if e['metric']=='refrain' and (e['unit']!='points' or type(e.get('value')) not in (int,float) or e['value']%1 or e['value']<1):raise ValueError('Invalid refrain distance')
+  if 'appeal_order' in e and (e['metric']!='appeal' or e['appeal_order'] not in {'first','last'}):raise ValueError('Invalid appeal order')
+  if 'activation_condition' in e and e['activation_condition']!={'status':'unsupported'}:
+   if condition_context is None:raise ValueError('Missing effect condition context')
+   validate_extension(e['activation_condition'],condition_context)
   if 'minimum' in e and (e['metric']!='appeal' or type(e['minimum']) not in (int,float) or not math.isfinite(e['minimum']) or not 0<=e['minimum']<=e['value']):raise ValueError('Invalid effect range')
   if 'audience' in e and (e['metric']!='appeal' or e['audience']!='all'):raise ValueError('Invalid appeal audience')
   if 'probability' in e:validate_amount(e['probability'],True)
@@ -184,10 +250,11 @@ def validate_effect_details(doc,known_idols):
   if 'restriction_status' in e and e['restriction_status'] not in {'structured','partial'}:raise ValueError('Invalid effect restriction')
   if 'restrictions' in e:
    r=e['restrictions']
-   if not isinstance(r,dict) or set(r)-{'group','idols','unit_types_min','unit_types_max','history_genres','until_damage','scaling'}:raise ValueError('Non-public effect restriction')
+   if not isinstance(r,dict) or set(r)-{'group','idols','unit_types_min','unit_types_max','history_genres','until_damage','scaling','ignore_interest'}:raise ValueError('Non-public effect restriction')
    if 'group' in r and (not isinstance(r['group'],str) or not 0<len(r['group'])<=200):raise ValueError('Invalid effect group')
    if 'idols' in r and (not isinstance(r['idols'],list) or not r['idols'] or any(x not in known_idols for x in r['idols'])):raise ValueError('Unknown effect idol')
-   if 'scaling' in r and r['scaling'] not in {'turns_ascending','turns_descending','memory','history','mental'}:raise ValueError('Invalid effect scaling')
+   if 'scaling' in r and r['scaling'] not in set(SCALING.values()):raise ValueError('Invalid effect scaling')
    for k in ('unit_types_min','unit_types_max','history_genres'):
     if k in r and (type(r[k]) is not int or r[k]<1):raise ValueError('Invalid effect threshold')
    if 'until_damage' in r and r['until_damage'] is not True:raise ValueError('Invalid effect until')
+   if 'ignore_interest' in r and r['ignore_interest'] is not True:raise ValueError('Invalid effect interest flag')

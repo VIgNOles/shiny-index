@@ -1,4 +1,4 @@
-import {effectNames,effectFactText,effectMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
+import {effectNames,effectFactText,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -523,7 +523,7 @@ try{
      const facts=add(row,'ul','','effect-facts');
      for(const e of item.effect_details.effects){
       const fact=add(facts,'li',effectFactText(e),'skill-values');
-      if(matchedIds.has(item.detail_id)&&effectMatches(e,params)){fact.classList.add('matched-effect');group.open=true;}
+      if(matchedIds.has(item.detail_id)&&effectSearchMatches(item,e,params)){fact.classList.add('matched-effect');group.open=true;}
      }
      if(item.kind==='support_skill'){
       const levels=(item.progression??[]).map(p=>p.skill_level).filter(n=>Number.isFinite(n));

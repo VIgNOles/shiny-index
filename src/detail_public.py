@@ -50,7 +50,7 @@ def public_document(master,base_cards,base_version=None):
             public={key:item[key] for key in ITEM_FIELDS if key in item}
             public.update(numeric_facts=numeric_facts(item),effect_structure='partial',conditions_not_structured=True,
                           source_positions=item.get('source_positions',[]))
-            effects=effect_details(item,known_idols)
+            effects=effect_details(item,known_idols,conditions)
             if effects is not None:public['effect_details']=effects
             condition=activation_condition(item,known_idols)
             if condition is not None:
@@ -158,7 +158,7 @@ def validate_public(doc,base_cards):
                 validate_extension(item['activation_condition_v2'],conditions)
             if 'effect_details' in item:
                 if item['kind'] not in {'support_skill','unique_ability','panel_live','mb_live','generated_live','possessed_live','memory_appeal','quick_skill'}:raise ValueError('Invalid effect structure owner')
-                validate_effect_details(item['effect_details'],known_idols)
+                validate_effect_details(item['effect_details'],known_idols,conditions)
             validate_memory_facts(item)
             validate_generation_parents(item)
             if item['detail_id'] in items or item['kind'] not in KINDS[card['card_kind']]:raise ValueError('Invalid detail item')
