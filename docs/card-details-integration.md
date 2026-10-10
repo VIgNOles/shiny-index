@@ -312,3 +312,8 @@ Googleのnative全コピーへ詳細6タブを359 bounded batchで登録し、�
 実装9d1c764、公開準備421f21e、公開64bdb5f02e424450199857aa8789e53e042b34ac、tag ui-v11-conditions-20261010、Actions38038517584 success。匿名64/64ファイルの生バイト一致。ローカル/公開/旧UI v10切戻しの3幅基本・詳細PASS、P/S条件・未対応表示・URL保持・同一項目検索・JSON版を確認、画像ローカル3/公開2枚を視認。Python167/JS33 PASS（429ログは模擬）。
 未対応944項目はprivate監査へ分類保存：人物略記381、ユニット全員137、3属性全て20、明示論理結合22、その他/暗黙の複合384。分類は意味の推測や採用ではない。次は保存HTML内のリンク/脚注・表見出しを確認して略記の意味を確定し、全員・AND/ORを失わないschemaと境界試験から対応する。ユーザー回答待ちはない。
 原本/native mtime04:56:30.698Z・ownerを再確認。接続の公開詳細版参照だけ更新し、nativeセルは変更していない。旧siteと接続backup、release checkpoint、provenance/preservation/public確認・未対応triageはprivateへ保存。原本の編集手順は従来どおりfresh export→review/apply→別候補→検証→publish→匿名確認。全面解析・公式独立網羅・本番基礎新規追加実証・全面実機/Google実画面/全面復旧は未完了。
+
+
+## UI v12の条件バンドル
+
+詳細d1-776465cddea6c059候補は、従来の単一条件と旧集計を保持し、491項目にactivation_condition_v2を追加する。新UIの対応数はactivation_condition_search_counts（5437/453）、旧UI v11の表示数はactivation_condition_counts（4946/944）。この違いは互換表示の範囲であり、カード/項目の欠落ではない。木のall/anyと全員/ユニット内のみ/人数範囲を保存し、旧UIへの切戻しでも原本r18/1419/24025と新不変バンドルを維持する。個別リンク47保留・対象外項目・CSV非表示は不変。

@@ -28,6 +28,9 @@ const server=publicUrl?null:createServer(async(req,res)=>{
 if(server)await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const dl=JSON.parse(await readFile(path.join(root,'details/latest.json'),'utf8'));
 const details=JSON.parse(await readFile(path.join(root,'details',dl.detail_version,'details.json'),'utf8'));
+const extendedUI=Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v',''))>=12;
+const conditionFor=i=>(extendedUI?i.activation_condition_v2:undefined)??i.activation_condition;
+const fields=p=>p?.terms?p.terms.flatMap(fields):p?.field?[p.field]:[];
 let browser;
 try{
  const launch=process.env.UI_BROWSER_PATH?{executablePath:process.env.UI_BROWSER_PATH}:{};
@@ -275,7 +278,7 @@ try{
    if(!await page.locator('#skill-filters').evaluate(node=>node.open))await page.locator('#skill-filters summary').click();
    await page.locator('#skill-kind').selectOption('panel_passive');
    await page.locator('#skill-condition').selectOption('mental');
-   const mentalCards=details.cards.filter(c=>c.items.some(i=>i.kind==='panel_passive'&&i.activation_condition?.status==='structured'&&['mental_percent','maximum_mental'].includes(i.activation_condition.expression.field)));
+   const mentalCards=details.cards.filter(c=>c.items.some(i=>i.kind==='panel_passive'&&conditionFor(i)?.status==='structured'&&fields(conditionFor(i).expression).some(f=>['mental_percent','maximum_mental'].includes(f))));
    assert.equal(await page.locator('#count').textContent(),mentalCards.length+' / '+total+' 件');
    assert.ok((await page.locator('#active-filters').textContent()).includes('発動条件：メンタル'));
    await page.reload({waitUntil:'networkidle'});
@@ -300,15 +303,52 @@ try{
     if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-passive-condition-'+kind+'.png')});
    }
    await page.locator('#reset').click();
-   const unsupported=details.cards.find(c=>c.items.some(i=>i.activation_condition?.status==='unsupported')&&keys.get(cards.find(b=>b.card_id===c.card_id).card_title+cards.find(b=>b.card_id===c.card_id).idol_name)===1);
+   const unsupported=details.cards.find(c=>c.items.some(i=>conditionFor(i)?.status==='unsupported')&&keys.get(cards.find(b=>b.card_id===c.card_id).card_title+cards.find(b=>b.card_id===c.card_id).idol_name)===1);
    const baseCard=cards.find(c=>c.card_id===unsupported.card_id);
    await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    if(await page.locator('.detail-toggle').getAttribute('aria-expanded')==='false')await page.locator('.detail-toggle').click();
    await page.locator('.performance summary').filter({hasText:'パッシブスキル'}).click();
-   assert.equal(await page.locator('.performance .activation-condition').filter({hasText:'未対応（Wikiで確認してください）'}).count(),unsupported.items.filter(i=>i.activation_condition?.status==='unsupported').length);
+   assert.equal(await page.locator('.performance .activation-condition').filter({hasText:'未対応（Wikiで確認してください）'}).count(),unsupported.items.filter(i=>conditionFor(i)?.status==='unsupported').length);
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-passive-condition-unsupported.png')});
    await page.locator('.detail-toggle').click();
+   await page.locator('#reset').click();
+  }
+
+  if(Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v',''))>=12&&details.coverage.activation_condition_search_counts){
+   const counts=details.coverage.activation_condition_search_counts;
+   assert.ok((await page.locator('#detail-coverage').textContent()).includes(counts.structured+' / '+(counts.structured+counts.unsupported)+'項目対応'));
+   const unique=new Map();for(const c of cards){const key=c.card_title+c.idol_name;unique.set(key,(unique.get(key)??0)+1);}
+   const cases=[
+    {key:'unit-all',category:'participant',test:p=>p.field==='unit_all_participants',query:p=>p.value+'全員が参加'},
+    {key:'unit-only',category:'participant',test:p=>p.field==='unit_only_participant',query:p=>p.unit+'から'+p.value+'のみが参加'},
+    {key:'mental-range',category:'mental',test:p=>p.operator==='all'&&p.terms.length===2&&p.terms.every(t=>t.field==='mental_percent'),query:p=>'メンタル'+p.terms[0].value+'%以上 かつ メンタル'+p.terms[1].value+'%以下'},
+    {key:'history-or-turn',category:'turn',test:p=>p.operator==='any'&&p.terms.length===2&&p.terms[0].field==='history_participant'&&p.terms[1].field==='turn',query:p=>p.terms[0].value+' または '+p.terms[1].value+'ターン以降'},
+   ];
+   for(const example of cases){
+    const featured=details.cards.find(c=>unique.get(cards.find(b=>b.card_id===c.card_id).card_title+cards.find(b=>b.card_id===c.card_id).idol_name)===1&&c.items.some(i=>i.activation_condition_v2&&example.test(i.activation_condition_v2.expression)));
+    assert.ok(featured,example.key);
+    const item=featured.items.find(i=>i.activation_condition_v2&&example.test(i.activation_condition_v2.expression));
+    const query=example.query(item.activation_condition_v2.expression),baseCard=cards.find(c=>c.card_id===featured.card_id);
+    await page.locator('#reset').click();
+    await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+    if(!await page.locator('#skill-filters').evaluate(n=>n.open))await page.locator('#skill-filters summary').click();
+    await page.locator('#skill-kind').selectOption('panel_passive');
+    await page.locator('#skill-condition').selectOption(example.category);
+    await page.locator('#skill-q').fill(query);
+    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件',example.key);
+    await page.reload({waitUntil:'networkidle'});
+    assert.equal(await page.locator('#skill-q').inputValue(),query);assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+    if(await page.locator('.detail-toggle').getAttribute('aria-expanded')==='false')await page.locator('.detail-toggle').click();
+    await page.locator('.performance summary').filter({hasText:'パッシブスキル'}).click();
+    const row=page.locator('.performance .skill-item').filter({has:page.getByText(item.name,{exact:true})}).filter({has:page.locator('.activation-condition').filter({hasText:query.split(' ')[0]})}).first();
+    assert.ok(await row.isVisible());const text=await row.locator('.activation-condition').textContent();
+    for(const word of query.split(' '))assert.ok(text.includes(word),example.key+': '+word);
+    await row.scrollIntoViewIfNeeded();
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,example.key+' horizontal overflow');
+    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-condition-'+example.key+'.png')});
+    await page.locator('.detail-toggle').click();
+   }
    await page.locator('#reset').click();
   }
   const missing=details.cards.find(card=>card.max_status?.missing_fields?.length);

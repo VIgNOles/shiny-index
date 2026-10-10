@@ -31,6 +31,33 @@ class DetailPublicTests(unittest.TestCase):
    bad=copy.deepcopy(d);mutate(bad)
    with self.assertRaisesRegex(ValueError,message):validate_public(bad,base)
 
+
+ def test_extended_conditions_preserve_legacy_export_and_resolved_override(self):
+  c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',effect_private='[条件:メンタル35%以上64%以下]');rehash(c)
+  m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}]
+  d=public_document(m,base);i=d['cards'][0]['items'][0]
+  self.assertEqual(i['activation_condition'],{'status':'unsupported'})
+  self.assertEqual(i['activation_condition_v2']['expression']['operator'],'all')
+  self.assertEqual(d['coverage']['activation_condition_counts'],{'unsupported':1})
+  self.assertEqual(d['coverage']['activation_condition_search_counts'],{'structured':1})
+  row=m['registry'][0];source=copy.deepcopy(row['source'])
+  row.update(override={'effect_private':'[条件:メンタル75%以上又は3ターン以前]'},reason='条件訂正',source_ref='test:source',updated_at='2026-10-11T00:00:00+00:00')
+  changed=public_document(m,base)['cards'][0]['items'][0]
+  self.assertEqual(changed['activation_condition_v2']['expression']['operator'],'any')
+  self.assertEqual(source,row['source'])
+ def test_condition_extension_tampering_and_effective_count_are_rejected(self):
+  c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',effect_private='[条件:メンタル35%以上64%以下]');rehash(c)
+  m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}];d=public_document(m,base)
+  for mutate in [
+   lambda x:x['cards'][0]['items'][0]['activation_condition_v2']['expression'].update(raw_private='全文'),
+   lambda x:x['cards'][0]['items'][0].update(kind='panel_live'),
+   lambda x:x['coverage']['activation_condition_search_counts'].update(structured=9),
+   lambda x:x['coverage'].pop('activation_condition_search_counts'),
+   lambda x:x['cards'][0]['items'][0].update(activation_condition={'status':'structured','expression':{'field':'turn','operator':'gte','value':3}}),
+  ]:
+   bad=copy.deepcopy(d);mutate(bad)
+   with self.assertRaises(ValueError):validate_public(bad,base)
+
  def test_acquisition_and_held_gaps_are_not_conflated_with_effect_structure(self):
   c=candidate();m=adopt(empty(c['base_dataset_version']),c);bases=[{'card_id':CID,'card_kind':'P'}]
   d=public_document(m,bases)

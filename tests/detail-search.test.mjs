@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {detailSearch,factText,generationParentText,detailCoverageText,activationConditionText,activationConditionType} from '../web/details.mjs';
+import {detailSearch,factText,generationParentText,detailCoverageText,activationConditionText,activationConditionType,activationConditionTypes,itemActivationCondition} from '../web/details.mjs';
 const cards=[{card_id:'P1'},{card_id:'S1'},{card_id:'pending'}];
 const details=new Map([
  ['P1',{items:[{name:'通常',kind:'panel_live',mechanics:['link'],numeric_facts:[]},{name:'MB限定',kind:'mb_live',mechanics:['plus'],numeric_facts:[]},{name:'思い出',kind:'memory_appeal',mechanics:['link'],numeric_facts:[]}]}],
@@ -104,4 +104,36 @@ test('condition coverage reports partial support separately from card acquisitio
  const text=detailCoverageText({detail_card_count:1419,status_counts:{available_partial:1419,missing_page_on_hold:47},activation_condition_counts:{structured:4946,unsupported:944}},1466);
  assert.ok(text.includes('発動条件 4946 / 5890項目対応'));
  assert.ok(text.includes('個別ページなし 47件（保留）'));
+});
+
+test('extended all and any conditions retain grouping and categories',()=>{
+ const leaf=(field,value,operator='eq',extra={})=>({field,operator,value,...extra});
+ const condition={status:'structured',expression:{operator:'all',terms:[leaf('turn',3,'gte'),{operator:'any',terms:[leaf('participant','櫻木真乃'),leaf('participant','風野灯織')]}]}};
+ assert.equal(activationConditionText(condition),'（3ターン以降 かつ （参加アイドル 櫻木真乃 または 参加アイドル 風野灯織））');
+ assert.deepEqual(activationConditionTypes(condition),['turn','participant']);
+ assert.equal(activationConditionText({status:'structured',expression:leaf('unknown','private')}),'');
+});
+test('unit all, unit only and history counts stay distinct',()=>{
+ const c=(field,value,extra={})=>({status:'structured',expression:{field,operator:'eq',value,...extra}});
+ assert.equal(activationConditionText(c('unit_all_participants','コメティック')),'コメティック全員が参加');
+ assert.equal(activationConditionText(c('unit_only_participant','斑鳩ルカ',{unit:'コメティック'})),'コメティックから斑鳩ルカのみが参加');
+ assert.equal(activationConditionText(c('history_unit_count',4,{unit:'コメティック',operator:'gte'})),'履歴にコメティックのアイドル4人以上');
+ assert.deepEqual(activationConditionTypes(c('unit_all_formation','アルストロメリア')),['position']);
+});
+test('extended predicates are preferred without changing legacy fields',()=>{
+ const item={kind:'panel_passive',name:'Vocal100%UP',activation_condition:{status:'unsupported'},activation_condition_v2:{status:'structured',expression:{operator:'all',terms:[{field:'mental_percent',operator:'gte',value:35},{field:'mental_percent',operator:'lte',value:64}]}}};
+ assert.equal(itemActivationCondition(item),item.activation_condition_v2);
+ const d=new Map([['P1',{items:[item]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({skill_condition:'mental',skill_q:'Vocal100%UP 35% 64% かつ'}),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_condition=turn'),d),[]);
+ assert.deepEqual(item.activation_condition,{status:'unsupported'});
+});
+test('condition element filters find either branch and keep same-item keyword matching',()=>{
+ const d=new Map([['P1',{items:[{kind:'panel_passive',name:'Vocal100%UP',activation_condition:{status:'unsupported'},activation_condition_v2:{status:'structured',expression:{operator:'any',terms:[{field:'history_participant',operator:'eq',value:'幽谷霧子'},{field:'turn',operator:'gte',value:5}]}}},{kind:'panel_passive',name:'Visual200%UP',activation_condition:{status:'structured',expression:{field:'mental_percent',operator:'gte',value:75}}}]}]]);
+ for(const kind of ['turn','history'])assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_condition='+kind+'&skill_q=Vocal100%UP+または'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_condition=mental&skill_q=Vocal100%UP'),d),[]);
+});
+test('extended coverage is shown while legacy counts remain available',()=>{
+ const text=detailCoverageText({detail_card_count:1419,status_counts:{available_partial:1419},activation_condition_counts:{structured:4946,unsupported:944},activation_condition_search_counts:{structured:5437,unsupported:453}},1466);
+ assert.ok(text.includes('5437 / 5890項目対応'));assert.ok(!text.includes('4946 /'));
 });

@@ -399,3 +399,10 @@ Googleの後続エクスポートでmtime16:10:24.240UTCとZIP包装差を観測
 原本を変えない公開変換の改善も、旧siteを保存して別の候補ディレクトリへUIを配置し、scripts/export_detail_sheet.pyで詳細を生成する。check_site、Python/JS試験、3幅の基本/詳細検索、旧データ/固定ID/手修正保持、同じデータの旧UI切戻しを確認してから昇格する。発動条件の対応数はcoverage.activation_condition_countsにあり、旧バンドルにはこの任意フィールドがない。
 
 UI v10への切戻しは scripts/build_ui_rollback.py --ref ui-v10-details1419-20261010 --source site --output private/<新しい切戻し候補> を使う。条件フィルターと条件表示は旧UIにないが、現行の基礎・詳細版と配布を保つ。候補を3幅で検証した後にsiteへ昇格し、通常のpublishコミット・Actions・匿名URL照合を行う。条件だけを元に戻す場合も旧不変ファイルを上書きせず、版の組を検証する。
+
+
+## UI v12の複合条件と切戻し
+
+activation_condition_v2も原本の有効effect_privateから自動導出する。配布JSONを手編集しない。訂正は従来どおり原本のoverrideと理由/出典/日時→fresh export→review/apply→別候補生成→検証→公開。曖昧な名前だけの条件は未対応として保持する。検索集計はactivation_condition_search_counts、旧UI互換集計はactivation_condition_countsを使う。
+
+UIだけをv11へ戻す場合はbuild_ui_rollback.py --ref ui-v11-conditions-20261010 --source site --output private/<新しい候補>で現行データを保つ。旧UIは拡張491項目を未対応と表示し、従来の条件4946項目は引き続き検索できる。原本や新不変版を消さず、3幅検証→publish→Actions→匿名版/全ファイル照合まで行う。
