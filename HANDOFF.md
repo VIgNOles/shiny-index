@@ -1,19 +1,16 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
-## 最新状態（2026-10-11 00:53 JST）
-UI v13・詳細d1-b6cec417eefae09eを公開確認済み。原本r18/1419(P548/S871)/24025、基礎r7/1466/v1-93a6a8b8d40e754a不変。現行Googleはprivate/sheets-connection.jsonのID/URL、owner指定/mtime04:56:30.698Z不変を再確認。原本セル書込0、参照解説R01本文1+robots1だけ成功。個別カード1363ページを再取得していない。
-条件を448追加し5885/5890対応・未対応5。旧UI v12は5881/9、v11は4946/944を維持。人物名旧表記を解説で確定し参加条件へ変換。履歴人物とジャンルのall、各ユニット全員のOR、所持者本人のキーワードを区別。v2は既存型のみ444追加、v3はキーワード4件、current_counts追加。全5890原セル/SHA、旧24025全項目・固定ID/手修正・旧491式/5437表示文、旧不変版保持を照合。
-公開91542d444e951510ccb79f4678f7e9f4e6376626、tag ui-v13-conditions-20261011、Actions38064733667 success。匿名68/68バイト一致、公開/ローカル/旧UI v12切戻しの1280/390/320基本・詳細PASS。新4実例・URL保持・同一項目検索・横はみ出しなし、画像ローカル3/公開2確認。Python191/JS39 PASS（429はmock）。checkpoint private/audits/ui13-condition-release-checkpoint-20261011.jsonはpublished_verified。
-公開後の実ローカルsite/master/current connectionを隔離コピーし、3障害検出→68ファイル/原本/接続の保存版復元→全バイト一致/元入力無変更を確認。private/recovery/ui13-conditions-20261011/report.json。本番全面障害復旧は未検証。旧siteと接続backupを保持。
-取得runはcomplete4098・active_attemptなし。今回の取得/変換/検証/公開/復旧処理は全て完了、ロック/未知書込応答/稼働中workerなし。単ページの共有ゲートも完了後60秒以上をmonotonic所要時間で保存するよう補強した。取得を二重起動しない。
-次はprivate/audits/full-effect-structure-census-20261011.jsonから、support_skillのLv式/条件/対象、ライブ効果ごとの継続ターン、固有アビリティの倍率とグループ制約を型付きに設計→境界試験→保存HTML全件照合→別候補/保持監査→旧UI互換→公開確認。numeric_factsなしを欠損や未取得と混同せずcap_delta/思い出Lv/技能Lv等の既存専用値を保持する。原本編集があればowner/profile/fresh exportを確認して先に手修正を取り込む。
-未対応5は誤記2・状態名の区切り不明2・括弧不整合1（passive-condition-v13-unsupported-triage-20261011.json）。根拠なく訂正しない。47ページ保留・S90最大Lv原文空欄・日付不明56・全効果/全発動制限構造化・公式独立全網羅・本番基礎新規実在カード追加実証・全面実機/Google実画面/本番全面復旧は未完了。Pステージ/適正・Sファイト対象外、CSV画面非表示を維持。ユーザー操作待ち・プロジェクト完成・停止指示の適用ではない。以下の過去記録は履歴。
-
-### 2026-10-11 状態名の追加確認（UI v13公開後）
-手入力・目視確認をユーザーが許可。続いて曖昧な2件の判定用に、発動率UP／強化単独の実例を求められた。保存済み詳細r18を検索し単独14/11、明示OR2、不明2を確認。解説のskill_016（発動率）とskill_023（効果量）は別効果。対象2カードの保存HTMLのSHA/原表も再照合し、☆2には「又は」、☆4には区切りなし、ライブには各効果の付与が別記されると確認した。private/audits/passive-status-context-review-20261011.json。新Wiki通信・Google原本書込み・公開変更は0。ゲーム画面の確認や2件の意味確定はしていない。
-人物誤記2・余分な括弧1の補正も未採用。次は根拠付きの手修正候補を作成し、Google原本のowner/mtime/fresh exportを確認→原本バックアップ→狭い範囲のoverride更新→全値/固定ID/旧override保持確認→別公開候補/検証/匿名確認。2件のAND/ORを推測せず、ユーザーの判定とは別に独立した補正・効果構造化を継続できる。
-
+## 最新状態（2026-10-11：5条件の補正・公開確認済み）
+基礎r7/1466/v1-93a6a8b8d40e754a不変。詳細原本r19/1419(P548/S871)/24025、公開版UI v13/d1-f5c5c8ded775d398。Google現行接続はprivate/sheets-connection.jsonのID/URL。指定ownerのみを確認したnative全コピーの手修正20セル＋revision1セルを更新し、全21セルと15タブを読み戻し。旧r18原本はmtime不変で保存。旧取得列・全24025 ID・aliases・カード/coverage・既存手修正1を保持し、新手修正5を追加した。
+ユーザーがゲーム内で「発動率UP強化」は発動率UPとパッシブスキル強化の両方が必要と確認。対象2を明示ANDへ補正、同カード☆2のORは維持。人物名「智世子→智代子」2・余分な閉じ括弧1は保存原表の目視による補正。確認者/根拠の種類を理由列に区別。原本の取得列を直さずoverrideで適用。
+公開候補ではパッシブ発動条件5890/5890対応・未対応0。v2旧UI互換5886/4（キーワード4未対応）、v1 4946/944不変。他の効果全文/発動制限の構造化完了は主張しない。全旧68ファイル中66をバイト保持、index/詳細pointerだけ変更、新不変2ファイルを追加。24020旧項目は全値不変、残5もv2条件/手修正根拠以外不変。
+Python192/JS40 PASS（429はmock）、ローカル1280/390/320基本/詳細と同じデータの旧UI v12切戻しPASS。AND表示/URL保持/同一項目検索/横はみ出しなし、ローカル画像2を視認。取得済み全件候補の再適用も原本完全一致・6手修正/全ID/revision19保持。保存原表1画像とnative export抜粋5画像を視認。原本の既存固定幅/行高で長文セルが切れるため全文はAPI/全export照合、Google実画面とは扱わない。
+証拠とcheckpointはprivate/details/manual-corrections-20261011。phaseはcheckpoint実値を優先。旧site/master/connection/native原本を保持。未知の書込応答なし。新Wiki通信0、取得catalog complete4098/active_attemptなし。公開1cfdfb6d7d228013dd689425bd8c57ecdd508bfc、tag ui-v13-corrections-verified-20261011、Actions38068513205 success。匿名70/70ファイルのHTTP200/全バイト一致と公開1280/390/320の基本/詳細PASS。公開画像2を視認。公開前の停止やプロジェクト完成ではない。
+次操作：private/audits/full-effect-structure-census-20261011.jsonから、support_skillのLv式/発動場面/対象、ライブ効果ごとの継続ターン、固有アビリティの倍率とグループ制約の型を設計→境界試験→保存HTML全件照合→別候補/保持監査→旧UI互換→公開確認。通常の変換は保存1363ページを使い、新しいWiki通信は不要。原本編集前に指定owner/profile/最新exportと手修正を確認する。47保留、S90最大Lv360空欄、日付不明56、全効果/全発動制限、独立公式網羅、実在基礎新規追加の本番実証、全面実機/Google実画面/本番全面復旧は残る。Pステージ/適正・Sファイト対象外、CSV非表示を維持。ユーザー判断待ち・プロジェクト完成としていない。
+今回の実障害と復旧：昇格前のバックアップコピーでDドライブ容量不足。現行原本/公開を切り替える前だったことを実確認し、不完全コピーを正常siteの先頭部分と照合してから除いた。検証済みの切戻し全コピーをCの別workspaceへ圧縮し70entry全バイト照合後に重複コピーだけを除いて約288MB確保。正常な旧siteも同C領域へ68entryのZIPとして保存/全バイト照合。原入力/元原本/既存旧版は無変更。D空きは今回終盤約276MBで、大きい全コピーをさらに作る前に容量を確認する。
+圧縮バックアップの場所：C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-recovery-20261011。site-ui13-before-corrections.zipは旧r18正常公開、ui12-rollback-with-r19-data.zipは新r19データを保つ旧UI v12。復旧時は容量のある新ディレクトリへ展開/照合してから使う。元r18原本と接続はprivate/master-r7-details-r18-before-corrections-20261011.xlsx、private/sheets-connection-before-corrections-20261011.json。checkpointのsite_backup_kindはzip。
+最初の公開Gitコミット7fcc3b4はignore対象の新不変バンドル2ファイルが含まれず、Actions38068475793のcheck_siteで拒否・デプロイskip。直後に2ファイルを明示登録した1cfdfb6が正常公開された。7fcc3b4/tag ui-v13-corrections-20261011は検証済みリリースとして使わず、後続verifiedタグを使う。証拠は同privateフォルダーのsuperseded-actions-validation.json。現在は新しいActions成功/匿名70一致まで完了し、公開の破損や未知の書込応答なし。全取得/書込/検証/公開プロセスは終了、checkpointはpublished_verified。
 <!-- /current-state -->
 
 
