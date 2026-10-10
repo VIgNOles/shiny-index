@@ -61,6 +61,8 @@ def completed_page(report, directory, root, status):
 
 
 def initialize(path, *, root=ROOT):
+    # Windows may supply an 8.3 alias while resolve() returns its long name.
+    root = Path(root).resolve()
     run = private_run(path, root)
     if run.exists():
         raise FileExistsError('Use a fresh run directory; initialization is immutable')
@@ -102,6 +104,8 @@ def initialize(path, *, root=ROOT):
 
 
 def report_status(path, *, root=ROOT):
+    # Windows may supply an 8.3 alias while resolve() returns its long name.
+    root = Path(root).resolve()
     run = private_run(path, root)
     catalog = load_catalog(root, run/'catalog.json', config(root))
     state = read(run/'state.json')
@@ -198,6 +202,8 @@ def ordered_targets(catalog, priority_pages=()):
 
 def run_worker(path, max_attempts, *, root=ROOT, state_path=STATE, fetch=fetch_one,
                clock=utcnow, sleep=time.sleep, clear_stop=False, retry_page=None, priority_pages=()):
+    # Windows may supply an 8.3 alias while resolve() returns its long name.
+    root = Path(root).resolve()
     run = private_run(path, root)
     manifest = config(root)
     catalog = load_catalog(root, run/'catalog.json', manifest)
@@ -362,6 +368,8 @@ def process_alive(pid):
 
 
 def release_stale_lock(path, expected_pid, *, root=ROOT, lock_kind='worker'):
+    # Windows may supply an 8.3 alias while resolve() returns its long name.
+    root = Path(root).resolve()
     run = private_run(path, root)
     lock = run/'worker.lock'
     if lock_kind not in ('worker', 'workflow'):
@@ -380,6 +388,8 @@ def resolve_unknown(path, page_id, reason, *, root=ROOT, state_path=STATE, curre
     """Operator-reviewed unknown attempt: recover saved success or mark failure, never fetch."""
     if not reason.strip():
         raise ValueError('Inspection reason is required')
+    # Windows may supply an 8.3 alias while resolve() returns its long name.
+    root = Path(root).resolve()
     run = private_run(path, root)
     current = current or utcnow()
     worker_lock = run/'worker.lock'

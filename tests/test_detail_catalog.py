@@ -82,6 +82,17 @@ class BulkDetailTests(unittest.TestCase):
         return bulk.run_worker(self.run, budget, root=self.root, state_path=self.state_path,
                                clock=self.clock, sleep=self.sleep, **kwargs)
 
+    def test_equivalent_noncanonical_root_works_through_initialize_status_and_worker(self):
+        alias = self.root/'..'/self.root.name
+        report = bulk.initialize(self.run, root=alias)
+        self.assertEqual(Path(report['run']).as_posix(), 'private/raw/full')
+        self.assertEqual(bulk.report_status(self.run, root=alias)['status'], 'ready')
+        calls = []
+        bulk.run_worker(self.run, 2, root=alias, state_path=self.state_path,
+                        fetch=self.fetch_adapter(calls=calls), clock=self.clock, sleep=self.sleep)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(bulk.report_status(self.run, root=alias)['acquired_pages'], 2)
+
     def test_shared_url_dedup_preserves_ids_and_missing_hold(self):
         self.cards += [self.card('p2', 'P', '【A】人物', 'idol_road_sr'),
                        self.card('p3', 'P', '【A】人物', 'idol_road_ssr')]
