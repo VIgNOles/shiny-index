@@ -83,6 +83,35 @@ export function effectAmount(a,level){
  if(a.formula){const f=a.formula;if(level!=null)return String(f.offset+f.coefficient*level);return (f.offset?f.offset+' + ':'')+'スキルLv×'+f.coefficient;}
  return String(a.value??'');
 }
+export function mechanicConditionText(rule){
+ if(rule?.status!=='structured'||!rule.expression)return '';
+ const format=p=>{
+  if(p.terms&&['all','any'].includes(p.operator)){
+   const terms=p.terms.map(format);return terms.every(Boolean)?'（'+terms.join(p.operator==='all'?' かつ ':' または ')+'）':'';
+  }
+  if(p.field==='active_passive_count')return '現在発動中のパッシブスキル'+p.value+'個以上';
+  if(p.field==='idol_appeal_boost_count')return p.idol+'のアピール倍率UPが'+p.value+'個以上付与';
+  if(p.field==='status_granted')return p.value+'の付与';
+  if(p.field==='idol_appeal_boost_granted')return p.value+'のアピール倍率UPの付与';
+  if(p.field==='history_unit_added')return '履歴に'+p.value+'のアイドルを追加';
+  if(p.field==='audience_reaction_targeted')return '観客のリアクション対象になる';
+  return activationConditionText({status:'structured',expression:p});
+ };
+ const text=format(rule.expression);if(!text)return '';
+ if(rule.role==='activation')return '発動条件：'+text;
+ if(rule.role==='growth'){
+  const grants=p=>p.terms?p.terms.every(grants):['status_granted','idol_appeal_boost_granted'].includes(p.field);
+  return 'Grow Lv上昇条件：'+text+' / '+rule.events_per_level+(grants(rule.expression)?'個付与ごと':'回ごと')+'にLv上昇（翌ターン反映・端数は繰越・使用後Lv0）';
+ }
+ return '';
+}
+export function mechanicRuleText(rule){return (scopeNames[rule.scope]??'')+'：'+mechanicConditionText(rule.condition);}
+export function mechanicRuleMatches(item,rule,params){
+ if(hasEffectFilters(params))return false;
+ const words=normalized(params.get('skill_q')).trim().split(/\s+/).filter(Boolean);
+ return words.every(word=>normalized([...itemSearchParts(item),mechanicRuleText(rule)].join(' ')).includes(word));
+}
+
 export function effectFactText(e,level){
  const target=e.targets.join(' / '),unit=e.metric==='refrain'?'ターン前':{points:'',percent:'%',multiplier:'倍',boolean:''}[e.unit];
  let result=(scopeNames[e.scope]?scopeNames[e.scope]+'：':'')+(effectNames[e.metric]??e.metric)+' · '+target+(e.cap?'上限':'');
@@ -105,7 +134,8 @@ export function effectFactText(e,level){
  if(r.ignore_interest)result+=' / 興味無視';
  if(r.until_damage)result+=' / ダメージを受けるまで';
  if(r.scaling)result+=' / '+{turns_descending:'経過ターンが短いほど効果UP',turns_ascending:'経過ターンが長いほど効果UP',memory:'思い出ゲージが多いほど効果UP',history:'履歴が多いほど効果UP',mental:'メンタルが多いほど効果UP',mental_descending:'メンタルが少ないほど効果UP',attention:'注目度が高いほど効果UP',attention_descending:'注目度が低いほど効果UP',heal_count:'回復回数増加で効果UP',evasion:'回避率が高いほど効果UP',unit_types:'所属ユニットが多いほど効果UP',mental_spent:'減少値が多いほど効果UP'}[r.scaling];
- if(e.activation_condition)result+=' / 発動条件：'+(activationConditionText(e.activation_condition)||'未構造化。Wikiで確認');
+ if(e.mechanic_condition)result+=' / '+mechanicConditionText(e.mechanic_condition);
+ else if(e.activation_condition)result+=' / 発動条件：'+(activationConditionText(e.activation_condition)||'未構造化。Wikiで確認');
  if(e.restriction_status==='partial')result+=' / 追加条件はWikiで確認';
  return result;
 }
@@ -141,10 +171,11 @@ export function detailSearch(cards,params,details){
    const common=itemSearchParts(item);
    const effects=item.effect_details?.effects??[];
    if(effectFilter)return effects.some(e=>effectSearchMatches(item,e,params));
+   const rules=item.effect_details?.mechanic_conditions??[];
    const baseEffects=effects.filter(e=>!['memory_link','memory_charge'].includes(e.scope)).map(e=>effectFactText(e));
-   const views=[[...common,...baseEffects,...(item.numeric_facts??[]).map(factText),...(item.random_effect_options?.length?['ランダム',...item.random_effect_options.map(factText)]:[])]];
-   if(item.memory_link_present)views.push([...common,'Link追加効果',...effects.filter(e=>e.scope==='memory_link').map(e=>effectFactText(e)),...(item.memory_link_facts??[]).map(factText)]);
-   if(item.memory_charge_present)views.push([...common,'チャージ追加効果',...effects.filter(e=>e.scope==='memory_charge').map(e=>effectFactText(e)),...(item.memory_charge_facts??[]).map(factText)]);
+   const views=[[...common,...baseEffects,...rules.filter(r=>r.slot==='effect').map(mechanicRuleText),...(item.numeric_facts??[]).map(factText),...(item.random_effect_options?.length?['ランダム',...item.random_effect_options.map(factText)]:[])]];
+   if(item.memory_link_present)views.push([...common,'Link追加効果',...effects.filter(e=>e.scope==='memory_link').map(e=>effectFactText(e)),...rules.filter(r=>r.slot==='link').map(mechanicRuleText),...(item.memory_link_facts??[]).map(factText)]);
+   if(item.memory_charge_present)views.push([...common,'チャージ追加効果',...effects.filter(e=>e.scope==='memory_charge').map(e=>effectFactText(e)),...rules.filter(r=>r.slot==='charge').map(mechanicRuleText),...(item.memory_charge_facts??[]).map(factText)]);
    return views.some(parts=>{const text=normalized(parts.join(' '));return q.every(word=>text.includes(word));});
   });
  });
