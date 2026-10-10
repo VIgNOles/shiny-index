@@ -17,7 +17,7 @@
 
 ## セットアップ
 
-Windows PowerShell、Python 3.12.14、Node.js 24.19.0で検証しました。
+Windows PowerShell、Codex同梱Python 3.12.14、Node.js 24.19.0で検証しました。通常のWindowsセットアップ向けにはPython 3.13.16をクリーンCIで検証します。actions/python-versionsにはWindows用3.12.14がないため、同じpatch版を通常Windowsへ導入できるという前提は置きません。検証結果は下記の自動検証とdocs/verification.mdを参照してください。
 
 ```powershell
 python -m venv .venv
@@ -144,4 +144,4 @@ node tests/ui-v5-smoke.mjs site
 2026-10-09の最新確認: 319件版をActions37919802687で公開し、48ファイル一致・PC1280/390/320の基本/詳細操作を確認。MB補足表/生成技能脚注を保存HTMLから修正しPython136 PASS。全件入力はworkflow012で通常60秒以上/1ページずつ取得中。354件の採用計画は未登録・未公開で、全件詳細版は未完成です。詳細と次の操作はHANDOFF.md末尾を参照してください。
 
 ## クリーン環境での自動検証
-.github/workflows/verify.ymlはWindows/Linuxの新しいrunnerで、Python3.12.14・Node24.19.0・固定Python依存からPython/JSテストと全公開バンドル検査を行います。XLSX_BACKEND=stdlibを使い、Codex固有のArtifact Toolなしの経路を検証します。WikiやGoogleへの取得・書込、デプロイは行いません。私的原本/全生応答はGitに含まれないため、その全件再変換や実機スマホ・別の利用者PCの検証とは区別します。初回実行結果はdocs/verification.mdへ記録します。
+.github/workflows/verify.ymlはWindows/Linuxの新しいrunnerで、LinuxのPython3.12.14／WindowsのPython3.13.16・Node24.19.0・固定Python依存からPython/JSテストと全公開バンドル検査を行います。XLSX_BACKEND=stdlibを使い、Codex固有のArtifact Toolなしの経路を検証します。WikiやGoogleへの取得・書込、デプロイは行いません。私的原本/全生応答はGitに含まれないため、その全件再変換や実機スマホ・別の利用者PCの検証とは区別します。初回実行結果はdocs/verification.mdへ記録します。
