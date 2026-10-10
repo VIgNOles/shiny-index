@@ -3,7 +3,7 @@ Support rules match whole cells. Live duration is attached only to the adjacent
 recognised effect, with its mechanic scope; it is never copied to other effects.
 """
 import math,re,unicodedata
-from src.skill_conditions_v2 import parse as parse_condition, validate_extension, join
+from src.skill_conditions_v2 import parse as parse_condition, validate_extension, join, idol_name
 LIVE={'panel_live','mb_live','generated_live','possessed_live','memory_appeal','quick_skill'}
 TARGETS={'Vocal','Dance','Visual','メンタル','SP','体力','絆','テンション','トラブル率','注目度','思い出ゲージ','リアクション回避率','メンタルダメージ','興味','影響力','アピール値','基礎能力値','施設Lv','パーフェクト','エクセレント','イベント発生率','ノウハウ発現率','アドバイス抽選率','交換数','Excellent'}
 METRICS={'support_gain','support_recovery','support_cost_down','support_trouble_down','support_rest_gain','support_bond','support_tension_protection','appeal_boost','memory_gain_boost','base_stat_boost','rate_up','rate_down','rate_cut','interest','support_presence_up','support_event_rate','support_knowhow_rate','support_location_level','support_perfect','support_excellent','support_advice_rate','exchange_count_up','appeal'}
@@ -144,12 +144,21 @@ LIVE_EXTRA=[
  (re.compile(r'リフレイン\[(?P<value>\d+)ターン前\]'),'refrain','過去のアピール','points'),
 ]
 
-def effect_condition(part,ctx):
+def effect_condition(part,ctx,scope=None):
  """Only leading mechanic brackets apply to the following mechanic block."""
  matches=re.match(r'((?:\[[^\[\]]*\])+)',part)
  if not matches:return None
  if ctx is None:return {'status':'unsupported'}
- terms=[parse_condition(b.removeprefix('条件:'),ctx) for b in re.findall(r'\[([^\[\]]*)\]',matches[1])]
+ terms=[]
+ for bracket in re.findall(r'\[([^\[\]]*)\]',matches[1]):
+  b=bracket.removeprefix('条件:')
+  # Saved R01 Link section explicitly binds member abbreviations to appeal history.
+  # Do not reinterpret explicit live-participation clauses or unknown names.
+  names=[idol_name(n,ctx) for n in re.split(r'[・、]',b)] if scope in {'link','memory_link'} else []
+  if names and all(names) and len(names)==len(set(names)):
+   ps=[{'field':'history_participant','operator':'eq','value':name} for name in names]
+   terms.append(ps[0] if len(ps)==1 else join('all',ps))
+  else:terms.append(parse_condition(b,ctx))
  if not all(terms):return {'status':'unsupported'}
  result={'status':'structured','expression':terms[0] if len(terms)==1 else join('all',terms)}
  try:validate_extension(result,ctx)
@@ -175,7 +184,7 @@ def live(text,scope='base',ctx=None):
  for idx,part in enumerate(pieces):
   if idx%2:
    current=scope if scope in {'memory_link','memory_charge'} else {'growup':'grow','reflain':'refrain'}.get(part.lower(),part.lower());continue
-  in_piece=[];condition=effect_condition(part,ctx) if idx else None
+  in_piece=[];condition=effect_condition(part,ctx,current) if idx or current=='memory_link' else None
   for pattern,metric in [(RATE,None),(INTEREST,'interest'),(APPEAL,'appeal')]:
    for m in pattern.finditer(part):
     # Reject a suffix match inside a longer status or '最大' conditional number.

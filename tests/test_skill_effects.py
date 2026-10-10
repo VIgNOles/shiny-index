@@ -112,6 +112,23 @@ class LiveEffectExtensionTests(unittest.TestCase):
  def test_mechanic_case_and_known_typo_follow_acquisition_parser(self):
   es=self.parse('Vocal4倍アピール(link)Dance20%UP[2ターン](gRoWuP)[2ターン以前]Vocal40%UP[3ターン](Reflain)リフレイン[1ターン前]')
   self.assertEqual([e['scope'] for e in es],['base','link','grow','refrain'])
+ def test_link_member_abbreviations_are_history_not_live_participants(self):
+  es=self.parse('Vocal4倍アピール(Link)[果穂・智代子]Dance5倍アピール')
+  p=es[1]['activation_condition']['expression']
+  self.assertEqual(p['operator'],'all')
+  self.assertEqual([term['field'] for term in p['terms']],['history_participant']*2)
+  self.assertEqual([term['value'] for term in p['terms']],['小宮果穂','園田智代子'])
+  es=self.parse('(Link)[果穂]Vocal4倍アピール')
+  self.assertEqual(es[0]['activation_condition']['expression']['field'],'history_participant')
+ def test_link_unknown_duplicate_and_explicit_participation_stay_distinct(self):
+  self.assertEqual(self.parse('(Link)[果穂・未知名]Vocal4倍アピール')[0]['activation_condition'],{'status':'unsupported'})
+  self.assertEqual(self.parse('(Link)[果穂・果穂]Vocal4倍アピール')[0]['activation_condition'],{'status':'unsupported'})
+  e=self.parse('(Link)[小宮果穂がライブに参加している場合]Vocal4倍アピール')[0]
+  self.assertEqual(e['activation_condition']['expression']['field'],'participant')
+ def test_memory_link_abbreviations_work_without_redundant_marker(self):
+  doc=effect_details({'kind':'memory_appeal','effect_private':'Vocal3倍アピール','link_appeal_private':'[果穂・智代子]Dance5倍アピール'},self.ctx['idols'],self.ctx)
+  e=doc['effects'][1];self.assertEqual(e['scope'],'memory_link')
+  self.assertEqual(e['activation_condition']['expression']['terms'][0]['field'],'history_participant')
  def test_invalid_condition_and_private_fields_fail_validation(self):
   import copy
   doc={'status':'partial','effects':self.parse('(Plus)[2ターン以前]Vocal40%UP[3ターン]')}

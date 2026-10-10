@@ -1,16 +1,19 @@
 """Offline effect audit: compare derived facts without mutating the canonical master."""
-import argparse, collections, hashlib, json, sys
+import argparse, collections, hashlib, json, re, sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from src.detail_master import resolve
 from src.detail_public import public_document
 from src.indexer import ROOT, read, write
 
-def audit(master_path, site_path, output, root=ROOT):
+def audit(master_path, site_path, output, root=ROOT, baseline_version=None):
  root=Path(root);site=Path(site_path);output=Path(output)
  if not output.resolve().is_relative_to((root/'private').resolve()):
   raise ValueError('Audit evidence with source text must remain private')
  master=read(master_path);pointer=read(site/'details/latest.json')
+ if baseline_version:
+  if not re.fullmatch(r'd1-[0-9a-f]{16}',baseline_version):raise ValueError('Invalid baseline detail version')
+  pointer={**pointer,'detail_version':baseline_version}
  old=read(site/'details'/pointer['detail_version']/'details.json')
  base=read(site/'data/latest.json')['dataset_version']
  new=public_document(master,read(site/'data'/base/'cards.json')['cards'],base)
@@ -22,7 +25,7 @@ def audit(master_path, site_path, output, root=ROOT):
   raise ValueError('Existing coverage changed')
  source={i['detail_id']:(c,i) for c in resolve(master) for i in c['items']}
  old_items={i['detail_id']:i for c in old['cards'] for i in c['items']}
- facts=collections.Counter();conditions=collections.Counter();scaling=collections.Counter();changed=[];lost=[];scope_corrections=[]
+ facts=collections.Counter();conditions=collections.Counter();scaling=collections.Counter();changed=[];lost=[];scope_corrections=[];condition_updates=[]
  for c in new['cards']:
   for i in c['items']:
    es=i.get('effect_details',{}).get('effects',[])
@@ -41,7 +44,19 @@ def audit(master_path, site_path, output, root=ROOT):
      moved=[other for other in es if all(other.get(k)==v for k,v in e.items() if k!='scope')]
      if moved and e['scope']=='base':
       scope_corrections.append({'detail_id':i['detail_id'],'old_scope':e['scope'],'new_scopes':[other['scope'] for other in moved],'old_effect':e})
-     else:lost.append({'detail_id':i['detail_id'],'old_effect':e})
+     else:
+      revised=[other for other in es if all(other.get(k)==v for k,v in e.items() if k!='activation_condition')]
+      before=e.get('activation_condition',{})
+      compatible=[]
+      for other in revised:
+       after=other.get('activation_condition',{})
+       a,b=before.get('expression',{}),after.get('expression',{})
+       if before=={'status':'unsupported'} and after.get('status')=='structured':
+        compatible.append(other)
+       elif e['scope'] in {'link','memory_link'} and a.get('field')=='participant' and b=={**a,'field':'history_participant'}:
+        compatible.append(other)
+      if compatible:condition_updates.append({'detail_id':i['detail_id'],'scope':e['scope'],'before':before,'after':[other.get('activation_condition') for other in compatible]})
+      else:lost.append({'detail_id':i['detail_id'],'old_effect':e})
  report={'base':base,'before':old['meta']['detail_version'],'after':new['meta']['detail_version'],
   'canonical_revision':master['revision'],'cards':len(new['cards']),'items':new['coverage']['detail_item_count'],
   'existing_cards_ids_values_and_coverage_equal':True,
@@ -49,10 +64,10 @@ def audit(master_path, site_path, output, root=ROOT):
   'override_count':sum(bool(r.get('override')) for r in master['registry']),
   'effect_fact_counts':dict(facts),'effect_condition_counts':dict(conditions),'scaling_counts':dict(scaling),
   'effect_item_status_counts':new['coverage']['effect_detail_counts'],
-  'changed_items':len(changed),'old_effect_scope_corrections':scope_corrections,'old_effects_not_preserved':lost,'changed':changed,'wiki_requests':0}
+  'changed_items':len(changed),'old_effect_scope_corrections':scope_corrections,'condition_updates':condition_updates,'old_effects_not_preserved':lost,'changed':changed,'wiki_requests':0}
  if lost:raise ValueError('Previously derived effect lost; review before publication')
  write(output,report)
- return {k:v for k,v in report.items() if k not in {'changed','old_effect_scope_corrections'}}
+ return {k:v for k,v in report.items() if k not in {'changed','old_effect_scope_corrections','condition_updates'}}
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('master');p.add_argument('site');p.add_argument('output');a=p.parse_args()
- print(json.dumps(audit(a.master,a.site,a.output),ensure_ascii=False,indent=2))
+ p=argparse.ArgumentParser();p.add_argument('master');p.add_argument('site');p.add_argument('output');p.add_argument('--baseline-version');a=p.parse_args()
+ print(json.dumps(audit(a.master,a.site,a.output,baseline_version=a.baseline_version),ensure_ascii=False,indent=2))
