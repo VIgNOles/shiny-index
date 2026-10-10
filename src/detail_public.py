@@ -153,7 +153,8 @@ def prepare(master,base_cards,root,base_version=None):
         write(root/'details/latest.json',{'detail_version':version,'base_dataset_version':doc['meta']['base_dataset_version'],'manifest':version+'/manifest.json'})
         return old
     target.mkdir(parents=True)
-    write(target/'details.json',doc)
+    # Compact new bundles only; retain existing immutable bundles byte for byte.
+    (target/'details.json').write_bytes((json.dumps(doc,ensure_ascii=False,separators=(',',':'))+'\n').encode('utf-8'))
     manifest={'detail_schema':'1.0','detail_version':version,'base_dataset_version':doc['meta']['base_dataset_version'],
               'published_at':doc['meta']['published_at'],'files':{'details.json':hashlib.sha256((target/'details.json').read_bytes()).hexdigest()}}
     write(target/'manifest.json',manifest)

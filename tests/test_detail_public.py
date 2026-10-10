@@ -16,6 +16,30 @@ class DetailPublicTests(unittest.TestCase):
    broken=copy.deepcopy(d);broken['cards'][0]['items'][1]['generation_origin_kinds']=bad
    with self.subTest(bad=bad),self.assertRaisesRegex(ValueError,'origin kinds'):validate_public(broken,[{'card_id':CID,'card_kind':'P'}])
 
+ def test_new_bundle_hash_and_existing_pretty_bundle_bytes_are_preserved(self):
+  import json,hashlib,tempfile
+  from pathlib import Path
+  from src.detail_public import prepare
+  from unittest.mock import patch
+  c=candidate();m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}]
+  with tempfile.TemporaryDirectory() as directory:
+   root=Path(directory);first=prepare(m,base,root);bundle=root/'details'/first['meta']['detail_version']
+   path=bundle/'details.json';manifest=bundle/'manifest.json'
+   self.assertEqual(json.loads(path.read_bytes()),first)
+   self.assertEqual(json.loads(manifest.read_bytes())['files']['details.json'],hashlib.sha256(path.read_bytes()).hexdigest())
+   # Simulate a valid immutable bundle emitted by the previous pretty writer.
+   path.write_bytes((json.dumps(first,ensure_ascii=False,indent=2)+'\n').encode('utf-8'))
+   meta=json.loads(manifest.read_bytes());meta['files']['details.json']=hashlib.sha256(path.read_bytes()).hexdigest()
+   manifest.write_bytes(json.dumps(meta,ensure_ascii=False,indent=2).encode('utf-8'))
+   saved={p.name:p.read_bytes() for p in bundle.iterdir()}
+   with patch('src.detail_public.now',return_value='2026-10-10T20:00:00+00:00'):
+    self.assertEqual(prepare(m,base,root),first)
+   c['cards'][0]['panel_nodes'][0]['effect_private']='Vocal3倍アピール';rehash(c)
+   second=prepare(adopt(m,c),base,root)
+   self.assertNotEqual(first['meta']['detail_version'],second['meta']['detail_version'])
+   self.assertEqual(saved,{p.name:p.read_bytes() for p in bundle.iterdir()})
+   self.assertEqual(json.loads((root/'details'/second['meta']['detail_version']/'details.json').read_bytes()),second)
+
  def build(self):
   c=candidate();m=adopt(empty(c['base_dataset_version']),c)
   return public_document(m,[{'card_id':CID,'card_kind':'P'}])

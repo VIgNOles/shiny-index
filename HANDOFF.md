@@ -764,3 +764,12 @@ UI v10は未収録と47件保留を分ける表示へ修正。1344データ維�
 frozen3980の保存入力を最新コードで全再変換し、補完1380候補と全JSON一致を確認。原本r17・1380(P535/S845)/23369項目、1344から36カード/623項目追加。private/details/after1344-expanded-adoption-20261010、意味hash201f5dffc35cb8b6e1f7ccb745e633e92805c3de95b73d979a1f9acf2818018e。新native全コピーへ21バッチ全ACK・unknownなし。全15タブ実値/基礎9タブ不変、旧1344カード/22746registry全値/手修正1保持、16514書込セルと周囲25136セルの書式/validation/chips/formula、623追加出典リンク/1419収録範囲リンク・保留47空URLの実リンクなし、5フィルターPASS。native代替11範囲を描画し変更6画像を確認、保持セル/書式/位置とsourcefile SHA不変を証明。Google実画面はCUA不可。
 
 UI v10・詳細d1-fe052456be3b2b43。実原本候補と同じ1380データのUI v9切戻し候補がPC1280/390/320基本/詳細PASS。共有通常/MB生成先の2子項目・両生成元表示/検索・子Plusと親Refrainの非混同、未収録39件/保留47件の区別を確認、変更2画像を確認。旧58公開ファイルのうちindex/app/details/latestだけ更新、不変版保持・候補60ファイル。旧1344nativeのmtime03:47:48.879UTC不変を確認してlocal/master/connection/siteをbefore1380名で保存後、新原本へ昇格した。公開Actions/匿名確認はこれから実行、1380公開済みとはまだ扱わない。取得012は残件へ継続。
+
+
+### 1,380件版の公開確認完了と後続準備
+
+公開f3a9895205ac（完全SHAはgit/公開証拠参照）、準備cf297eb、タグui-v10-details1380-20261010、Actions38024523002 success。匿名60/60ファイルHTTP200・生バイト一致。公開PC1280/390/320基本/詳細・共有通常/MBの2子技能と両親名検索・子Plus/親Refrain非混同・未収録/保留表示PASS。公開2画像を確認。private/audits/detail1380-public-verification-20261010.json、detail1380-content-coverage-20261010.json参照。原本/公開1380、unknownなし、取得012は残件へ継続。
+
+追加監査でS87カード（SSR53/SR34）の最大Lvステータス348セルが、応答SHA一致の保存HTMLでも空欄であることを全件照合。低Lv値の代用や推測はせずnull/未記載のまま配布する。private/audits/detail1380-max-status-missing-source-audit-20261010.json参照。
+
+次版の詳細JSONは新規バンドルだけUTF-8圧縮表記にする。同一1380文書で27,378,468→13,441,088bytes（50.9%減）、gzipも1,628,838→1,347,222bytes（17.3%減）の事前測定。内容/版の意味は不変、旧prettyバンドルを再保存しない。旧形式の版再利用・新内容の別版・manifest SHA一致を回帰検証しPython156/JS29 PASS。公開1380のファイルは変更していない。全取得終了後、最新コードで全保存入力を再変換してから全リンク付きカードの採用/公開へ進む。全ゲーム網羅や全条件構造化を完成済みと扱わない。
