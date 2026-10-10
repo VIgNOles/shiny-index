@@ -515,3 +515,10 @@ Cのshiny-index-ui15-recovery-20261011/ui14-with-final-ui15-data.zipと対応表
 - 旧UIへ戻す場合は、検証済みui-v15-effects-verified-20261011を指定し、scripts/build_ui_rollback.pyで現行データを保持した新規候補を作る。詳細条件が旧UIの未構造化表示になることは互換fallbackであり、原本の消失ではない。候補の画面検証とcheck_siteを終えてから公開する。
 
 新UIのキーワード例：現在発動中のパッシブスキル6個以上／Grow Lv上昇条件 VocalUP 2個付与ごと／緋田美琴のアピール倍率UPが3個以上付与。効果フィルターとの併用時は同じ効果に条件があるものだけ一致する。条件だけ構造化した区間は効果フィルターと結合しない。
+
+### UI v16最終版の復旧保存場所
+公開詳細d1-f0bdf90d3d6d9358、検証済みtag ui-v16-live-facts-verified-20261011。初回UI v16の992版を最新と混同しない。データ補完でもUI v16は維持している。
+検証済み対応表はprivate/ui16-final-recovery-archive.json。ZIPはC:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-ui16-recovery-20261011/ 。候補/切戻し/隔離復旧の重複コピーは整理済みなので、元パスがないときはこの対応表から新規privateディレクトリへ復元する。
+旧UIは .venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui16-final-ui15-rollback-20261011 private/restored-ui15-final-data --manifest private/ui16-final-recovery-archive.json 。
+原本付きは .venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui16-live-facts-final-20261011/restored private/restored-ui16-r19-final --manifest private/ui16-final-recovery-archive.json 。後者にはsite/、master.xlsx、connection.jsonが入り、全82ファイルのSHAを照合してから展開する。
+新しい6効果項目の型（リザレクション/観客ステータス解除/デュエット）や最小興味等のUI対応は未実装。すでに原文を取得済みのため、型の実装のために全カードを再取得しない。新しい表示/選択肢を追加する場合はUI v17とし、データのみの追加ではv16のままにする。
