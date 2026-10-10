@@ -4,6 +4,23 @@ from src.detail_public import public_document,validate_public
 from tests.test_detail_master import candidate,CID,rehash
 
 class DetailPublicTests(unittest.TestCase):
+ def test_confirmed_status_and_override_survives_reacquisition_without_rewriting_source(self):
+  c=candidate();raw='[条件:パッシブスキル発動率UP強化が付与されている場合] [確率:30%] [最大:1回]'
+  c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',effect_private=raw);rehash(c)
+  m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}]
+  initial=public_document(m,base)['cards'][0]['items'][0]
+  self.assertEqual(initial['activation_condition'],{'status':'unsupported'});self.assertNotIn('activation_condition_v2',initial)
+  row=m['registry'][0];original=copy.deepcopy(row['source']);did=row['detail_id']
+  row.update(override={'effect_private':raw.replace('パッシブスキル発動率UP強化が付与されている場合','パッシブスキル発動率UPが付与されている場合かつパッシブスキル強化が付与されている場合')},reason='ユーザーによるゲーム内確認: 両方必須',source_ref='test:game-confirmation',updated_at='2026-10-11T00:00:00+09:00')
+  refreshed=adopt(m,c);self.assertEqual(refreshed['registry'][0],row)
+  doc=public_document(refreshed,base);item=doc['cards'][0]['items'][0];p=item['activation_condition_v2']['expression']
+  self.assertEqual(p,{'operator':'all','terms':[{'field':'status_count','operator':'gte','value':1,'status':'パッシブスキル発動率UP'},{'field':'status_count','operator':'gte','value':1,'status':'パッシブスキル強化'}]})
+  self.assertEqual(item['detail_id'],did);self.assertEqual(row['source'],original)
+  self.assertEqual(item['manual_source_ref'],'test:game-confirmation');self.assertNotIn('effect_private',item)
+  self.assertEqual(doc['coverage']['activation_condition_current_counts'].get('unsupported',0),0)
+  row['override']['effect_private']='[条件:パッシブスキル発動率UP又は強化が付与されている場合]'
+  self.assertEqual(public_document(m,base)['cards'][0]['items'][0]['activation_condition_v2']['expression']['operator'],'any')
+
  def test_keyword_export_keeps_old_ui_unsupported_and_uses_resolved_override(self):
   c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',effect_private='[条件:キーワードアイドル]');rehash(c)
   m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}];d=public_document(m,base);i=d['cards'][0]['items'][0]

@@ -433,3 +433,14 @@ UIをv12へ戻す場合は、scripts/build_ui_rollback.py --ref ui-v12-condition
 UI v13の再現検証は node --test tests/search.test.mjs tests/detail-search.test.mjs と Python全回帰に加え、UI_BROWSER_PATHにブラウザ実行ファイル、UI_EXPECTED_VERSIONにui-v13を指定して node tests/ui-v4-smoke.mjs site / node tests/ui-v5-smoke.mjs site をそれぞれ実行する。公開URLはUI_BASE_URLに設定する。実画面のスクリーンショットを確認し、バイト照合だけで表示成功と扱わない。
 
 今回のUI v13では、公開確認後の実ローカルsite/原本/現行接続の組から隔離復旧を実行。3障害を検出し、68ファイル・原本r18/1419/24025・接続を全バイト一致で復元し、元入力の無変更を確認した。private/recovery/ui13-conditions-20261011/report.json。本番やGoogleに破損を起こす演習ではない。依存追加なし。今回の取得・検証・復旧・公開処理はすべて終了し、未知の書込応答なし。
+
+
+## 根拠を確認した詳細条件の手修正（2026-10-11）
+
+取得列の文章・source_json・ID・aliasesを直接修正しない。現在の原本URLをprivate/sheets-connection.jsonで確認し、詳細項目の既存detail_idの行へ、I列「手修正_効果」、K列「理由」、L列「根拠」、M列「更新日時」を登録する。理由には、ゲーム内を確認した人物と確認日、または保存Wikiの原表を目視した範囲を区別して書く。ゲーム内確認の報告を独立した公式確認と取り違えない。
+
+ANDは各条件を完全な文にして「かつ」で結び、ORの「又は」と区別する。例えば発動率UPとパッシブスキル強化の両方が必要な場合は「パッシブスキル発動率UPが付与されている場合かつパッシブスキル強化が付与されている場合」。単に同じカード内の別スキルがORだからといって他の条件をORに補わない。取得時の原文は残るため、再取得後も手修正を優先できる。
+
+原本のfresh exportと前回の全値を照合→native全コピーを作成→対象セルの値/書式/validationを読む→手修正列と詳細revisionだけ更新→書込全セル/全15タブ/固定ID/既存手修正の読み戻し→保存済み全件候補の再適用で同一性確認→別site生成/検索/旧UI互換/旧不変版保持→原本と公開候補の昇格→publish/Actions/匿名確認を行う。書込結果不明ならcheckpointの範囲を読んでから再送を判断する。旧原本と接続・site一式のバックアップを保持する。
+
+現在の集計でゼロ件の状態はJSONのCounter集計から省略される。activation_condition_current_counts.unsupportedがない場合は0として読む。全パッシブ発動条件が対応済みでも、ライブ効果全体や発動制限・対象外項目まで完了した意味にはならない。

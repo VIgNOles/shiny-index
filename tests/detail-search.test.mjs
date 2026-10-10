@@ -149,3 +149,8 @@ test('keyword ownership is explicit, searchable in the same passive, and prefers
  const text=detailCoverageText({detail_card_count:1419,status_counts:{available_partial:1419},activation_condition_search_counts:{structured:5881,unsupported:9},activation_condition_current_counts:{structured:5885,unsupported:5}},1466);
  assert.ok(text.includes('5885 / 5890項目対応'));assert.ok(text.includes('未対応5項目'));
 });
+
+test('all passive conditions structured still reports zero unsupported',()=>{
+ const text=detailCoverageText({detail_card_count:1419,status_counts:{available_partial:1419},activation_condition_current_counts:{structured:5890}},1466);
+ assert.ok(text.includes('5890 / 5890項目対応'));assert.ok(text.includes('未対応0項目'));assert.ok(text.includes('数値・条件は一部のみ収録'));
+});

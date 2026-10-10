@@ -305,20 +305,25 @@ try{
    }
    await page.locator('#reset').click();
    const unsupported=details.cards.find(c=>c.items.some(i=>conditionFor(i)?.status==='unsupported')&&keys.get(cards.find(b=>b.card_id===c.card_id).card_title+cards.find(b=>b.card_id===c.card_id).idol_name)===1);
-   const baseCard=cards.find(c=>c.card_id===unsupported.card_id);
-   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
-   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
-   if(await page.locator('.detail-toggle').getAttribute('aria-expanded')==='false')await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'パッシブスキル'}).click();
-   assert.equal(await page.locator('.performance .activation-condition').filter({hasText:'未対応（Wikiで確認してください）'}).count(),unsupported.items.filter(i=>conditionFor(i)?.status==='unsupported').length);
-   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-passive-condition-unsupported.png')});
-   await page.locator('.detail-toggle').click();
+   if(unsupported){
+    const baseCard=cards.find(c=>c.card_id===unsupported.card_id);
+    await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+    if(await page.locator('.detail-toggle').getAttribute('aria-expanded')==='false')await page.locator('.detail-toggle').click();
+    await page.locator('.performance summary').filter({hasText:'パッシブスキル'}).click();
+    assert.equal(await page.locator('.performance .activation-condition').filter({hasText:'未対応（Wikiで確認してください）'}).count(),unsupported.items.filter(i=>conditionFor(i)?.status==='unsupported').length);
+    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-passive-condition-unsupported.png')});
+    await page.locator('.detail-toggle').click();
+   }else{
+    assert.equal(details.cards.flatMap(c=>c.items).filter(i=>i.kind==='panel_passive'&&conditionFor(i)?.status==='unsupported').length,0);
+    if(keywordUI)assert.ok((await page.locator('#detail-coverage').textContent()).includes('未対応0項目'));
+   }
    await page.locator('#reset').click();
   }
 
   if(Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v',''))>=12&&details.coverage.activation_condition_search_counts){
    const counts=(keywordUI?details.coverage.activation_condition_current_counts:undefined)??details.coverage.activation_condition_search_counts;
-   assert.ok((await page.locator('#detail-coverage').textContent()).includes(counts.structured+' / '+(counts.structured+counts.unsupported)+'項目対応'));
+   assert.ok((await page.locator('#detail-coverage').textContent()).includes(counts.structured+' / '+((counts.structured??0)+(counts.unsupported??0))+'項目対応'));
    const unique=new Map();for(const c of cards){const key=c.card_title+c.idol_name;unique.set(key,(unique.get(key)??0)+1);}
    const cases=[
     {key:'unit-all',category:'participant',test:p=>p.field==='unit_all_participants',query:p=>p.value+'全員が参加'},
@@ -331,6 +336,9 @@ try{
     {key:'history-and-genre',category:'history',test:p=>p.operator==='all'&&p.terms.length===2&&p.terms[0].field==='history_participant'&&p.terms[1].field==='history_genre_count',query:p=>p.terms[0].value+' かつ 履歴に'+p.terms[1].value+'ジャンル'+(p.terms[1].operator==='lte'?'以下':'以上')},
     {key:'unit-or-all',category:'participant',test:p=>p.operator==='any'&&p.terms.length===2&&p.terms.every(t=>t.field==='unit_all_participants'),query:p=>p.terms[0].value+'全員が参加 または '+p.terms[1].value+'全員が参加'},
     {key:'owned-keywords',category:'keyword',test:p=>p.operator==='all'&&p.terms.every(t=>t.field==='owner_keyword'),query:p=>p.terms[0].value+' かつ スキル所持者のキーワード '+p.terms[1].value},
+   );
+   if(keywordUI&&details.cards.some(c=>c.items.some(i=>conditionFor(i)?.expression?.operator==='all'&&conditionFor(i).expression.terms.every(t=>t.field==='status_count')&&conditionFor(i).expression.terms.map(t=>t.status).join('|')==='パッシブスキル発動率UP|パッシブスキル強化')))cases.push(
+    {key:'passive-status-both',category:'status',test:p=>p.operator==='all'&&p.terms.length===2&&p.terms.every(t=>t.field==='status_count')&&p.terms.map(t=>t.status).join('|')==='パッシブスキル発動率UP|パッシブスキル強化',query:p=>p.terms[0].status+'が1個以上付与 かつ '+p.terms[1].status+'が1個以上付与'},
    );
    for(const example of cases){
     const featured=details.cards.find(c=>unique.get(cards.find(b=>b.card_id===c.card_id).card_title+cards.find(b=>b.card_id===c.card_id).idol_name)===1&&c.items.some(i=>(i.activation_condition_v3||i.activation_condition_v2)&&example.test(conditionFor(i).expression)));
