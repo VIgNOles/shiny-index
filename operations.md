@@ -485,3 +485,20 @@ ZIP全体と各ファイルを検証して復元する。今回、70ファイル
 ```
 
 復元は新しいprivate出力へ行う。今回のprivate/site-ui14-*中間候補は検証・公開後に重複を整理したため、旧候補パスをそのまま使わない。正常なsiteとGit verifiedタグ、原本・取得済み入力・証拠は保存している。ユーザー指示により現在停止。新規基礎カードの本番追加実証は別途保留。
+
+
+## 2026-10-11 UI v15・データのみの追加と公開確認
+
+正常版タグui-v15-effects-verified-20261011（cfac016）、基礎1466/詳細1419/r19/d1-cc9eee7dee0a44b9。UI15で効果/条件表示を変更し、その後のLink履歴データ67項目追加ではUI15を維持した。原本・全ID・手修正を保持する。次の原本編集はfresh exportから開始し、派生変更だけならGoogleを書き換えない。
+
+公開の匿名照合（2並列、リトライなし）：
+
+    .venv/Scripts/python.exe scripts/verify_public_site.py site https://vignoles.github.io/shiny-index/ private/audits/next-public-check.json --expected-detail d1-cc9eee7dee0a44b9
+
+古い版が残る場合は失敗として公開ジョブ/キャッシュ状態を確認する。期待版が来るまで連続リトライしない。最終版76/76一致を確認済み。
+
+旧UI14＋最終データのZIP実復元済み。次で新規privateフォルダーへ復元できる：
+
+    .venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui15-ui14-rollback-20261011 private/restored-ui14-current-data --manifest private/ui15-rollback-archive.json
+
+Cのshiny-index-ui15-recovery-20261011/ui14-with-final-ui15-data.zipと対応表を保持する。検証コピーの元パスは整理済み。旧UIへ戻しても新しい効果・条件表示の全機能を提供する意味ではない。現在UI15を戻す場合はGitタグから必要な候補を作り、原本を戻さず、データ版とHTML markerを揃え検証して公開する。47件と実在基礎新規カード本番追加の保留は維持。
