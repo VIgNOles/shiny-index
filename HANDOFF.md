@@ -1,13 +1,9 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
-## 最新状態（2026-10-11 00:21 JST）
-UI v12・詳細d1-776465cddea6c059を公開確認済み。原本r18/1419(P548/S871)/24025、基礎r7/1466/v1-93a6a8b8d40e754aは不変。Google現行URL/hashはprivate/sheets-connection.jsonを使い、古いSheetへ書かない。今回のWiki通信/Googleセル書込み0。
-発動条件を491項目拡張し5437/5890対応・未対応453。全員/ユニット内のみ/範囲/all-any/履歴/状態を区別。従来activation_condition/countsは4946/944のまま互換維持、拡張式と検索集計を任意追加。原セル全5890/SHA、全旧項目・固定ID/手修正/coverage・旧4946表示文・不変版保持。
-公開afd608f035fe0f7109cbf8981b2bb5c207fc6636、tag ui-v12-conditions-20261011、Actions38062735101 success。匿名66/66一致、公開/ローカル/旧UI v11切戻しの1280/390/320基本/詳細PASS。Python182/JS38 PASS（429はmock）、画像ローカル3/公開2枚確認。private/audits/ui12-condition-release-checkpoint-20261011.jsonはpublished_verified。
-隔離復旧の3障害検出→66ファイル/完全原本/接続の保存版復元→全バイト一致/入力無変更を確認。scripts/recovery_drill.pyは新しいprivate出力だけへ書き、既存出力を拒否。private/recovery/ui12-conditions-20261011/report.json。実Google/本番への破壊・復旧は行わない。
-取得1363ページはcomplete4098・active_attemptなし。取得/変換/検証/公開処理は完了、未知の書込応答なし。新たな取得を二重起動しない。次は保存HTML/説明を使い、裸の人物略記381・履歴ジャンル等64・共有OR8の意味/構文を確認→境界試験→新候補/保持/公開確認。原本手編集があれば先にowner/profile/現在mtime・fresh exportを確認して手修正を保つ。
-47リンク保留・S90最大Lv原文空欄・残453条件/全複合効果・公式独立全網羅・本番実在基礎新規追加実証・全面実機/Google実画面/本番全面復旧は未完了。Pステージ/適正・Sファイトは対象外。ユーザー操作待ち・プロジェクト完成として扱わない。過去の記録は以下に保持。
+## 続行中（2026-10-11 JST）
+公開はUI v12/d1-776465cddea6c059、原本r18/1419/24025不変。UI v13候補はprivate/site-ui13-conditions-candidate-20261011、d1-b6cec417eefae09e、パッシブ5885/5890対応/未対応5、まだ公開前。checkpoint private/audits/ui13-condition-release-checkpoint-20261011.json。参照R01本文1＋robots1成功、原本SHA/native mtime/owner不変確認済み。取得catalogは完了のまま再起動しない。
+Python191/JS39 PASS（429はmock）。原セル全5890の再照合とローカル3幅のUI試験を進行中。完了結果を実ログで確認→保持監査→現行データ付き旧UI v12切戻し試験→保存/publish→Actions/匿名全ファイル/3幅確認→接続参照更新/記録保存が次。実行結果不明の昇格やネット書込はまだない。後続節は履歴で、現行の公開完了とは扱わない。
 <!-- /current-state -->
 
 

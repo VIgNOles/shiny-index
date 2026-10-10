@@ -137,3 +137,15 @@ test('extended coverage is shown while legacy counts remain available',()=>{
  const text=detailCoverageText({detail_card_count:1419,status_counts:{available_partial:1419},activation_condition_counts:{structured:4946,unsupported:944},activation_condition_search_counts:{structured:5437,unsupported:453}},1466);
  assert.ok(text.includes('5437 / 5890項目対応'));assert.ok(!text.includes('4946 /'));
 });
+
+test('keyword ownership is explicit, searchable in the same passive, and prefers v3',()=>{
+ const item={kind:'panel_passive',name:'Vocal100%UP',activation_condition:{status:'unsupported'},activation_condition_v3:{status:'structured',expression:{operator:'all',terms:[{field:'owner_keyword',operator:'eq',value:'リーダーシップ'},{field:'owner_keyword',operator:'eq',value:'カリスマ'}]}}};
+ assert.equal(itemActivationCondition(item),item.activation_condition_v3);
+ assert.equal(activationConditionText(item.activation_condition_v3),'（スキル所持者のキーワード リーダーシップ かつ スキル所持者のキーワード カリスマ）');
+ assert.deepEqual(activationConditionTypes(item.activation_condition_v3),['keyword']);
+ const d=new Map([['P1',{items:[item,{kind:'panel_passive',name:'Visual200%UP',activation_condition:{status:'structured',expression:{field:'turn',operator:'gte',value:3}}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({skill_condition:'keyword',skill_q:'Vocal100%UP リーダーシップ カリスマ'}),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({skill_condition:'keyword',skill_q:'Visual200%UP'}),d),[]);
+ const text=detailCoverageText({detail_card_count:1419,status_counts:{available_partial:1419},activation_condition_search_counts:{structured:5881,unsupported:9},activation_condition_current_counts:{structured:5885,unsupported:5}},1466);
+ assert.ok(text.includes('5885 / 5890項目対応'));assert.ok(text.includes('未対応5項目'));
+});

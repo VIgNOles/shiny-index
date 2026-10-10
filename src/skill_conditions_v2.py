@@ -24,7 +24,7 @@ def idol_name(value, ctx):
  value=compact(value)
  if value in ctx['idols']:return value
  matches=[n for n in ctx['idols'] if n.endswith(value)]
- return matches[0] if len(value)>=2 and len(matches)==1 else None
+ return matches[0] if (len(value)>=2 or value=='透') and len(matches)==1 else None
 
 def unit_name(value, ctx):
  value=compact(value);name=UNIT_ALIASES.get(value,value)
@@ -42,6 +42,25 @@ def bounds(field,low,high,**extra):
  return join('all',[predicate(field,'gte',low,**extra),predicate(field,'lte',high,**extra)])
 
 def atom(value, ctx):
+ # R01 section participant: bare idol names are the documented old spelling.
+ name=idol_name(value,ctx)
+ if name:return predicate('participant','eq',name)
+ # R01 remaining audience count: exact count is two inclusive bounds, using
+ # only predicates already understood by UI v12.
+ m=re.fullmatch(r'観客(\d+)',value)
+ if m:return bounds('audience_count',int(m[1]),int(m[1]))
+ # Named history + genre count are independent conjunctive requirements,
+ # not a count restricted to appeals made by that named idol.
+ m=re.fullmatch(r'履歴に(.+?)(\d+)ジャンル(以上|以下)',value)
+ if m:
+  name=idol_name(m[1],ctx)
+  if name:return join('all',[predicate('history_participant','eq',name),predicate('history_genre_count','gte' if m[3]=='以上' else 'lte',int(m[2]))])
+ if value=='注目度UPリアクション回避率UPが付与されている場合':
+  return join('all',[predicate('status_count','gte',1,status=n) for n in ('注目度UP','リアクション回避率UP')])
+ m=re.fullmatch(r'(.+?)ライブに参加している場合',value)
+ if m:
+  name=idol_name(m[1],ctx)
+  if name:return predicate('participant','eq',name)
  old=parse_text(value,ctx['idols'])
  if old is not None:
   try:validate_condition({'status':'structured','expression':old},ctx['idols']);return old
@@ -73,7 +92,7 @@ def atom(value, ctx):
  if m:
   unit=unit_name(m[1],ctx)
   if unit:return predicate('history_unit_all','eq',unit)
- m=re.fullmatch(r'履歴に(.+?)が(\d+)個以上ある場合',value)
+ m=re.fullmatch(r'履歴に(.+?)が(\d+)個以上(?:が)?ある場合',value)
  if m:
   name=idol_name(m[1],ctx)
   if name:return predicate('history_participant_count','gte',int(m[2]),idol=name)
@@ -106,6 +125,10 @@ def parse(value, ctx, depth=0):
  p=atom(value,ctx)
  if p is not None:return p
  # Fully specified OR clauses, or an explicitly shared suffix.
+ m=re.fullmatch(r'(.+?)(?:又は|または)(.+?)全員がライブに参加(?:している場合)?',value)
+ if m:
+  units=[unit_name(n,ctx) for n in m.groups()]
+  if all(units) and units[0]!=units[1]:return join('any',[predicate('unit_all_participants','eq',n) for n in units])
  m=re.fullmatch(r'(Vocal|Dance|Visual|Center|Leader)(?:又は|または)(Vocal|Dance|Visual|Center|Leader)ポジション担当に編成している場合',value)
  if m:return join('any',[predicate('position','eq',n.lower()) for n in m.groups()])
  m=re.fullmatch(r'履歴に(\d+)ジャンル(以上|以下)(?:又は|または)(\d+)ジャンル(以上|以下)',value)

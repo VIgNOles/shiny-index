@@ -4,6 +4,20 @@ from src.detail_public import public_document,validate_public
 from tests.test_detail_master import candidate,CID,rehash
 
 class DetailPublicTests(unittest.TestCase):
+ def test_keyword_export_keeps_old_ui_unsupported_and_uses_resolved_override(self):
+  c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',effect_private='[条件:キーワードアイドル]');rehash(c)
+  m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}];d=public_document(m,base);i=d['cards'][0]['items'][0]
+  self.assertEqual(i['activation_condition'],{'status':'unsupported'});self.assertNotIn('activation_condition_v2',i)
+  self.assertEqual(i['activation_condition_v3']['expression']['value'],'アイドル')
+  self.assertEqual(d['coverage']['activation_condition_search_counts'],{'unsupported':1});self.assertEqual(d['coverage']['activation_condition_current_counts'],{'structured':1})
+  for mutate in [lambda x:x['coverage'].pop('activation_condition_current_counts'),lambda x:x['coverage']['activation_condition_current_counts'].update(structured=4),lambda x:x['cards'][0]['items'][0]['activation_condition_v3']['expression'].update(raw_private='本文'),lambda x:x['cards'][0]['items'][0].update(kind='panel_live'),lambda x:x['cards'][0]['items'][0].update(activation_condition_v2={'status':'structured','expression':{'field':'turn','operator':'gte','value':3}})]:
+   bad=copy.deepcopy(d);mutate(bad)
+   with self.assertRaises(ValueError):validate_public(bad,base)
+  source=copy.deepcopy(m['registry'][0]['source'])
+  m['registry'][0].update(override={'effect_private':'[条件:キーワードリーダーシップ、カリスマ]'},reason='条件訂正',source_ref='test:source',updated_at='2026-10-11T00:00:00+00:00')
+  p=public_document(m,base)['cards'][0]['items'][0]['activation_condition_v3']['expression']
+  self.assertEqual(p['operator'],'all');self.assertEqual(source,m['registry'][0]['source'])
+
  def test_passive_activation_conditions_use_resolved_overrides_and_keep_prose_private(self):
   c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',effect_private='[条件:メンタル75%以上] [確率:20%]')
   rehash(c);m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}]

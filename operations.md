@@ -421,3 +421,11 @@ UIだけをv11へ戻す場合はbuild_ui_rollback.py --ref ui-v11-conditions-202
 演習は隔離コピーで詳細JSON破損、XLSX破損、原本/公開版不一致を作り、検出後に保存版全体を戻す。全公開ファイル/原本/接続の生バイト一致・原本の読戻し・入力無変更をreport.jsonに記録する。途中で中断した出力は履歴として残し、reportの有無を確認して別の新しい出力先で再実行できる。これは本番の実障害やGoogleセルの復旧成功を意味しない。本番復旧は公開の正常版選択/Actions/匿名確認と、Google原本の所有者/バックアップ/実読戻しを別に行う。
 
 2026-10-11のUI v12候補では3障害を検出し、66ファイル・r18/1419/24025原本・同版の接続参照を全復元、元入力不変。保存結果はprivate/recovery/ui12-conditions-20261011/report.json。
+
+## UI v13の条件更新・参照ページ
+
+現行UIの集計はactivation_condition_current_counts、UI v12互換はactivation_condition_search_counts、UI v11互換はactivation_condition_counts。JSONは派生出力なので直接訂正しない。原本のoverrideと理由・出典・日時→fresh export/review/apply→別候補→全版検証・3幅表示・保持確認→publish→匿名確認を使う。名前のみの旧表記は解説を根拠に参加条件へ変換する。誤記や括弧不整合は勝手に修復しない。
+
+UIをv12へ戻す場合は、scripts/build_ui_rollback.py --ref ui-v12-conditions-20261011 --source site --output private/<新しい候補> を使用する。現行の基礎・詳細データを保持し、旧UIはキーワード4条件だけを未対応と表示する。3幅検証→publish→Actions→匿名の版/全ファイル照合まで行う。v13を基準へ戻す場合も同じ手順でv13タグを指定する。旧不変版を書き換えない。
+
+参照解説はsource_manifest.jsonのreference_pagesにだけ登録し、scripts/collect_one.py fetch R01 private/raw/<新しい参照保存先> で1ページずつ取得する。既存保存入力を優先し、カード一覧の全件再取得を起動しない。共有ゲートとロックを使い、完了後60秒以上・失敗時24時間以上とRetry-Afterを維持する。本文は非公開のまま、公開するのは型付きの事実と出典リンクだけ。

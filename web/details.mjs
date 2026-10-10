@@ -12,8 +12,8 @@ export function factText(fact){
  if(fact.metric==='activation_limit')return '最大発動 '+fact.value+'回';
  return '';
 }
-export const conditionNames={mental:'メンタル',turn:'ターン',position:'編成ポジション',participant:'参加アイドル',status:'付与効果',history:'アピール履歴',other:'その他の条件'};
-export function itemActivationCondition(item){return item.activation_condition_v2??item.activation_condition;}
+export const conditionNames={mental:'メンタル',turn:'ターン',position:'編成ポジション',participant:'参加アイドル',status:'付与効果',history:'アピール履歴',keyword:'所持キーワード',other:'その他の条件'};
+export function itemActivationCondition(item){return item.activation_condition_v3??item.activation_condition_v2??item.activation_condition;}
 export function activationConditionTypes(condition){
  if(condition?.status!=='structured'||!condition.expression)return [];
  const visit=p=>{
@@ -25,6 +25,7 @@ export function activationConditionTypes(condition){
   if(['participant','unit_all_participants','unit_participant_count','unit_only_participant'].includes(field))return ['participant'];
   if(['position','unit_all_formation'].includes(field))return ['position'];
   if(field==='turn')return ['turn'];
+  if(field==='owner_keyword')return ['keyword'];
   if(['star_count','audience_count','rank','heal_count','unit_type_count','generated_live_present'].includes(field))return ['other'];
   return [];
  };
@@ -42,6 +43,7 @@ export function activationConditionText(condition){
   if(p.field==='maximum_mental')return '最大メンタル'+n+suffix;
   if(p.field==='turn')return n+'ターン'+(p.operator==='lte'?'以前':'以降');
   if(p.field==='position')return ({vocal:'Vocal',dance:'Dance',visual:'Visual',center:'Center',leader:'Leader'}[n])+'担当';
+  if(p.field==='owner_keyword')return 'スキル所持者のキーワード '+n;
   if(p.field==='participant')return '参加アイドル '+n;
   if(p.field==='history_participant')return 'アピール履歴 '+n;
   if(p.field==='status_count')return p.status+'が'+n+'個以上付与';
@@ -67,10 +69,10 @@ export function activationConditionText(condition){
 export function generationParentText(item){return (item.generated_from_names??(item.generated_from_name?[item.generated_from_name]:[])).join(' / ');}
 export function detailCoverageText(coverage,total){
  const held=coverage.status_counts.missing_page_on_hold??0;
- const conditionCounts=coverage.activation_condition_search_counts??coverage.activation_condition_counts;
+ const conditionCounts=coverage.activation_condition_current_counts??coverage.activation_condition_search_counts??coverage.activation_condition_counts;
  const missing=Math.max(0,total-coverage.detail_card_count-held);
  const notes=[missing?'未収録 '+missing+'件':'',held?'個別ページなし '+held+'件（保留）':''].filter(Boolean);
- return '詳細 '+coverage.detail_card_count+' / '+total+'カード収録。'+(notes.length?notes.join('／')+'。':'')+'数値・条件は一部のみ収録。'+(conditionCounts?'パッシブ発動条件 '+(conditionCounts.structured??0)+' / '+Object.values(conditionCounts).reduce((a,b)=>a+b,0)+'項目対応。':'');
+ return '詳細 '+coverage.detail_card_count+' / '+total+'カード収録。'+(notes.length?notes.join('／')+'。':'')+'数値・条件は一部のみ収録。'+(conditionCounts?'パッシブ発動条件 '+(conditionCounts.structured??0)+' / '+Object.values(conditionCounts).reduce((a,b)=>a+b,0)+'項目対応'+(coverage.activation_condition_current_counts?'（未対応'+(conditionCounts.unsupported??0)+'項目）':'')+'。':'');
 }
 export function detailSearch(cards,params,details){
  const q=normalized(params.get('skill_q')).trim().split(/\s+/).filter(Boolean);

@@ -1,6 +1,7 @@
 """One allowlisted Wiki page per cooldown period; never adopts or publishes."""
 import argparse
 import os
+from time import monotonic
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -31,6 +32,8 @@ def status(manifest, state, current):
                 'full_collection_enabled':manifest.get('full_collection_enabled') is True,
                 'next_allowed_at':None,'can_fetch':False}
     times=[as_utc(state['last_attempt_at'])+timedelta(seconds=cooldown)]
+    if state.get('last_completed_at'):
+        times.append(as_utc(state['last_completed_at'])+timedelta(seconds=cooldown))
     reviewed={(review['failed_at'],review.get('failure_reason','ValueError: unexpected Wiki content or security interstitial')) for review in state.get('failure_reviews',[])
               if review.get('classification')=='local_validator_false_positive'}
     times.extend(as_utc(state[key])+timedelta(seconds=backoff)
@@ -58,7 +61,7 @@ def retry_after_deadline(value, current):
 
 
 def registered_pages(manifest, catalog_path=None):
-    items=manifest['pages']+manifest['audit_pages']+manifest.get('detail_pages',[])
+    items=manifest['pages']+manifest['audit_pages']+manifest.get('detail_pages',[])+manifest.get('reference_pages',[])
     if len({item['id'] for item in items})!=len(items):
         raise ValueError('duplicate source page ID')
     details=manifest.get('detail_pages',[])
@@ -116,6 +119,7 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
     if early_allowed and not availability['can_fetch']:
         state['last_early_authorized_at']=stamp
     write(state_path,state)
+    started=monotonic()
     try:
         fetcher(pages[page_id]['url'],target,allow_limited=True)
         result=read(target/'fetch.json')
@@ -138,6 +142,8 @@ def _fetch_one_unlocked(page_id, directory, *, current=None, state_path=STATE, f
         if target.is_dir():
             write(target/'limited-run.json',{'page_id':page_id,'status':'failed','full_run':False,'authorized_early':bool(early_allowed and not availability['can_fetch'])})
         raise
+    state['last_completed_at']=(current+timedelta(seconds=max(0,monotonic()-started))).isoformat(timespec='seconds')
+    write(state_path,state)
     return result
 
 

@@ -79,5 +79,12 @@
   "detail_catalog_enabled": true,
   "detail_catalog_expected_cards": 1466,
   "detail_catalog_expected_pages": 1363,
-  "detail_catalog_authorization": "2026-10-09 user: 問題なければ全件への取得を進めてください"
+  "detail_catalog_authorization": "2026-10-09 user: 問題なければ全件への取得を進めてください",
+  "reference_pages": [
+    {
+      "id": "R01",
+      "url": "https://wikiwiki.jp/shinycolors/スキル効果の解説",
+      "purpose": "Resolve passive-condition shorthand against the source explanation; private reference only, outside card-list transformation."
+    }
+  ]
 }

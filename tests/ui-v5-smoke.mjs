@@ -29,7 +29,8 @@ if(server)await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const dl=JSON.parse(await readFile(path.join(root,'details/latest.json'),'utf8'));
 const details=JSON.parse(await readFile(path.join(root,'details',dl.detail_version,'details.json'),'utf8'));
 const extendedUI=Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v',''))>=12;
-const conditionFor=i=>(extendedUI?i.activation_condition_v2:undefined)??i.activation_condition;
+const keywordUI=Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v',''))>=13;
+const conditionFor=i=>(keywordUI?i.activation_condition_v3:undefined)??(extendedUI?i.activation_condition_v2:undefined)??i.activation_condition;
 const fields=p=>p?.terms?p.terms.flatMap(fields):p?.field?[p.field]:[];
 let browser;
 try{
@@ -316,7 +317,7 @@ try{
   }
 
   if(Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v',''))>=12&&details.coverage.activation_condition_search_counts){
-   const counts=details.coverage.activation_condition_search_counts;
+   const counts=(keywordUI?details.coverage.activation_condition_current_counts:undefined)??details.coverage.activation_condition_search_counts;
    assert.ok((await page.locator('#detail-coverage').textContent()).includes(counts.structured+' / '+(counts.structured+counts.unsupported)+'項目対応'));
    const unique=new Map();for(const c of cards){const key=c.card_title+c.idol_name;unique.set(key,(unique.get(key)??0)+1);}
    const cases=[
@@ -325,11 +326,17 @@ try{
     {key:'mental-range',category:'mental',test:p=>p.operator==='all'&&p.terms.length===2&&p.terms.every(t=>t.field==='mental_percent'),query:p=>'メンタル'+p.terms[0].value+'%以上 かつ メンタル'+p.terms[1].value+'%以下'},
     {key:'history-or-turn',category:'turn',test:p=>p.operator==='any'&&p.terms.length===2&&p.terms[0].field==='history_participant'&&p.terms[1].field==='turn',query:p=>p.terms[0].value+' または '+p.terms[1].value+'ターン以降'},
    ];
+   if(keywordUI)cases.push(
+    {key:'old-idol-name',category:'participant',test:p=>p.field==='participant',query:p=>'参加アイドル '+p.value},
+    {key:'history-and-genre',category:'history',test:p=>p.operator==='all'&&p.terms.length===2&&p.terms[0].field==='history_participant'&&p.terms[1].field==='history_genre_count',query:p=>p.terms[0].value+' かつ 履歴に'+p.terms[1].value+'ジャンル'+(p.terms[1].operator==='lte'?'以下':'以上')},
+    {key:'unit-or-all',category:'participant',test:p=>p.operator==='any'&&p.terms.length===2&&p.terms.every(t=>t.field==='unit_all_participants'),query:p=>p.terms[0].value+'全員が参加 または '+p.terms[1].value+'全員が参加'},
+    {key:'owned-keywords',category:'keyword',test:p=>p.operator==='all'&&p.terms.every(t=>t.field==='owner_keyword'),query:p=>p.terms[0].value+' かつ スキル所持者のキーワード '+p.terms[1].value},
+   );
    for(const example of cases){
-    const featured=details.cards.find(c=>unique.get(cards.find(b=>b.card_id===c.card_id).card_title+cards.find(b=>b.card_id===c.card_id).idol_name)===1&&c.items.some(i=>i.activation_condition_v2&&example.test(i.activation_condition_v2.expression)));
+    const featured=details.cards.find(c=>unique.get(cards.find(b=>b.card_id===c.card_id).card_title+cards.find(b=>b.card_id===c.card_id).idol_name)===1&&c.items.some(i=>(i.activation_condition_v3||i.activation_condition_v2)&&example.test(conditionFor(i).expression)));
     assert.ok(featured,example.key);
-    const item=featured.items.find(i=>i.activation_condition_v2&&example.test(i.activation_condition_v2.expression));
-    const query=example.query(item.activation_condition_v2.expression),baseCard=cards.find(c=>c.card_id===featured.card_id);
+    const item=featured.items.find(i=>(i.activation_condition_v3||i.activation_condition_v2)&&example.test(conditionFor(i).expression));
+    const query=example.query(conditionFor(item).expression),baseCard=cards.find(c=>c.card_id===featured.card_id);
     await page.locator('#reset').click();
     await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
     if(!await page.locator('#skill-filters').evaluate(n=>n.open))await page.locator('#skill-filters summary').click();

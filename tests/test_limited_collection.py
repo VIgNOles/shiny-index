@@ -11,6 +11,20 @@ import src.indexer as indexer
 
 
 class LimitedCollectionTests(unittest.TestCase):
+    def test_reference_pages_are_allowlisted_separately_and_ids_cannot_collide(self):
+        manifest={'pages':[], 'audit_pages':[], 'reference_pages':[{'id':'R01','url':'https://wikiwiki.jp/shinycolors/スキル効果の解説'}]}
+        self.assertEqual(set(limited.registered_pages(manifest)),{'R01'})
+        manifest['audit_pages']=[dict(manifest['reference_pages'][0])]
+        with self.assertRaisesRegex(ValueError,'duplicate source page ID'):
+            limited.registered_pages(manifest)
+
+    def test_cooldown_starts_after_slow_request_completion(self):
+        start=datetime(2026,10,11,0,0,tzinfo=timezone.utc)
+        manifest={'single_page_cooldown_seconds':60,'single_page_collection_enabled':True}
+        state={'last_attempt_at':start.isoformat(),'last_completed_at':(start+timedelta(seconds=25)).isoformat()}
+        self.assertFalse(limited.status(manifest,state,start+timedelta(seconds=84))['can_fetch'])
+        self.assertTrue(limited.status(manifest,state,start+timedelta(seconds=85))['can_fetch'])
+
     def test_cooldown_blocks_before_network_or_directory_creation(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
@@ -85,8 +99,9 @@ class LimitedCollectionTests(unittest.TestCase):
                 calls.append((received_url,allow_limited))
                 directory.mkdir()
                 indexer.write(directory/'fetch.json',{'status':'fetched','sha256':'test'})
-            with patch.object(limited,'ROOT',root):
+            with patch.object(limited,'ROOT',root),patch.object(limited,'monotonic',side_effect=[10,35]):
                 self.assertEqual(limited.fetch_one('W09',target,current=current,state_path=state,fetcher=fake_fetch)['status'],'fetched')
+            self.assertEqual(indexer.read(state)['last_completed_at'],(current+timedelta(seconds=25)).isoformat(timespec='seconds'))
             self.assertEqual(calls,[(url,True)])
             self.assertEqual(indexer.read(target/'limited-run.json'),{'page_id':'W09','status':'fetched','full_run':False,'authorized_early':False})
             self.assertEqual(indexer.read(state)['last_attempt_at'],current.isoformat(timespec='seconds'))

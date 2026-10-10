@@ -340,3 +340,9 @@
 追加のscripts/recovery_drill.pyで、UI v12候補と同版の接続参照を隔離コピーし、詳細JSON破損/元XLSX破損/原本・公開版不一致の3障害を全て検出。保存版から66公開ファイル・完全原本r18/1419/24025・接続を戻し、全バイト一致と元入力の無変更を確認。既存出力の再使用は拒否し、公開/Google原本・ネットワークへの書込みはない。private/recovery/ui12-conditions-20261011/report.json。本番の実障害からの全面復旧完了とは扱わない。
 証拠はprivate/audits/ui12-conditions-public-verification-20261011.json、ui12-condition-release-checkpoint-20261011.json（published_verified）、ui12-conditions-preservation-20261011.json、passive-condition-v2-native-html-provenance-20261011.json、ui12-condition-all-labels-20261011.json。旧site/接続backupを保持し、接続の公開詳細版だけを更新した。取得runはcomplete4098のまま、未知の書込応答/稼働中の取得・公開処理なし。
 残る453は人物略記381、その他64、ユニットを共有したOR句8。分類/原文/出典をpassive-condition-v2-unsupported-triage-20261011.jsonに保存。次は略記条件の説明や履歴ジャンルの定義を根拠付きで確認し、残り構文と効果全体の構造化を進める。47保留・S90原文空欄・全効果/独立公式網羅・本番基礎新規追加実証・全面実機/Google実画面/本番全面復旧は残る。対象外項目とCSV非表示は維持。
+
+## 2026-10-11 続行指示（ユーザー原文）
+
+> 作業をできる範囲まで進めて
+
+元の目的・完成条件と後続の制約を維持。公開版/原本/取得終了を実照合してから、参照説明による略記の意味確認・残条件の対応・検証・公開を続ける。追加設計の判断や検証結果は以下の記録であり、ユーザーの追加指示ではない。

@@ -55,8 +55,12 @@ class ConditionExtensionTests(unittest.TestCase):
   for raw,operator in [('真乃、灯織がライブに参加している場合','all'),('真乃、灯織いずれかがライブに参加している場合','any'),('履歴に真乃、灯織いずれかがある場合','any')]:
    p=self.expression(raw);self.assertEqual(p['operator'],operator);self.assertEqual([x['value'] for x in p['terms']],['櫻木真乃','風野灯織'])
   self.assertIsNone(self.parse('真乃、未知名いずれかがライブに参加している場合'))
- def test_short_names_need_an_explicit_relationship(self):
-  self.assertIsNone(self.parse('真乃'))
+ def test_documented_old_short_names_are_participation_conditions(self):
+  self.assertEqual(self.expression('真乃'),{'field':'participant','operator':'eq','value':'櫻木真乃'})
+  self.assertEqual(self.expression('透')['value'],'浅倉透')
+  self.assertIsNone(self.parse('未知'))
+  self.assertIsNone(self.parse('智世子'))
+  self.assertIsNone(self.parse('乃'))
   self.assertEqual(self.expression('真乃がライブに参加している場合')['value'],'櫻木真乃')
   ambiguous=context(BASE+[{'idol_name':'別人真乃','unit_name':'アンティーカ'}])
   self.assertIsNone(activation_extension({'kind':'panel_passive','effect_private':'[条件:真乃がライブに参加している場合]'},ambiguous))
@@ -65,14 +69,30 @@ class ConditionExtensionTests(unittest.TestCase):
   self.assertEqual(self.expression('履歴にシーズ全員がある場合')['field'],'history_unit_all')
   self.assertEqual(self.expression('履歴に櫻木真乃が2個以上ある場合')['idol'],'櫻木真乃')
   self.assertEqual(self.expression('履歴に1ジャンル以下又は3ジャンル以上')['operator'],'any')
-  self.assertIsNone(self.parse('履歴に真乃1ジャンル以下'))
+  p=self.expression('履歴に真乃1ジャンル以下')
+  self.assertEqual(p,{'operator':'all','terms':[{'field':'history_participant','operator':'eq','value':'櫻木真乃'},{'field':'history_genre_count','operator':'lte','value':1}]})
+  self.assertIsNone(self.parse('履歴に未知1ジャンル以下'))
  def test_special_states_keep_their_target(self):
   self.assertEqual(self.expression('魅了を観客に付与している場合')['field'],'audience_status')
   self.assertEqual(self.expression('緋田美琴のアピール倍率UPが付与されている場合')['value'],'緋田美琴')
   self.assertEqual(self.expression('瞳の輝きが2個以上付与されている場合')['status'],'瞳の輝き')
   self.assertEqual(self.expression('放クラ全員のアピール倍率UPが付与されている場合')['field'],'unit_appeal_boost_all')
+ def test_shared_unit_or_preserves_all_in_both_branches(self):
+  p=self.expression('イルミネ又はアルスト全員がライブに参加')
+  self.assertEqual(p,{'operator':'any','terms':[{'field':'unit_all_participants','operator':'eq','value':'イルミネーションスターズ'},{'field':'unit_all_participants','operator':'eq','value':'アルストロメリア'}]})
+  self.assertIsNone(self.parse('イルミネ又は未知全員がライブに参加'))
+  self.assertIsNone(self.parse('真乃又は甘奈全員がライブに参加'))
+ def test_exact_audience_count_keeps_both_inclusive_bounds(self):
+  self.assertEqual(self.expression('観客1'),{'operator':'all','terms':[{'field':'audience_count','operator':'gte','value':1},{'field':'audience_count','operator':'lte','value':1}]})
+  self.assertIsNone(self.parse('観客不明'))
+ def test_observed_complete_clauses_and_named_list(self):
+  self.assertEqual(self.expression('注目度UPリアクション回避率UPが付与されている場合')['operator'],'all')
+  self.assertEqual(self.expression('咲耶、霧子、透いずれかがライブに参加している場合')['operator'],'any')
+  self.assertEqual(self.expression('履歴に櫻木真乃が2個以上がある場合')['value'],2)
+  self.assertIsNone(self.parse('パッシブスキル発動率UP強化が付与されている場合'))
+  self.assertIsNone(self.parse('最大メンタル4500以上未知条件'))
  def test_unsupported_brackets_or_kind_never_get_an_extension(self):
-  for raw in ['[条件:真乃がライブに参加している場合][条件:3ターン以前]','[条件:[条件:真乃がライブに参加している場合]]','[条件:観客1]']:
+  for raw in ['[条件:真乃がライブに参加している場合][条件:3ターン以前]','[条件:[条件:真乃がライブに参加している場合]]','[条件:観客1]]']:
    self.assertIsNone(activation_extension({'kind':'panel_passive','effect_private':raw},self.ctx))
   self.assertIsNone(activation_extension({'kind':'panel_live','effect_private':'[条件:3ターン以降アンティーカ全員がライブに参加]'},self.ctx))
  def test_strict_tree_validation_rejects_prose_bad_types_and_sizes(self):
