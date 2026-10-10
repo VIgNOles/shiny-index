@@ -1,6 +1,6 @@
-# 詳細情報の原本・Web・配布データ接続（UI v5）
+# 詳細情報の原本・Web・配布データ接続（UI v9）
 
-2026-10-09 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。詳細は段階的な収録で、256カード（P126/S130）・3,685項目、`d1-471997dafba126df`、詳細原本revision8。**全件詳細版は未完成**。公開URLでの最終検証結果は末尾へ追記する。
+2026-10-10 JST。現行基礎索引は1,466件（P548/S918）、基礎版 `v1-93a6a8b8d40e754a`。公開確認済みの詳細は631カード（P264/S367）・10,405項目、`d1-c4c54f3692bd4473`、詳細原本revision14。**全件詳細版は未完成**。最新の完成条件別結果は verification.md、後続節は当時の工程記録として読む。取得012は継続中で、256件上限と停止待機はユーザーが解除済み。
 
 ## 原本と出力
 
@@ -45,7 +45,7 @@ Copy-Item -LiteralPath site -Destination private/detail-update-candidate -Recurs
 ./.venv/Scripts/python.exe scripts/export_detail_sheet.py private/sheets-exports/<日時>.xlsx private/detail-update-candidate --master-snapshot private/details/<日時>.json
 ./.venv/Scripts/python.exe scripts/check_site.py private/detail-update-candidate
 $env:UI_BROWSER_PATH='C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-$env:UI_EXPECTED_VERSION='ui-v7'
+$env:UI_EXPECTED_VERSION='ui-v9'
 node tests/ui-v4-smoke.mjs private/detail-update-candidate
 node tests/ui-v5-smoke.mjs private/detail-update-candidate
 ```
@@ -53,6 +53,8 @@ node tests/ui-v5-smoke.mjs private/detail-update-candidate
 基礎カード追加/修正の手順はoperations.mdの「追加・手修正」。基礎も更新する場合は基礎版のprepareを先に新規候補で実行し、上記詳細エクスポートをその候補へ追加する。card_id/P/Sと収録範囲が一致しない場合は公開せず原本と結合を修復する。取得値の詳細追加は、保存HTMLの変換候補を `adopt` で既存台帳へ採用し、原本をnativeコピーして追加する。新規スキルを原本へ手登録する簡単な画面はまだなく、`add_manual` の構造入力が必要（先行入力後の統合はテスト済み）。
 
 ## 取得・中断・復旧
+
+以下の224ページ・256件での停止は過去の記録。現在の停止指示ではない。最新は取得012を60秒以上/1ページで継続し、正常保存済み入力を再取得せず、別工程で変換・原本採用・公開する。現在のstate/PID/locksを照合してから再開し、稼働中の処理を二重起動しない。
 
 全件1,363個別ページのうち224を保存し、今回のユーザー指定で取得は停止済み。再開指示まで実行しない。正常時の間隔は60秒以上。正常保存済みページは再送しない。現在の処理状態は `private/raw/detail-catalog-20261009/state.json` とworker.lock、workflow-report.json、stdout/stderr-workflow-010.logで確認する。PC終了や利用上限でジョブが終わった場合、docs/card-details-full-acquisition.mdのPID確認・残留ロック・保存成功回復を先に行う。新しいジョブを重ねて起動しない。
 
@@ -64,7 +66,7 @@ HTTP200短文の誤検知は `private/audits/detail-shape-false-positive-2026100
 - JSの同一スキル行の条件一致、思い出とライブの分離、全角検索、未収録除外を検証。
 - PC1280px・390px・320pxの基礎回帰と詳細検索/開閉/URL再読込/数値/JSON取得をEdgeでPASS。スマホ幅の実表示画像も確認。最高Lv空欄を低いLv値へ置き換えない。
 - 原本1詳細追加・1項目修正がローカルWeb/配布データへ反映し、再変換後も修正/IDを保持。これは基礎カードの新規追加を本番反映した実証ではない。
-- 未完了: 全件詳細取得・全節構造対応・84ロード関連card_idの派生対応・効果条件の全面構造化・公式独立照合。個別ページなし47件は指示により保留、初回実装日不明56件は未解決。実機スマホ/スクリーンリーダー全面検査も未実施。
+- 256件段階の未完了記録: 全件詳細取得・全節構造対応・84ロード関連card_idの派生対応・効果条件の全面構造化・公式独立照合。ロード派生対応は後続工程で実装・採用済み。現在の残件はverification.mdを参照。個別ページなし47件は指示により保留、初回実装日不明56件は未解決。実機スマホ/スクリーンリーダー全面検査も未実施。
 
 
 ## 公開URLでの結果（2026-10-09）

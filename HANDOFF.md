@@ -717,3 +717,15 @@ private/details/after631-adoption678-20261010は631のfresh exportから作成�
 今回の検証用render/変換/更新/公開処理は完了し、未確認の書込応答はない。残って動くのは全件取得012だけ（launcher28492/worker29464）。記録時state1910・2026-10-09T16:35:42+00:00、保存634/1363（新規629+再利用5）、pending729、status=running、active_attempt=None、STOPなし、stderr0。60秒以上/1ページ、共有ゲート、実HTTP失敗/Retry-After停止を維持。保存済みを再取得せず、稼働中の012を二重起動しない。終了後の旧コード監査は新コードで保存入力を再変換してから採用判断する。取得は停止していない。
 
 未完了条件と保留は検証表の通り。全件詳細の入力取得/採用/公開、効果/条件の全面構造化、独立した公式網羅確認、基礎新規実在カード本番追加/修正実証等を完成済みと扱わない。個別リンク47件はユーザー保留。Google実画面は環境起動障害で未確認だがAPI/エクスポート代替を確認済み。今回は再開と追加公開まで進めた状態で、プロジェクト完成・一時停止・ユーザー操作待ちではない。
+
+
+## 2026-10-10 範囲拡大の実行中記録
+
+ユーザー「範囲を広げて進めてください」に従い、678候補を上限としない。取得012/worker29464/launcher28492は二重起動せず継続。frozen3719（保存1237/1363、新規1232/再利用5、pending126）をprivate/audits/expanded-after631-frozen-20261010.jsonへ固定し、最新コードで保存入力のみ再変換中。出力予定expanded-after631-candidate-20261010.json。公開631/原本r14は不変。Google所有者/mtime/API先頭・末尾/全15タブ実値/意味hash72dfd5...を確認。fresh native631はprivate/sheets-exports/master-r14-631-fresh-expanded-20261010.xlsx。接続記録の旧420 alias URL/詳細revision/版/最終exportを確認済み631へ訂正した。実原本・公開は変更していない。書込・公開への不明応答はない。
+
+
+### 1,293件拡大版の登録中チェックポイント
+
+保存1237ページfrozen3719から1293候補(P503/S790)・21868項目を作成。8例外修正、旧1285候補不変、全保存入力再変換と全JSON一致(hash c85cc3ee4ebcdd8feded211295e3ab1caad1550f22f2307dd45ef3f84634e31c)。計画private/details/after631-expanded-adoption-20261010、入力意味hash72dfd5...、出力77d5449601e837b6d91f2d6f3e918b05d963daeb3c055c1135fcbab670388028、662追加・11463項目追加・旧10405registry全値/631カード/手修正保持。Python150/JS25、UI v9拡大版とv8切戻し候補が3幅PASS。公開は631のまま。
+
+指定アカウントでnative全コピーを作成し、詳細6タブだけを登録中。ID/URLはprivate/details/expanded-native-copy-20261010.json、バッチ359個/85KB以下はexpanded-after631-batches-20261010、完了236/359・unknownなし（この記録時点）、正確な最新値はexpanded-after631-write-checkpoint-20261010.json。原本昇格/公開はfalse。再開時はcheckpoint未知範囲を実際に確認し、完了ACK範囲を再送しない。 source631とactive masterは変更していない。取得012は継続。

@@ -34,7 +34,9 @@ def build_requests(before,after,metadata,max_batch_bytes=24000):
             start=None;values=[]
         for i in positions:
             cells=[value_cell(v) for v in rows[i]]
-            if values and (i!=start+len(values) or len(json.dumps(values+[cells],ensure_ascii=False).encode('utf-8'))>max_batch_bytes-1000):flush()
+            prospective={'updateCells':{'start':{'sheetId':sid,'rowIndex':start if start is not None else i,'columnIndex':0},
+                                        'rows':[{'values':row} for row in values+[cells]],'fields':'userEnteredValue'}}
+            if values and (i!=start+len(values) or len(json.dumps([prospective],ensure_ascii=False).encode('utf-8'))>max_batch_bytes):flush()
             if start is None:start=i
             values.append(cells)
         flush()

@@ -96,7 +96,7 @@ def evidence(table_number: int, cell: Cell, anchor: str | None) -> dict:
             "section_anchor": anchor}
 
 
-def tables_in(content: Tag, heading: str, *, optional=False) -> list[tuple[int, Tag, str | None]]:
+def tables_in(content: Tag, heading: str, *, optional=False, stop_headings=()) -> list[tuple[int, Tag, str | None]]:
     matches = [h for h in content.find_all(HEADINGS) if text(h) == heading]
     if not matches and optional:
         return []
@@ -110,7 +110,7 @@ def tables_in(content: Tag, heading: str, *, optional=False) -> list[tuple[int, 
     result = []
     for node in start.next_elements:
         if isinstance(node, Tag):
-            if node.name in HEADINGS and int(node.name[1]) <= rank:
+            if node.name in HEADINGS and (int(node.name[1]) <= rank or text(node) in stop_headings):
                 break
             if node.name == "table" and id(node) in all_tables:
                 if node.find_parent("table"):
@@ -287,13 +287,22 @@ def cap_values(name: Cell, effect: Cell) -> dict:
             match = candidate
             repaired = True
     if not match:
+        aliases = {'Vo':'Vocal','Da':'Dance','Vi':'Visual'}
+        expand = lambda value: re.sub(r'(?<![A-Za-z])(Vo|Da|Vi)(?![A-Za-z])',lambda m:aliases[m[1]],value)
+        expanded = expand(effect.value)
+        candidate = re.fullmatch(pattern,expanded) if expanded != effect.value else None
+        heading = re.fullmatch(rf"({attribute}(?:\s*&\s*{attribute})*)\s*上限UP(?:\s*[（(]☆\d+[)）])?",expand(name.value))
+        if candidate and heading and [x.strip() for x in candidate[1].split('&')] == [x.strip() for x in heading[1].split('&')]:
+            match = candidate
+            repaired = 'aliases'
+    if not match:
         raise ValueError("Unparsed cap increase")
     targets = [part.strip() for part in match[1].split("&")]
     if len(set(targets)) != len(targets):
         raise ValueError("Duplicate cap target")
     result = {"cap_targets": targets, "cap_delta": int(match[2])}
     if repaired:
-        result["cap_parse_note_private"] = "Attribute line break verified against panel heading; original cell preserved"
+        result["cap_parse_note_private"] = ("Attribute aliases verified against panel heading; original cell preserved" if repaired == "aliases" else "Attribute line break verified against panel heading; original cell preserved")
     return result
 
 
@@ -367,6 +376,12 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
             continue
         if "メモリーブースト" not in text(table) and "[MB]" not in text(table):
             explanation=table_grid(table)
+            if (notes is not None and len(explanation)==1 and len(explanation[0])==2
+                    and explanation[0][0].tag.name=='th' and explanation[0][1].tag.name=='td'
+                    and all(cell.value for cell in explanation[0])):
+                notes.append({'name':explanation[0][0].value,'effect_private':explanation[0][1].value,
+                              'source_positions':[evidence(number,cell,anchor) for cell in explanation[0]]})
+                continue
             if (notes is not None and len(explanation)==2 and all(len(row)==1 for row in explanation)
                     and explanation[0][0].tag.name=='th' and explanation[1][0].tag.name=='td'
                     and explanation[0][0].value and explanation[1][0].value):
@@ -457,22 +472,19 @@ def match_abilities(nodes, tables):
             if name.value in ("スキル名", "アビリティ名", "名称"):
                 continue
             entries.append((name.value, effect.value, evidence(number, name, anchor), evidence(number, effect, anchor)))
-    if not abilities and entries:
-        if len({(entry[0],entry[1]) for entry in entries})!=len(entries):raise ValueError("Duplicate dedicated ability")
-        for name,effect,*positions in entries:
+    if len({entry[0] for entry in entries})!=len(entries):raise ValueError("Duplicate dedicated ability")
+    for name,effect,*positions in entries:
+        matching = [ability for ability in abilities if ability['name']==name]
+        if matching:
+            if len(matching)!=1 or re.sub(r"^[（(]アビリティ[)）]\s*", "", matching[0]["effect_private"])!=effect:
+                raise ValueError("Panel/ability section content differs")
+            matching[0]['source_positions'].extend(positions)
+            matching[0]['second_section_confirmed']=True
+        else:
+            # A card-wide ability can coexist with a distinct skill-panel ability.
             nodes.append({'kind':'unique_ability','name':name,'sp':None,'effect_private':effect,
                           'mechanics':[],'source_positions':positions,'origin':'ability_section',
                           'second_section_confirmed':False})
-        return
-    if len(entries) != len(abilities):
-        raise ValueError("Panel/ability section counts differ")
-    for ability in abilities:
-        expected = re.sub(r"^[（(]アビリティ[)）]\s*", "", ability["effect_private"])
-        matching = [e for e in entries if e[:2] == (ability["name"], expected)]
-        if len(matching) != 1:
-            raise ValueError("Panel/ability section content differs")
-        ability["source_positions"].extend(matching[0][2:])
-        ability["second_section_confirmed"] = True
 
 
 def parse_s_traits(content: Tag) -> dict:
@@ -560,7 +572,24 @@ def parse_possessed_live(tables) -> list[dict]:
     return records
 
 
-def parse_support_skills(tables) -> list[dict]:
+def parse_support_skills(tables, *, notes=None) -> list[dict]:
+    current=[]
+    for number,table,anchor in tables:
+        fold=table.find_parent(class_='fold-container')
+        summary=fold.select_one('.fold-summary') if fold else None
+        label=text(summary) if summary else ''
+        stamp=re.fullmatch(r'((?:\d{2}|\d{4})/\d{1,2}/\d{1,2}) 調整前',label)
+        if stamp:
+            datetime.strptime(stamp[1],'%y/%m/%d' if len(stamp[1].split('/')[0])==2 else '%Y/%m/%d')
+            paragraph=fold.select_one('.fold-content > p')
+            if not paragraph or text(paragraph)!=label or len(fold.find_all('table'))!=1:
+                raise ValueError('Ambiguous historical support-skill fold')
+            if notes is not None:
+                notes.append({'name':label,'effect_private':'Historical support table excluded from current skills',
+                              'source_positions':[evidence(number,table_grid(table)[0][0],anchor)]})
+            continue
+        current.append((number,table,anchor))
+    tables=current
     if len(tables) != 1:
         raise ValueError("Expected one support-skill table")
     number, table, anchor = tables[0]
@@ -615,7 +644,7 @@ def extract_html(raw: bytes, card: dict, *, variant_cards=None) -> dict:
     if not content or not soup.title or not normalize('NFKC',text(soup.title)).startswith(normalize('NFKC',title_card["card_title"] + title_card["idol_name"])):
         raise ValueError("Missing Wiki content or wrong card title")
     def section(heading,optional=False):
-        tables=tables_in(content,heading,optional=optional)
+        tables=tables_in(content,heading,optional=optional,stop_headings=("ライブスキル","サポートスキル","ファイトスキル") if heading=="スキルパネル" and card["card_kind"]=="S" else ())
         return select_variant_tables(tables,variant_cards,card['card_id'],required=not optional) if variant_cards is not None else tables
     notes=[]; generated=[]
     nodes, mb = parse_panel(section("スキルパネル"),notes=notes,generated=generated)
@@ -643,11 +672,12 @@ def extract_html(raw: bytes, card: dict, *, variant_cards=None) -> dict:
         record["traits"] = parse_s_traits(content)
         record["max_status"] = parse_s_status(tables_in(content, "ステータス"))
         record["possessed_live"] = parse_possessed_live(tables_in(content, "ライブスキル"))
-        record["support_skills"] = parse_support_skills(tables_in(content, "サポートスキル"))
+        record["support_skills"] = parse_support_skills(tables_in(content, "サポートスキル"),notes=notes)
         record["coverage"].update({"traits": "extracted", "max_status": "partial_missing_values" if record["max_status"].get("missing_fields") else "extracted",
                                    "possessed_live": "extracted", "support_skills": "extracted",
                                    "quick_skill": "extracted" if any(n["kind"] == "quick_skill" for n in nodes) else "no_entry_confirmed",
                                    "fight_skill": "not_collected"})
+    if notes:record["skill_notes_private"]=notes
     return record
 
 

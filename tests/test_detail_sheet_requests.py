@@ -1,9 +1,24 @@
-import copy,unittest
+import copy,json,unittest
+from unittest.mock import patch
 from scripts.prepare_detail_sheet_requests import build_requests,value_cell
 from src.detail_master import DETAIL_TABS,empty,adopt
 from tests.test_detail_master import candidate
 
 class RequestTests(unittest.TestCase):
+    def test_byte_limit_includes_row_wrappers_without_losing_rows(self):
+        old={title:[['header']*5] for title in DETAIL_TABS}
+        new=copy.deepcopy(old)
+        new['詳細属性'].extend([[str(i)]*5 for i in range(650)])
+        with patch('scripts.prepare_detail_sheet_requests.table_rows',side_effect=[old,new]):
+            batches,_=build_requests({}, {},self.metadata(rows=10000),max_batch_bytes=85000)
+        self.assertTrue(all(len(json.dumps(b,ensure_ascii=False).encode('utf-8'))<=85000 for b in batches))
+        blocks=[r['updateCells'] for b in batches for r in b if 'updateCells' in r]
+        self.assertEqual([r['values'][0]['userEnteredValue']['stringValue'] for b in blocks for r in b['rows']],[str(i) for i in range(650)])
+        self.assertEqual([b['start']['rowIndex'] for b in blocks],[1]+[1+sum(len(x['rows']) for x in blocks[:i]) for i in range(1,len(blocks))])
+        oversized=copy.deepcopy(old);oversized['詳細属性'].append(['x'*90000]*5)
+        with patch('scripts.prepare_detail_sheet_requests.table_rows',side_effect=[old,oversized]),self.assertRaisesRegex(ValueError,'exceeds bounded size'):
+            build_requests({}, {},self.metadata(rows=10000),max_batch_bytes=85000)
+
     def metadata(self,rows=2):return {'sheets':[{'properties':{'title':title,'sheetId':i,'gridProperties':{'rowCount':rows,'columnCount':16}}} for i,title in enumerate(DETAIL_TABS,1)]+[{'properties':{'title':'追加・手修正','sheetId':99,'gridProperties':{'rowCount':10,'columnCount':26}}}]}
     def test_requests_target_only_six_tabs_and_grow_before_writes(self):
         c=candidate();before=empty(c['base_dataset_version']);after=adopt(before,c)

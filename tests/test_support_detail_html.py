@@ -27,6 +27,34 @@ def s_fixture(max_level=80, last_column='最大', bad_value=None):
 
 
 class SupportDetailHtmlTests(unittest.TestCase):
+
+    def test_missing_owned_skills_container_stops_at_named_subsection(self):
+        raw=s_fixture().replace('<h2>所持スキル</h2>'.encode(),b'')
+        expected=extract_html(s_fixture(),dict(CARD,card_kind='S'))
+        actual=extract_html(raw,dict(CARD,card_kind='S'))
+        self.assertNotEqual(actual.pop('source_sha256'),expected.pop('source_sha256'))
+        self.assertEqual(actual,expected)
+        self.assertNotIn('excluded-fight',str(actual))
+        unknown=raw.replace('<h3>ライブスキル</h3>'.encode(),'<h3>未知の区分</h3>'.encode())
+        with self.assertRaises(ValueError):extract_html(unknown,dict(CARD,card_kind='S'))
+
+    def test_dated_historical_support_fold_does_not_replace_current(self):
+        from bs4 import BeautifulSoup
+        from src.card_details import parse_support_skills
+        current='<table><tr><th rowspan="2">スキル名</th><th rowspan="2">スキル効果</th><th>取得Lv/スキルLv</th></tr><tr><th>1</th></tr><tr><th>現行甲</th><td>効果甲</td><td>5</td></tr></table>'
+        old=current.replace('現行甲','旧甲').replace('<td>5</td>','<td>1</td>')
+        fold='<div class="fold-container"><div class="fold-summary">18/08/10 調整前</div><div class="fold-content"><p>18/08/10 調整前</p>'+old+'</div></div>'
+        def parse(markup):
+            soup=BeautifulSoup(markup,'html.parser');notes=[]
+            result=parse_support_skills([(i+1,t,'support') for i,t in enumerate(soup.find_all('table'))],notes=notes)
+            return result,notes
+        skills,notes=parse(current+fold)
+        self.assertEqual([x['name'] for x in skills],['現行甲'])
+        self.assertEqual(skills[0]['progression'][0]['skill_level'],5)
+        self.assertEqual(notes[0]['name'],'18/08/10 調整前')
+        self.assertEqual(notes[0]['source_positions'][0]['table'],2)
+        for raw in (fold,current+old,current+fold.replace('18/08/10','18/99/99'),current+fold.replace('調整前','未確認'),current+fold.replace('<p>18/08/10 調整前</p>','<p>19/08/10 調整前</p>')):
+            with self.subTest(raw=raw),self.assertRaises(ValueError):parse(raw)
     def test_explicit_maximum_label_does_not_imply_limit_break(self):
         from bs4 import BeautifulSoup
         from src.card_details import parse_s_status

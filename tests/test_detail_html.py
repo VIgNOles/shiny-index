@@ -34,6 +34,34 @@ def fixture(panel=PANEL, memory=MEMORY, extra=''):
 
 class DetailHtmlTests(unittest.TestCase):
 
+    def test_cap_aliases_require_same_heading_targets(self):
+        panel=PANEL.replace('Vocal上限UP (☆3)','Vo & Da & Vi 上限UP (☆3)').replace('Vocal上限+100','Vo&Da&Vi上限+100')
+        cap=extract_html(fixture(panel=panel),CARD)['panel_nodes'][1]
+        self.assertEqual(cap['cap_targets'],['Vocal','Dance','Visual'])
+        self.assertEqual(cap['cap_delta'],100)
+        self.assertEqual(cap['effect_private'],'Vo&Da&Vi上限+100')
+        for old,new in [('Vi上限+100','Da上限+100'),('Vi 上限UP','Vocal 上限UP'),('Vo&Da&Vi上限+100','Vo&Da&Unknown上限+100'),('Vi上限+100','Vi上限+100余剰')]:
+            with self.subTest(new=new),self.assertRaises(ValueError):extract_html(fixture(panel=panel.replace(old,new)),CARD)
+
+    def test_single_row_explanation_remains_private(self):
+        note='<table><tr><th>補足甲</th><td>効果の補足説明</td></tr></table>'
+        card=extract_html(fixture(extra=note),CARD)
+        self.assertEqual(len(card['panel_nodes']),2)
+        self.assertEqual(card['skill_notes_private'][0]['name'],'補足甲')
+        self.assertEqual(len(card['skill_notes_private'][0]['source_positions']),2)
+        for bad in (note.replace('<th>補足甲</th>','<td>補足甲</td>'),note.replace('効果の補足説明',''),note.replace('</tr>','<td>未知</td></tr>')):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):extract_html(fixture(extra=bad),CARD)
+
+    def test_distinct_card_ability_coexists_with_panel_ability(self):
+        panel='<table><tr><th>SP</th><th>凡例</th></tr><tr><th rowspan="2">40</th><th>能力甲</th></tr><tr><td>(アビリティ)効果甲</td></tr></table>'
+        extra='<h2>アビリティ</h2><table><tr><th>能力乙</th><td>効果乙</td></tr></table>'
+        nodes=extract_html(fixture(panel=panel,extra=extra),CARD)['panel_nodes']
+        self.assertEqual([x['name'] for x in nodes],['能力甲','能力乙'])
+        self.assertEqual([x['sp'] for x in nodes],[40,None])
+        self.assertEqual(nodes[1]['origin'],'ability_section')
+        duplicate=extra.replace('</table>','<tr><th>能力乙</th><td>異なる効果</td></tr></table>')
+        with self.assertRaisesRegex(ValueError,'Duplicate dedicated'):extract_html(fixture(panel=panel,extra=duplicate),CARD)
+
     def test_legacy_cap_up_plus_requires_matching_heading(self):
         panel=PANEL.replace('Vocal上限+100','Vocal上限UP+100')
         node=extract_html(fixture(panel=panel),CARD)['panel_nodes'][1]
