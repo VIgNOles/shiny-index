@@ -1,18 +1,43 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
-## 最新状態（2026-10-11：容量整理・効果検索UI v14、公開前検証中）
-元依頼は継続。ユーザーが新カードの本番追加実証を今は保留し、UI版は画面・操作変更時だけ更新と指定した。47個別ページ保留、Pステージ/適正・Sファイト対象外、CSV画面非表示を維持する。
+## 最新状態（2026-10-11：UI v14公開検証済み・ユーザー指示で一時停止）
+ユーザーがToken上限前の保存・停止を指示。新工程に入らず、再開指示まで実装・取得を停止する。元の依頼は継続し、プロジェクト全体の完成扱いではない。新規基礎カードの本番追加実証は別途「今は保留」。47個別ページ保留、Pステージ/適正・Sファイト対象外、CSV画面非表示を維持。UI版は画面・操作変更時だけ更新し、データのみの追加・修正では上げない。
 
-D容量整理：private配下の過去の生成サイト76ディレクトリ10186274703 bytesを、C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-inactive-sites-20261011へZIP970503477 bytesで保存。全ファイルと各ZIPをSHA照合し、削除直前にDの元ファイル全てを再照合後、複製だけ削除。空き約0.276GB→10.468GB。原本・接続・原本JSONの保護ハッシュは維持。旧生成サイトの元パスとZIP対応はprivate/archive-generated-sites-20261011.json。復元CLI scripts/restore_archived_site.py。70ファイルを実復元して整理前siteと全バイト一致。原HTML・原本・手修正・証拠JSON・現行site・Gitやプロジェクト外のデータは削除していない。
+### 完了と公開状態
+UI v14、基礎r7/1466/v1-93a6a8b8d40e754a不変。詳細原本r19/1419(P548/S871)/24025、公開詳細d1-cfe1eff5ac87d5ac。原本SHA aa4a6fc70c85d6c60803e4109faa4d4a3119b3d20be05fd53b359c779e5f5d46不変。全24025 ID・6手修正・既存カード/項目/coverageを保持し、effect_detailsと対応件数を派生追加した。Google書込0、指定native原本mtime2026-10-10T16:21:51.833Zを再確認済み。Google現行ID/URLはprivate/sheets-connection.json。接続記録のdetail_dataset_versionは最後のnative補正時d1-f5c5c8ded775d398を指す履歴であり、現行公開の詳細版はsite/details/latest.jsonと今回checkpointを優先する。
 
-現在公開はUI v13/d1-f5c5c8ded775d398、原本r19/基礎r7は不変。公開候補はprivate/site-ui14-release-final-20261011、UI v14/詳細d1-cfe1eff5ac87d5ac、1419カード/24025項目。effect_detailsのみを派生追加し、全旧項目フィールド/カード/coverageと旧不変ファイルの保持を比較した。5033サポート効果・110固有アビリティを型へ変換。ライブ/思い出の倍率・継続ターン・区間も追加したが、複合効果全体の構造化完了とはしない。原文の助詞「するとで」がある既知テンションマスタリー上限5項目は完全一致ルールだけを許し注記、取得原文は不変。以前解消したパッシブ5条件とは別。パッシブ5890/5890・未対応0を維持。
+サポート5033項目の効果/Lv式/発動場面/確率/対象と、固有アビリティ110項目の対象/グループ/制約を型へ変換。数値・確率不記載はunknownで保持。原文の助詞「するとで」5項目はスキル名/対象/式の完全一致ルールだけを受理し注記、取得原文を変更しない（以前解消したパッシブ5項目とは別の原文表記）。ライブ/思い出のアピール倍率・範囲・最大値・全観客対象、隣接する効果ごとの継続ターン、Link/Plus等の区間を保持。ランダム候補は同時効果として派生しない。複合効果全体の構造化完了とはしない。パッシブ5890/5890・未対応0不変。
 
-保存1363ページを全再変換し、カード/項目/coverageは現行原本と一致。再変換の新監査パッケージは履歴ハッシュが異なるため、仮適用ではsource_runsとrevisionだけ増える。実際には採用せずr19を保持。既に採用済みのfull-linked候補再適用は原本全体/ID/6手修正/revision19完全一致。証拠private/audits/ui14-offline-reapply-restore-proof-20261011.json。Google原本mtime2026-10-10T16:21:51.833Zを指定接続で再確認し、今回書込なし。
+UIの効果種類・対象・継続ターンは同じ1効果へ一致。URL/戻る進む/チップ/リセット、一致スキル優先・効果強調、取得表の最大スキルLv換算を追加。UI版は今回の画面/操作変更でv13→v14。仕様docs/ui-v14-spec.md、依存追加なし。
 
-UIの新条件は効果種類・対象・継続ターンで同じ効果へ一致。URL/戻る進む/チップ/リセット、一致スキル優先と該当効果強調、最大スキルLv換算を追加。UI v13に新データを組み合わせた切戻し候補はprivate/site-ui14-final-ui13-rollback-20261011。仕様docs/ui-v14-spec.md。依存追加なし。Python/JS全試験と最終候補の基本/詳細/効果3幅、旧UI3幅を実行中。公開はまだ切替前。以後は実プロセス結果・checkpoint・匿名公開照合を優先して更新する。
+公開commit 10f92ce4245f187b12caf3c6e9e5947f9281deb1、tag ui-v14-effects-verified-20261011（push済み）。Actions38072385564 success。匿名公開 https://vignoles.github.io/shiny-index/ の72/72ファイルがHTTP200/ローカル全バイト一致。Python209/JS43 PASS（429表示はmock）。ローカル/公開の1280/390/320基本・詳細・効果UI PASS。公開画像2、ローカル画像を視認。新データに旧UI v13を組み合わせた3幅の基本/詳細もPASS。
 
-次：最終検証の結果を確認→候補を保存/公開→Actions成功・匿名72ファイル一致・3幅の基本/詳細/効果を検証→公開済み記録へ更新。Wiki新通信なし。試作中のprivate/site-ui14-*候補のうちrelease-final以外は未公開の中間版であり検証済みリリースに使わない。基礎新規追加・47件は保留。S90最大Lv360空欄、日付不明56、複合効果、独立公式網羅、全面実機/Google実画面/本番全面復旧は残る。
+保存1363ページを全再変換し、カード/項目/coverage一致。新監査パッケージのhashは新しく、仮適用では履歴とrevisionだけ増えるため採用していない。採用済みfull-linked候補の再適用は原本全体/ID/6手修正/revision19完全一致。実原本を変更していない。証拠private/audits/ui14-offline-reapply-restore-proof-20261011.json。
+
+### 容量整理と復旧
+過去の生成サイト76ディレクトリ10186274703 bytesをC:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-inactive-sites-20261011へZIP970503477 bytesで保存し、全ファイル/ZIPと削除直前の元ファイルをSHA照合してからDの複製を削除。対応表private/archive-generated-sites-20261011.json（同Cにmanifest.json）。原HTML・原本・手修正・固有証拠JSON・現行site・Git・プロジェクト外データは削除していない。旧生成サイトを参照する過去記録は、この対応表から復元する。70ファイルを実復元して整理前siteと全バイト一致した。
+
+今回の中間候補8個と復元試験コピーも、証拠/元データを残して整理。最終公開候補もsiteの72ファイルと完全一致を再確認後に重複だけ削除した。これらのprivate/site-ui14-*候補パスは現在存在しない。候補の中間データ版（d1-5249b18fc6f64fb5等）を検証済みリリースとして使わない。
+
+旧UI v13＋今回の新データの検証済み72ファイルは同Cのui13-rollback-with-ui14-data.zip（34126286 bytes）へ全ファイル照合済みで保存。復元対応表private/ui14-rollback-archive.json、同Cのui14-rollback-manifest.json。
+復元例：.venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui14-final-ui13-rollback-20261011 private/restored-ui13-with-current-data --manifest private/ui14-rollback-archive.json
+既存へ上書きしない。Cのアーカイブを削除しない。最終D空き約10.39GB（開始0.276GB）。現在の正常公開/旧不変版と指定原本も保持。
+
+### 問題・未検証・残件
+新しいWiki通信0。取得catalogはcomplete4098/active_attemptなし、全取得/書込/検証/公開プロセス終了。未知の書込応答や中断中のデータ更新なし。今回の保存境界は公開検証後。
+公開前のsite/candidate全バイト比較でsearch.mjsだけ既存の改行形式差が見つかった。処理自体の差はなく、既存公開assetを維持して候補を合わせ、CI/匿名72一致/公開UIまで確認済み。新規試験コードのimport不足、複数summary用の旧セレクタ、追加パーサの効果順/対象取り違えは試験・全件比較で修正し最終209/43および3幅を通過した。未解決の公開破損・原本不整合はない。
+47ページと新規基礎カード本番追加の実証はユーザー指定で保留。S90最大Lv360セル原文空欄、日付不明56、全複合効果/全発動制限の構造化、独立公式網羅、全面実機/Google実画面/別PC実行/本番全面復旧は未完。今回の対応を全体完成としない。
+
+### 変更と証拠
+実装：src/skill_effects.py、src/detail_public.py、web/app.mjs/details.mjs/index.html/style.css、srcと検索/UIの試験。容量整理/復元scripts/archive_generated_sites.py、scripts/restore_archived_site.py。手順/設計：TASK.md、HANDOFF.md、operations.md、docs/ui-v14-spec.md、docs/verification.md、design.md（ローカルのみ）。公開siteの5変更＋新不変2ファイル。コード準備commit1288a93、公開commit10f92ce。
+主要証拠：private/audits/ui14-effects-checkpoint-20261011.json（published_verified_paused_by_user）、ui14-effects-release-preservation-20261011.json、ui14-public-files-20261011.json、ui14-actions-final-20261011.json、ui14-offline-reapply-restore-proof-20261011.json、ui14-native-metadata-20261011.json、ui14-python-tests-20261011.log、ui14-js-tests-20261011.log、ui14-final-public-20261011/。原本・取得済み入力・非公開証拠をGitへ加えない。
+
+### 再開時の操作
+1. ユーザーの再開指示後、git status/log、site/details/latest.json、上記checkpoint、原本SHAと接続baselineを照合する。引き継ぎだけで完成判断しない。原本はr19、公開はUI14/d1-cfe1eff5ac87d5ac。既存UI14機能を再実装しない。
+2. 取得catalog complete4098/active_attemptなしを確認する。今回の構造化で新Wiki通信は不要。新規カード実証と47件は保留を解除された時だけ着手する。
+3. 続ける主対象は、残る複合ライブ効果・発動制限の型と、必要な用途別検索の改善。保存HTMLと原本から未対応表記を列挙し、効果/機能区間ごとに条件を分離する。既存数値/全ID/6手修正/旧バンドルを保持し、誤った無条件化を避けて試験・全件比較・UI互換・公開確認する。
+4. データのみの更新でUI版を上げない。画面/操作変更時に次のUI版を付け、現在のverifiedタグを切戻し点にする。原本編集を要する時だけ指定owner/profileとfresh exportを確認する。容量を確認し、検証用サイト全コピーを無制限に増やさない。
 <!-- /current-state -->
 
 

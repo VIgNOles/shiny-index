@@ -474,3 +474,14 @@ Dの空き不足に対し、作業フォルダー内の過去の生成サイト7
 ZIP全体と各ファイルを検証して復元する。今回、70ファイルを実際に復元し、整理前の現行siteと全バイト一致することも確認した。大きい候補・切戻しコピーを増やす前に空きを確認し、不要な作業コピーは検証後に圧縮する。
 
 ユーザーが知らせた直近の新カードは、カード名・Wiki更新状況を推測せず、本番追加の実証を保留する。
+
+
+## UI v14公開後の切戻し点と停止位置（2026-10-11）
+
+現在の検証済みタグはui-v14-effects-verified-20261011、公開詳細d1-cfe1eff5ac87d5ac。原本r19は変更せず、データのみの変更ではUI番号を更新しない。旧UI13と今回の新データの72ファイルはCアーカイブui13-rollback-with-ui14-data.zipに保存し全バイト照合済み。
+
+```powershell
+.\.venv\Scripts\python.exe scripts/restore_archived_site.py private/site-ui14-final-ui13-rollback-20261011 private/restored-ui13-with-current-data --manifest private/ui14-rollback-archive.json
+```
+
+復元は新しいprivate出力へ行う。今回のprivate/site-ui14-*中間候補は検証・公開後に重複を整理したため、旧候補パスをそのまま使わない。正常なsiteとGit verifiedタグ、原本・取得済み入力・証拠は保存している。ユーザー指示により現在停止。新規基礎カードの本番追加実証は別途保留。
