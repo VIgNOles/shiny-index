@@ -1,12 +1,13 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
-## 最新状態（2026-10-11 UI v12候補の検証中）
-現在の公開はUI v11・詳細d1-bf15cd59d9002994、原本r18/1419/24025・基礎r7/1466は不変。原本SHA/指定owner・native mtime04:56:30.698Zを再確認済み。Wiki取得runはcomplete4098で二重起動しない。今回のWiki通信とGoogleセル書込み0。
-src/skill_conditions_v2.pyと公開変換・UI v12を実装中。従来activation_conditionとcountsを保持し、旧形式で未対応だった491項目だけactivation_condition_v2を追加。全体の検索対応5437/5890、未対応453見込み。木のall/any、全員/ユニットから1人のみ/人数・数値範囲・履歴・状態を区別。裸の人物略記381は意味を推測せず保留。
-Python182/JS38 PASS（429はmock）。private/site-ui12-conditions-candidate-20261011にd1-776465cddea6c059を生成。sourceaudit76445、候補UI67306、旧UI v11切戻し生成4122の結果を実際に確認する。公開/site/接続はまだ旧版で、原本書込みなし。
-次は原セル5890/SHA照合完了→候補3幅/旧UI v11切戻し3幅→全旧データ・版保持→backup/checkpoint→site昇格→publish/Actions/匿名全ファイルと3幅→文書/接続版参照更新・Git保存。原本セルを変える工程ではない。未確認結果を推測で成功扱いしない。
-47保留・S90原文空欄・残る条件/複合効果・公式独立網羅・本番基礎新規追加実証・全面実機/Google実画面/復旧は未完了。元の指示と過去記録は以下に保持。
+## 最新状態（2026-10-11 00:21 JST）
+UI v12・詳細d1-776465cddea6c059を公開確認済み。原本r18/1419(P548/S871)/24025、基礎r7/1466/v1-93a6a8b8d40e754aは不変。Google現行URL/hashはprivate/sheets-connection.jsonを使い、古いSheetへ書かない。今回のWiki通信/Googleセル書込み0。
+発動条件を491項目拡張し5437/5890対応・未対応453。全員/ユニット内のみ/範囲/all-any/履歴/状態を区別。従来activation_condition/countsは4946/944のまま互換維持、拡張式と検索集計を任意追加。原セル全5890/SHA、全旧項目・固定ID/手修正/coverage・旧4946表示文・不変版保持。
+公開afd608f035fe0f7109cbf8981b2bb5c207fc6636、tag ui-v12-conditions-20261011、Actions38062735101 success。匿名66/66一致、公開/ローカル/旧UI v11切戻しの1280/390/320基本/詳細PASS。Python182/JS38 PASS（429はmock）、画像ローカル3/公開2枚確認。private/audits/ui12-condition-release-checkpoint-20261011.jsonはpublished_verified。
+隔離復旧の3障害検出→66ファイル/完全原本/接続の保存版復元→全バイト一致/入力無変更を確認。scripts/recovery_drill.pyは新しいprivate出力だけへ書き、既存出力を拒否。private/recovery/ui12-conditions-20261011/report.json。実Google/本番への破壊・復旧は行わない。
+取得1363ページはcomplete4098・active_attemptなし。取得/変換/検証/公開処理は完了、未知の書込応答なし。新たな取得を二重起動しない。次は保存HTML/説明を使い、裸の人物略記381・履歴ジャンル等64・共有OR8の意味/構文を確認→境界試験→新候補/保持/公開確認。原本手編集があれば先にowner/profile/現在mtime・fresh exportを確認して手修正を保つ。
+47リンク保留・S90最大Lv原文空欄・残453条件/全複合効果・公式独立全網羅・本番実在基礎新規追加実証・全面実機/Google実画面/本番全面復旧は未完了。Pステージ/適正・Sファイトは対象外。ユーザー操作待ち・プロジェクト完成として扱わない。過去の記録は以下に保持。
 <!-- /current-state -->
 
 
@@ -801,3 +802,11 @@ UI v10・詳細d1-fe052456be3b2b43。実原本候補と同じ1380データのUI 
 実装9d1c764、公開準備421f21e、公開64bdb5f02e424450199857aa8789e53e042b34ac、tag ui-v11-conditions-20261010、Actions38038517584 success。匿名64/64ファイルの生バイト一致。ローカル/公開/旧UI v10切戻しの3幅基本・詳細PASS、P/S条件・未対応表示・URL保持・同一項目検索・JSON版を確認、画像ローカル3/公開2枚を視認。Python167/JS33 PASS（429ログは模擬）。
 未対応944項目はprivate監査へ分類保存：人物略記381、ユニット全員137、3属性全て20、明示論理結合22、その他/暗黙の複合384。分類は意味の推測や採用ではない。次は保存HTML内のリンク/脚注・表見出しを確認して略記の意味を確定し、全員・AND/ORを失わないschemaと境界試験から対応する。ユーザー回答待ちはない。
 原本/native mtime04:56:30.698Z・ownerを再確認。接続の公開詳細版参照だけ更新し、nativeセルは変更していない。旧siteと接続backup、release checkpoint、provenance/preservation/public確認・未対応triageはprivateへ保存。原本の編集手順は従来どおりfresh export→review/apply→別候補→検証→publish→匿名確認。全面解析・公式独立網羅・本番基礎新規追加実証・全面実機/Google実画面/全面復旧は未完了。
+
+
+## 2026-10-11 UI v12：追加491条件と隔離復旧の確認
+原本r18/1419(P548/S871)/24025、基礎r7/1466を維持し、追加491条件（P314/S177）を公開変換で導出。検索対応5437/5890（P1993/2075、S3444/3815）、未対応453。従来activation_condition/countsの4946/944を保持し、activation_condition_v2とactivation_condition_search_countsを任意追加。全5890原本ソースと保存1363ページのSHA/セル位置、旧24025項目/coverage/固定ID/手修正、旧4946表示文を照合。旧siteの60ファイルを生バイト保持し、UI3ファイル・詳細pointer・新不変バンドル2ファイルだけを変更。Wiki通信/Google原本書込み0。native owner/mtimeと元XLSX SHA不変を再確認。
+実装dcaba53、準備1347db7、公開afd608f035fe0f7109cbf8981b2bb5c207fc6636、tag ui-v12-conditions-20261011、Actions38062735101 success。匿名66/66ファイル一致、公開/ローカル/旧UI v11切戻しの1280/390/320基本・詳細PASS。全員/ユニット内のみ/メンタル範囲/履歴またはターンの実例、URL保持、同一項目検索、横はみ出しなし、JSON版を確認。画像ローカル3/公開2枚を視認。Python182/JS38 PASS（429はmock）。候補検査で未エンコード%を含むテスト用URLを修正し、全回帰を通した。製品のURL保存は構造化URLSearchParamsを使用。
+追加のscripts/recovery_drill.pyで、UI v12候補と同版の接続参照を隔離コピーし、詳細JSON破損/元XLSX破損/原本・公開版不一致の3障害を全て検出。保存版から66公開ファイル・完全原本r18/1419/24025・接続を戻し、全バイト一致と元入力の無変更を確認。既存出力の再使用は拒否し、公開/Google原本・ネットワークへの書込みはない。private/recovery/ui12-conditions-20261011/report.json。本番の実障害からの全面復旧完了とは扱わない。
+証拠はprivate/audits/ui12-conditions-public-verification-20261011.json、ui12-condition-release-checkpoint-20261011.json（published_verified）、ui12-conditions-preservation-20261011.json、passive-condition-v2-native-html-provenance-20261011.json、ui12-condition-all-labels-20261011.json。旧site/接続backupを保持し、接続の公開詳細版だけを更新した。取得runはcomplete4098のまま、未知の書込応答/稼働中の取得・公開処理なし。
+残る453は人物略記381、その他64、ユニットを共有したOR句8。分類/原文/出典をpassive-condition-v2-unsupported-triage-20261011.jsonに保存。次は略記条件の説明や履歴ジャンルの定義を根拠付きで確認し、残り構文と効果全体の構造化を進める。47保留・S90原文空欄・全効果/独立公式網羅・本番基礎新規追加実証・全面実機/Google実画面/本番全面復旧は残る。対象外項目とCSV非表示は維持。

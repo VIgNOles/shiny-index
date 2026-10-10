@@ -406,3 +406,18 @@ UI v10への切戻しは scripts/build_ui_rollback.py --ref ui-v10-details1419-2
 activation_condition_v2も原本の有効effect_privateから自動導出する。配布JSONを手編集しない。訂正は従来どおり原本のoverrideと理由/出典/日時→fresh export→review/apply→別候補生成→検証→公開。曖昧な名前だけの条件は未対応として保持する。検索集計はactivation_condition_search_counts、旧UI互換集計はactivation_condition_countsを使う。
 
 UIだけをv11へ戻す場合はbuild_ui_rollback.py --ref ui-v11-conditions-20261010 --source site --output private/<新しい候補>で現行データを保つ。旧UIは拡張491項目を未対応と表示し、従来の条件4946項目は引き続き検索できる。原本や新不変版を消さず、3幅検証→publish→Actions→匿名版/全ファイル照合まで行う。
+
+
+## 全スナップショットの隔離復旧演習
+
+公開と原本の版を揃え、通常のcheck_siteに合格した保存版を使う。現在のsite/master.xlsx/sheets-connection.jsonが揃っている場合の実行例：
+
+~~~powershell
+./.venv/Scripts/python.exe scripts/recovery_drill.py --output private/recovery/check-20261011-01
+~~~
+
+毎回新しい出力先にする。既存出力・private外・元入力を含む/元入力内の出力は拒否され、元ファイルや公開先を変更しない。別の保存版には--site/--master/--connectionで同じ版の組を指定する。バージョンや原本SHAが不一致なら、無理に通さず元の更新記録を確認する。
+
+演習は隔離コピーで詳細JSON破損、XLSX破損、原本/公開版不一致を作り、検出後に保存版全体を戻す。全公開ファイル/原本/接続の生バイト一致・原本の読戻し・入力無変更をreport.jsonに記録する。途中で中断した出力は履歴として残し、reportの有無を確認して別の新しい出力先で再実行できる。これは本番の実障害やGoogleセルの復旧成功を意味しない。本番復旧は公開の正常版選択/Actions/匿名確認と、Google原本の所有者/バックアップ/実読戻しを別に行う。
+
+2026-10-11のUI v12候補では3障害を検出し、66ファイル・r18/1419/24025原本・同版の接続参照を全復元、元入力不変。保存結果はprivate/recovery/ui12-conditions-20261011/report.json。

@@ -317,3 +317,11 @@ Googleのnative全コピーへ詳細6タブを359 bounded batchで登録し、�
 ## UI v12の条件バンドル
 
 詳細d1-776465cddea6c059候補は、従来の単一条件と旧集計を保持し、491項目にactivation_condition_v2を追加する。新UIの対応数はactivation_condition_search_counts（5437/453）、旧UI v11の表示数はactivation_condition_counts（4946/944）。この違いは互換表示の範囲であり、カード/項目の欠落ではない。木のall/anyと全員/ユニット内のみ/人数範囲を保存し、旧UIへの切戻しでも原本r18/1419/24025と新不変バンドルを維持する。個別リンク47保留・対象外項目・CSV非表示は不変。
+
+
+## 2026-10-11 UI v12：追加491条件と隔離復旧の確認
+原本r18/1419(P548/S871)/24025、基礎r7/1466を維持し、追加491条件（P314/S177）を公開変換で導出。検索対応5437/5890（P1993/2075、S3444/3815）、未対応453。従来activation_condition/countsの4946/944を保持し、activation_condition_v2とactivation_condition_search_countsを任意追加。全5890原本ソースと保存1363ページのSHA/セル位置、旧24025項目/coverage/固定ID/手修正、旧4946表示文を照合。旧siteの60ファイルを生バイト保持し、UI3ファイル・詳細pointer・新不変バンドル2ファイルだけを変更。Wiki通信/Google原本書込み0。native owner/mtimeと元XLSX SHA不変を再確認。
+実装dcaba53、準備1347db7、公開afd608f035fe0f7109cbf8981b2bb5c207fc6636、tag ui-v12-conditions-20261011、Actions38062735101 success。匿名66/66ファイル一致、公開/ローカル/旧UI v11切戻しの1280/390/320基本・詳細PASS。全員/ユニット内のみ/メンタル範囲/履歴またはターンの実例、URL保持、同一項目検索、横はみ出しなし、JSON版を確認。画像ローカル3/公開2枚を視認。Python182/JS38 PASS（429はmock）。候補検査で未エンコード%を含むテスト用URLを修正し、全回帰を通した。製品のURL保存は構造化URLSearchParamsを使用。
+追加のscripts/recovery_drill.pyで、UI v12候補と同版の接続参照を隔離コピーし、詳細JSON破損/元XLSX破損/原本・公開版不一致の3障害を全て検出。保存版から66公開ファイル・完全原本r18/1419/24025・接続を戻し、全バイト一致と元入力の無変更を確認。既存出力の再使用は拒否し、公開/Google原本・ネットワークへの書込みはない。private/recovery/ui12-conditions-20261011/report.json。本番の実障害からの全面復旧完了とは扱わない。
+証拠はprivate/audits/ui12-conditions-public-verification-20261011.json、ui12-condition-release-checkpoint-20261011.json（published_verified）、ui12-conditions-preservation-20261011.json、passive-condition-v2-native-html-provenance-20261011.json、ui12-condition-all-labels-20261011.json。旧site/接続backupを保持し、接続の公開詳細版だけを更新した。取得runはcomplete4098のまま、未知の書込応答/稼働中の取得・公開処理なし。
+残る453は人物略記381、その他64、ユニットを共有したOR句8。分類/原文/出典をpassive-condition-v2-unsupported-triage-20261011.jsonに保存。次は略記条件の説明や履歴ジャンルの定義を根拠付きで確認し、残り構文と効果全体の構造化を進める。47保留・S90原文空欄・全効果/独立公式網羅・本番基礎新規追加実証・全面実機/Google実画面/本番全面復旧は残る。対象外項目とCSV非表示は維持。
