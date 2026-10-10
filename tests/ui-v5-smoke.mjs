@@ -144,6 +144,36 @@ try{
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-cheer-cap.png')});
    await page.locator('#reset').click();
   }
+  const mixedAbilities=details.cards.find(card=>card.card_id==='b986cf13-2752-47e1-ae42-aa43b76b3e1e');
+  if(mixedAbilities){
+   const baseCard=cards.find(card=>card.card_id===mixedAbilities.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   await page.locator('#skill-kind').selectOption('unique_ability');
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   assert.equal(mixedAbilities.items.filter(item=>item.kind==='unique_ability').length,2);
+   await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'固有アビリティ'}).click();
+   const rendered=await page.locator('.performance').textContent();
+   assert.ok(rendered.includes('基礎能力値UP(+3%)')&&rendered.includes('芹沢 あさひとの約束'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-mixed-abilities.png')});
+   await page.locator('#reset').click();
+  }
+  const adjustedSupport=details.cards.find(card=>card.card_id==='8703c650-e57a-4eb6-88db-37099c2c1d93');
+  if(adjustedSupport){
+   const baseCard=cards.find(card=>card.card_id===adjustedSupport.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   await page.locator('#skill-kind').selectOption('support_skill');
+   await page.locator('#skill-q').fill('ビジュアルマスタリーVi');
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'サポートスキル'}).click();
+   const rendered=await page.locator('.performance').textContent();
+   assert.ok(rendered.includes('ビジュアルマスタリーVi')&&!rendered.includes('ダンスマスタリーDa'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-current-support.png')});
+   await page.locator('#skill-q').fill('ダンスマスタリーDa');
+   assert.equal(await page.locator('#count').textContent(),'0 / '+total+' 件');
+   await page.locator('#reset').click();
+  }
   const scene=details.cards.find(card=>card.card_id==='be7cb223-2d49-4d67-8f0d-bdbb86893055');
   if(scene){
    const baseCard=cards.find(card=>card.card_id===scene.card_id);

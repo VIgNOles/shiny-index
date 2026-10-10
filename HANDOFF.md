@@ -729,3 +729,10 @@ private/details/after631-adoption678-20261010は631のfresh exportから作成�
 保存1237ページfrozen3719から1293候補(P503/S790)・21868項目を作成。8例外修正、旧1285候補不変、全保存入力再変換と全JSON一致(hash c85cc3ee4ebcdd8feded211295e3ab1caad1550f22f2307dd45ef3f84634e31c)。計画private/details/after631-expanded-adoption-20261010、入力意味hash72dfd5...、出力77d5449601e837b6d91f2d6f3e918b05d963daeb3c055c1135fcbab670388028、662追加・11463項目追加・旧10405registry全値/631カード/手修正保持。Python150/JS25、UI v9拡大版とv8切戻し候補が3幅PASS。公開は631のまま。
 
 指定アカウントでnative全コピーを作成し、詳細6タブだけを登録中。ID/URLはprivate/details/expanded-native-copy-20261010.json、バッチ359個/85KB以下はexpanded-after631-batches-20261010、完了236/359・unknownなし（この記録時点）、正確な最新値はexpanded-after631-write-checkpoint-20261010.json。原本昇格/公開はfalse。再開時はcheckpoint未知範囲を実際に確認し、完了ACK範囲を再送しない。 source631とactive masterは変更していない。取得012は継続。
+
+
+### 1,293件版のnative昇格・公開
+
+native全値が計画一致、基礎9タブ/旧631カード/旧10405 registry全値/手修正1を保持。書込311325セルと周囲を含む316119セル全書式/validation/chips/formula、追加11463出典URLと収録範囲1419URLの表示/実リンク一致、5フィルター全範囲PASS。Google原本r15・1293件/21868項目・意味hash77d544...へ昇格、旧631とlocal/site/connection backup保持。旧source631のmtime不変も確認。匿名公開a076317e751d36831441a52d5dc6a5c815e1261f、準備48bc653、タグui-v9-details1293-20261010、Actions38020818029 success。公開UI3幅PASS（新規の別アビリティ併存/調整前Sサポートの非混入を含む）。全56ファイルの匿名生バイト照合は実行中。native XLSX代替11画像はArtifact import実行中、Google実画面は以前からCUA不可。原本の内容/書式/リンクはAPIと実exportで確認済み。
+
+次の保存入力もafter1293-expanded-frozen/candidate-20261010へ全再変換中。取得012の残件は継続し、1293を上限としない。

@@ -377,3 +377,8 @@ Googleの後続エクスポートでmtime16:10:24.240UTCとZIP包装差を観測
 次操作：取得012のPID/state/locks/active_attempt/logを実照合し二重起動しない→現在nativeのfresh exportと次計画input hash照合（変われば手修正を保って再計画）→詳細だけを書き込むnative全コピー→全値/基礎9タブ/旧ID/override/全書込セル/出典/フィルター確認→別site候補/PCスマホ/旧版保持→原本切替/publish/Actions/匿名確認。631登録checkpointはprivate/details/sheet-write-after420-checkpoint-20261010.jsonで全152相当ACK・unknownなし・published=true。原本/公開の破損、データ欠落、新たなWiki HTTP失敗は確認していない。
 
 未完了：全件詳細取得/原本採用/公開、効果・条件の全面構造化、公式独立網羅、基礎新規実在カードの本番追加/修正実証、日付不明56、全面実機/スクリーンリーダー確認。個別リンク47件はユーザー指定で保留。Pステージ/適正・Sファイトは今回収集対象外。ユーザー操作待ちはなく、取得は継続中であり、安全停止やプロジェクト完成としては扱わない。
+
+
+## 2026-10-10 拡大版の運用確認
+
+詳細1293カード/21868項目・r15をnative全コピーで採用し、公開d1-b89ba62ab2260b7d/UI v9を匿名56ファイルと3幅で検証した。原本の現行ID/URL・旧631backup・export・全write checkpointはprivateへ保存。編集前はprivate/sheets-connection.jsonのspreadsheet_urlを確認し、古いリンクや過去の停止記録を現行指示として使用しない。今回の359バッチは全ACK/unknownなし。必要な修復は未知範囲の実読戻し後に限定し、成功済みの要求を無条件に再送しない。新規範囲の85KB判定はupdateCellsの行ラッパー/座標を含む実UTF-8オブジェクト全体で行う。詳細原本の複製・検証・昇格と公開は別工程とし、Wikiの取得中stateを原本へ自動反映しない。
