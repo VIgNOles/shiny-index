@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import io
 import json
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -34,8 +35,29 @@ def check_pair(site, master, connection):
     latest = json.loads((Path(site) / 'details/latest.json').read_text(encoding='utf-8'))
     if sha(master) != conn['baseline_sha256']:
         raise ValueError('Original workbook hash mismatch')
-    if latest['detail_version'] != conn['detail_dataset_version']:
-        raise ValueError('Original/public detail version mismatch')
+    # The connection stores the last native Sheet publication. Later derived
+    # effect releases intentionally change only the public content version.
+    native_version=conn['detail_dataset_version'];public_version=latest['detail_version']
+    if not all(isinstance(v,str) and re.fullmatch(r'd1-[0-9a-f]{16}',v) for v in (native_version,public_version)):
+        raise ValueError('Invalid original/public detail version')
+    docs=[json.loads((Path(site)/'details'/version/'details.json').read_text(encoding='utf-8'))
+          for version in (native_version,public_version)]
+    native,current=docs
+    revision=conn.get('canonical_detail_revision',conn.get('detail_revision'))
+    if type(revision) is not int or any(d['meta']['canonical_detail_revision']!=revision for d in docs):
+        raise ValueError('Original/public canonical revision mismatch')
+    for key in ('base_dataset_version','source_base_dataset_version'):
+        if native['meta'][key]!=current['meta'][key]:
+            raise ValueError('Original/public base version mismatch')
+    def canonical_fields(doc):
+        return {'cards':[{**{k:v for k,v in card.items() if k!='items'},
+                         'items':[{k:v for k,v in item.items() if k!='effect_details'} for item in card['items']]}
+                        for card in doc['cards']],
+                'coverage':{k:v for k,v in doc['coverage'].items() if k!='effect_detail_counts'}}
+    if canonical_fields(native)!=canonical_fields(current):
+        raise ValueError('Original/public non-effect fields mismatch')
+    return {'native_detail_version':native_version,'derived_public_version':public_version,
+            'canonical_detail_revision':revision,'non_effect_fields_equal':True}
 
 
 def run(site, master, connection, output):
@@ -46,7 +68,7 @@ def run(site, master, connection, output):
             or any(output.is_relative_to(p) or p.is_relative_to(output) for p in (site, master, connection))
             or output.exists()):
         raise ValueError('Use a new, separate private output directory and project snapshots')
-    check_pair(site, master, connection)
+    association=check_pair(site, master, connection)
     checked_site(site)
     baseline = {'site': hashes(site), 'master': sha(master), 'connection': sha(connection)}
     output.mkdir(parents=True)
@@ -72,6 +94,12 @@ def run(site, master, connection, output):
     damaged.write_bytes(b'{"broken":true}\n')
     rejected('detail_payload_corrupted', lambda: checked_site(target))
     shutil.copy2(site / relative, damaged)
+
+    doc=json.loads(damaged.read_text(encoding='utf-8'))
+    doc['cards'][0]['items'][0]['name'] += ' interrupted value'
+    damaged.write_text(json.dumps(doc),encoding='utf-8')
+    rejected('derived_non_effect_value_changed',pair)
+    shutil.copy2(site/relative,damaged)
 
     (restored / 'master.xlsx').write_bytes(b'interrupted workbook replacement\n')
     rejected('original_workbook_corrupted', pair)
@@ -100,7 +128,7 @@ def run(site, master, connection, output):
               'canonical_detail_cards': len(canonical['cards']),
               'canonical_detail_items': len(canonical['registry']),
               'connection_bytes_restored': True, 'detail_version': latest['detail_version'],
-              'live_production_failure_rehearsed': False}
+              'live_production_failure_rehearsed': False, 'original_public_association':association}
     (output / 'report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     return report
 

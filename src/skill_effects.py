@@ -4,6 +4,7 @@ recognised effect, with its mechanic scope; it is never copied to other effects.
 """
 import math,re,unicodedata
 from src.skill_conditions_v2 import parse as parse_condition, validate_extension, join, idol_name
+from src.live_conditions import mechanic_rule, validate_rule
 LIVE={'panel_live','mb_live','generated_live','possessed_live','memory_appeal','quick_skill'}
 TARGETS={'Vocal','Dance','Visual','メンタル','SP','体力','絆','テンション','トラブル率','注目度','思い出ゲージ','リアクション回避率','メンタルダメージ','興味','影響力','アピール値','基礎能力値','施設Lv','パーフェクト','エクセレント','イベント発生率','ノウハウ発現率','アドバイス抽選率','交換数','Excellent'}
 METRICS={'support_gain','support_recovery','support_cost_down','support_trouble_down','support_rest_gain','support_bond','support_tension_protection','appeal_boost','memory_gain_boost','base_stat_boost','rate_up','rate_down','rate_cut','interest','support_presence_up','support_event_rate','support_knowhow_rate','support_location_level','support_perfect','support_excellent','support_advice_rate','exchange_count_up','appeal'}
@@ -131,7 +132,7 @@ def ability(text,known_idols):
  return {'status':'partial' if partial and out else 'structured' if out else 'unsupported','effects':out}
 # A match includes its own adjacent duration; target aliases are normalized facts.
 ATTR=r'(?:Vocal|Dance|Visual|Vo|Da|Vi)'
-RATE=re.compile(r'(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|注目度|思い出ゲージ|リアクション回避率|回避率|メンタルダメージ|メンタル|影響力|パッシブスキル発動率)(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN|CUT)\[(?P<turns>\d+)ターン\]')
+RATE=re.compile(r'(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|注目度|思い出ゲージ|リアクション回避率|回避率|メンタルダメージ|メンタル|影響力|パッシブスキル発動率)(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN|CUT)\[(?P<turns>\d+)ターン\]')
 APPEAL=re.compile(r'(?P<order>必ず最初に|必ず最後に)?(?P<audience>全観客に)?(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|Excellent)(?P<maximum>最大)?(?:(?P<minimum>\d+(?:\.\d+)?)[～〜~])?(?P<value>\d+(?:\.\d+)?)倍アピール')
 INTEREST=re.compile(r'興味(?P<value>\d+(?:\.\d+)?)倍\[(?P<turns>\d+)ターン\]')
 LIVE_EXTRA=[
@@ -176,7 +177,7 @@ def adjacent_restrictions(part,end):
   end+=m.end()
  return r
 
-def live(text,scope='base',ctx=None):
+def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
  n=normalized(text);out=[]
  # Only the known mechanic markers change scope. Raw conditions are not distributed.
  pieces=re.split(r'\((Link|Plus|Change|GrowUp|Grow|Refrain|Reflain)\)',n,flags=re.I)
@@ -185,11 +186,13 @@ def live(text,scope='base',ctx=None):
   if idx%2:
    current=scope if scope in {'memory_link','memory_charge'} else {'growup':'grow','reflain':'refrain'}.get(part.lower(),part.lower());continue
   in_piece=[];condition=effect_condition(part,ctx,current) if idx or current=='memory_link' else None
+  rule=mechanic_rule(part,ctx,current) if condition=={'status':'unsupported'} else None
   for pattern,metric in [(RATE,None),(INTEREST,'interest'),(APPEAL,'appeal')]:
    for m in pattern.finditer(part):
     # Reject a suffix match inside a longer status or '最大' conditional number.
     if m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]) and part[m.start()-1] not in ']':continue
     if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
+    if metric is None and m.groupdict().get('maximum') and current!='grow':continue
     targets=['興味'] if metric=='interest' else [{'Vo':'Vocal','Da':'Dance','Vi':'Visual','回避率':'リアクション回避率'}.get(x,x) for x in m['targets'].split('&')]
     e=effect(metric or 'rate_'+m['direction'].lower(),targets,'multiplier' if metric else 'percent',scope=current,value=float(m['value']),restriction_status='partial')
     if metric=='appeal':
@@ -197,7 +200,9 @@ def live(text,scope='base',ctx=None):
      if m['maximum']:e['maximum']=True
      if m['audience']:e['audience']='all'
      if m['order']:e['appeal_order']='first' if m['order']=='必ず最初に' else 'last'
-    else:e['turns']=int(m['turns'])
+    else:
+     e['turns']=int(m['turns'])
+     if m.groupdict().get('maximum'):e['maximum']=True
     r=adjacent_restrictions(part,m.end())
     if r:e['restrictions']=r
     if condition:e['activation_condition']=condition
@@ -212,6 +217,9 @@ def live(text,scope='base',ctx=None):
     if r:e['restrictions']=r
     if condition:e['activation_condition']=condition
     in_piece.append((m.start(),e))
+  if rule:
+   for _,e in in_piece:e['mechanic_condition']=rule
+   if not in_piece and standalone is not None:standalone.append({'slot':slot,'segment':idx//2,'scope':current,'condition':rule})
   out.extend(e for _,e in sorted(in_piece,key=lambda pair:pair[0]))
  return out
 def effect_details(item,known_idols=(),condition_context=None):
@@ -220,10 +228,11 @@ def effect_details(item,known_idols=(),condition_context=None):
   effects=support(item.get('effect_private',''),item.get('name',''));return {'status':'structured' if effects else 'unsupported','effects':effects}
  if kind=='unique_ability':return ability(item.get('effect_private',''),known_idols)
  if kind in LIVE:
-  effects=[] if item.get('random_effect_options') else live(item.get('effect_private',''),ctx=condition_context)
+  standalone=[]
+  effects=[] if item.get('random_effect_options') else live(item.get('effect_private',''),ctx=condition_context,standalone=standalone)
   if kind=='memory_appeal':
-   for slot in ('link','charge'):effects+=live(item.get(slot+'_appeal_private',''),'memory_'+slot,condition_context)
-  return {'status':'partial' if effects else 'unsupported','effects':effects}
+   for slot in ('link','charge'):effects+=live(item.get(slot+'_appeal_private',''),'memory_'+slot,condition_context,standalone,slot)
+  return {'status':'partial' if effects or standalone else 'unsupported','effects':effects,**({'mechanic_conditions':standalone} if standalone else {})}
  return None
 
 def validate_amount(v,probability=False):
@@ -235,9 +244,18 @@ def validate_amount(v,probability=False):
   if set(f)!={'variable','coefficient','offset'} or f['variable']!='skill_level' or any(type(f[k]) not in (int,float) or not math.isfinite(f[k]) or f[k]<0 for k in ('coefficient','offset')):raise ValueError('Invalid effect formula')
  else:raise ValueError('Invalid effect amount')
 def validate_effect_details(doc,known_idols,condition_context=None):
- if set(doc)!={'status','effects'} or doc['status'] not in {'structured','partial','unsupported'} or not isinstance(doc['effects'],list) or bool(doc['effects'])!=(doc['status']!='unsupported'):raise ValueError('Invalid effect structure')
+ if not isinstance(doc,dict) or not {'status','effects'}<=set(doc) or set(doc)-{'status','effects','mechanic_conditions'} or doc['status'] not in {'structured','partial','unsupported'} or not isinstance(doc['effects'],list) or bool(doc['effects'] or doc.get('mechanic_conditions'))!=(doc['status']!='unsupported'):raise ValueError('Invalid effect structure')
+ if 'mechanic_conditions' in doc:
+  rules=doc['mechanic_conditions']
+  if not isinstance(rules,list) or not rules or condition_context is None:raise ValueError('Invalid standalone mechanic conditions')
+  seen=set()
+  for r in rules:
+   if not isinstance(r,dict) or set(r)!={'slot','segment','scope','condition'} or r['slot'] not in {'effect','link','charge'} or type(r['segment']) is not int or not 1<=r['segment']<=100:raise ValueError('Invalid mechanic segment')
+   key=(r['slot'],r['segment'])
+   if key in seen:raise ValueError('Duplicate mechanic segment')
+   seen.add(key);validate_rule(r['condition'],condition_context,r['scope'])
  for e in doc['effects']:
-  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order'}:raise ValueError('Non-public effect field')
+  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition'}:raise ValueError('Non-public effect field')
   if e.get('metric') not in METRICS or not isinstance(e.get('targets'),list) or not e['targets'] or len(e['targets'])!=len(set(e['targets'])) or set(e['targets'])-TARGETS or e.get('unit') not in {'points','percent','multiplier','boolean'} or e.get('scope') not in SCOPES:raise ValueError('Invalid effect fact')
   validate_amount({k:e[k] for k in ('value','formula','amount_unknown') if k in e})
   if e['metric']=='refrain' and (e['unit']!='points' or type(e.get('value')) not in (int,float) or e['value']%1 or e['value']<1):raise ValueError('Invalid refrain distance')
@@ -245,6 +263,9 @@ def validate_effect_details(doc,known_idols,condition_context=None):
   if 'activation_condition' in e and e['activation_condition']!={'status':'unsupported'}:
    if condition_context is None:raise ValueError('Missing effect condition context')
    validate_extension(e['activation_condition'],condition_context)
+  if 'mechanic_condition' in e:
+   if condition_context is None or e.get('activation_condition')!={'status':'unsupported'}:raise ValueError('Invalid mechanic condition fallback')
+   validate_rule(e['mechanic_condition'],condition_context,e['scope'])
   if 'minimum' in e and (e['metric']!='appeal' or type(e['minimum']) not in (int,float) or not math.isfinite(e['minimum']) or not 0<=e['minimum']<=e['value']):raise ValueError('Invalid effect range')
   if 'audience' in e and (e['metric']!='appeal' or e['audience']!='all'):raise ValueError('Invalid appeal audience')
   if 'probability' in e:validate_amount(e['probability'],True)

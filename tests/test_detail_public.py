@@ -247,4 +247,17 @@ class DetailPublicTests(unittest.TestCase):
    bad=copy.deepcopy(d);mutation(bad)
    with self.assertRaises(ValueError):validate_public(bad,base)
 
+
+ def test_live_rule_export_preserves_legacy_fields_and_rejects_private_rule_text(self):
+  c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_live',effect_private='Vocal4倍アピール(Grow)[DanceUPを付与]Dance最大3倍アピール')
+  rehash(c);m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}]
+  source=copy.deepcopy(m['registry'][0]['source']);d=public_document(m,base)
+  es=d['cards'][0]['items'][0]['effect_details']['effects']
+  self.assertNotIn('mechanic_condition',es[0]);self.assertEqual(es[1]['activation_condition'],{'status':'unsupported'})
+  self.assertEqual(es[1]['mechanic_condition']['expression']['field'],'status_granted')
+  self.assertEqual(m['registry'][0]['source'],source);self.assertNotIn('effect_private',json.dumps(d))
+  for patch in [{'raw_text':'本文'},{'carry_over':False},{'role':'activation'}]:
+   bad=copy.deepcopy(d);bad['cards'][0]['items'][0]['effect_details']['effects'][1]['mechanic_condition'].update(patch)
+   with self.assertRaises(ValueError):validate_public(bad,base)
+
 if __name__=='__main__':unittest.main()

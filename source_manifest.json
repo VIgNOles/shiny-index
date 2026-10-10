@@ -85,6 +85,11 @@
       "id": "R01",
       "url": "https://wikiwiki.jp/shinycolors/スキル効果の解説",
       "purpose": "Resolve passive-condition shorthand against the source explanation; private reference only, outside card-list transformation."
+    },
+    {
+      "id": "R02",
+      "url": "https://wikiwiki.jp/shinycolors/フェス",
+      "purpose": "Verify Grow level-growth events against linked primary explanation; private reference only, outside card-list transformation."
     }
   ]
 }

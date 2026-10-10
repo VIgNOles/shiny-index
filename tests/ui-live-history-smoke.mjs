@@ -24,7 +24,7 @@ try{
  for(const width of [1280,390,320]){
   const page=await browser.newPage({viewport:{width,height:900},...(width<500?{isMobile:true,hasTouch:true}:{})});const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base+'?'+params,{waitUntil:'networkidle'});
-  assert.equal(await page.evaluate(()=>window.UI_VERSION),'ui-v15');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
+  assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v15');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
   assert.equal(await page.locator('#count').textContent(),expected+' / '+cards.length+' 件');
   await page.locator('.detail-toggle').first().click();const match=page.locator('.matched-effect').first();assert.ok(await match.isVisible());
   const text=await match.textContent();assert.ok(text.includes('アピール履歴 浅倉透'));assert.ok(!text.includes('参加アイドル 浅倉透'));

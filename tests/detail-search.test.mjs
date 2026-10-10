@@ -210,3 +210,37 @@ test('highlight and search use exactly the same effect and keyword predicate',()
  assert.equal(effectSearchMatches(item,unconditional,params),false);
  assert.equal(effectSearchMatches(item,conditional,params),true);
 });
+
+
+test('Grow grant events are distinct from activation states and standalone rules are searchable',()=>{
+ const growth={status:'structured',role:'growth',expression:{field:'status_granted',operator:'eq',value:'VocalUP'},events_per_level:2,level_up_timing:'next_turn',carry_over:true,reset_on_use:true};
+ const d=new Map([['P1',{items:[{name:'grow',kind:'panel_live',mechanics:['grow'],effect_details:{effects:[
+  {metric:'appeal',scope:'base',targets:['Vocal'],unit:'multiplier',value:4}
+ ],mechanic_conditions:[{scope:'grow',slot:'effect',segment:1,condition:growth}]}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({skill_q:'Lv上昇 VocalUP 2個付与ごと 翌ターン 繰越'}),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'appeal',skill_q:'2個付与ごと'}),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({mechanic:'plus',skill_q:'VocalUP'}),d),[]);
+});
+test('new live count and OR rules preserve same-effect matching and legacy fallback',()=>{
+ const rule={status:'structured',role:'activation',expression:{operator:'all',terms:[
+  {field:'active_passive_count',operator:'gte',value:6},
+  {field:'unit_all_participants',operator:'eq',value:'イルミネーションスターズ'}
+ ]}};
+ const e={metric:'rate_up',scope:'plus',targets:['Vocal'],value:50,unit:'percent',turns:3,activation_condition:{status:'unsupported'},mechanic_condition:rule};
+ const other={metric:'rate_up',scope:'base',targets:['Dance'],value:100,unit:'percent',turns:4};
+ const d=new Map([['P1',{items:[{name:'plus',kind:'panel_live',effect_details:{effects:[e,other]}}]}]]);
+ const text=effectFactText(e);
+ assert.ok(text.includes('現在発動中のパッシブスキル6個以上'));assert.ok(text.includes('かつ'));assert.ok(!text.includes('未構造化'));
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_target:'Vocal',skill_q:'6個以上'}),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_target:'Dance',skill_q:'6個以上'}),d),[]);
+ assert.deepEqual(e.activation_condition,{status:'unsupported'});
+});
+test('Grow conditions attached to effects are labelled as growth, not activation',()=>{
+ const e={metric:'appeal',scope:'grow',targets:['Dance'],value:3,unit:'multiplier',maximum:true,
+ activation_condition:{status:'unsupported'},mechanic_condition:{status:'structured',role:'growth',
+ expression:{operator:'any',terms:[{field:'status_granted',operator:'eq',value:'DanceUP'},{field:'status_granted',operator:'eq',value:'パッシブスキル強化'}]},
+ events_per_level:1,level_up_timing:'next_turn',carry_over:true,reset_on_use:true}};
+ const text=effectFactText(e);
+ assert.ok(text.includes('Grow Lv上昇条件：'));assert.ok(text.includes('または'));assert.ok(text.includes('使用後Lv0'));
+ assert.ok(!text.includes('発動条件：'));assert.ok(text.includes('最大3倍'));
+});

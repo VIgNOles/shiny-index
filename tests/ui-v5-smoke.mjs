@@ -32,6 +32,7 @@ const extendedUI=Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v
 const keywordUI=Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v',''))>=13;
 const conditionFor=i=>(keywordUI?i.activation_condition_v3:undefined)??(extendedUI?i.activation_condition_v2:undefined)??i.activation_condition;
 const fields=p=>p?.terms?p.terms.flatMap(fields):p?.field?[p.field]:[];
+async function openGroup(summary){if(!await summary.evaluate(n=>n.parentElement.open))await summary.click();}
 let browser;
 try{
  const launch=process.env.UI_BROWSER_PATH?{executablePath:process.env.UI_BROWSER_PATH}:{};
@@ -68,7 +69,7 @@ try{
   const spacing=await performance.evaluate(node=>({noteBottom:node.querySelector('.detail-note').getBoundingClientRect().bottom,summaryTop:node.querySelector('summary').getBoundingClientRect().top}));
   assert.ok(spacing.summaryTop>=spacing.noteBottom+4,'Skill summary overlaps detail note: '+JSON.stringify(spacing));
   assert.equal(await performance.locator('summary').filter({hasText:'MBライブスキル'}).count(),1);
-  await performance.locator('summary').filter({hasText:'MBライブスキル'}).click();
+  await openGroup(performance.locator('summary').filter({hasText:'MBライブスキル'}));
   assert.ok((await performance.textContent()).includes('MB 2/5'));
   if(process.env.UI_SCREENSHOT_DIR){
    await mkdir(process.env.UI_SCREENSHOT_DIR,{recursive:true});
@@ -103,7 +104,7 @@ try{
    await page.locator('#skill-kind').selectOption('memory_appeal');
    await page.locator('#skill-q').fill('Link Vocal 0.4~2倍');
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
-   await page.locator('.detail-toggle').click();await page.locator('.performance summary').filter({hasText:'思い出アピール'}).click();
+   await page.locator('.detail-toggle').click();await openGroup(page.locator('.performance summary').filter({hasText:'思い出アピール'}));
    assert.ok((await page.locator('.memory-link').first().textContent()).includes('0.4～2倍（条件未構造化）'));
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-memory-range.png')});
    await page.locator('input[name="mechanic"][value="link"]').check();assert.equal(await page.locator('#count').textContent(),'0 / '+total+' 件');
@@ -130,7 +131,7 @@ try{
    await page.locator('input[name="mechanic"][value="change"]').check();
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'生成ライブスキル'}).click();
+   await openGroup(page.locator('.performance summary').filter({hasText:'生成ライブスキル'}));
    assert.ok((await page.locator('.performance').textContent()).includes('[MB]Could Be(2/5)'));
    await page.locator('#reset').click();
   }
@@ -140,7 +141,7 @@ try{
    await page.locator('input[name="mechanic"][value="plus"]').check();
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'パネルのライブスキル'}).click();
+   await openGroup(page.locator('.performance summary').filter({hasText:'パネルのライブスキル'}));
    assert.ok((await page.locator('.performance').textContent()).includes('ランダム効果の候補（確率未収録）'));
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-random.png')});
    await page.locator('#reset').click();
@@ -152,7 +153,7 @@ try{
    await page.locator('#skill-kind').selectOption('cap_increase');
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'上限UP'}).click();
+   await openGroup(page.locator('.performance summary').filter({hasText:'上限UP'}));
    assert.ok((await page.locator('.performance').textContent()).includes('Vocal / Dance / Visual 上限 +25'));
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-cheer-cap.png')});
    await page.locator('#reset').click();
@@ -165,7 +166,7 @@ try{
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    assert.equal(mixedAbilities.items.filter(item=>item.kind==='unique_ability').length,2);
    await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'固有アビリティ'}).click();
+   await openGroup(page.locator('.performance summary').filter({hasText:'固有アビリティ'}));
    const rendered=await page.locator('.performance').textContent();
    assert.ok(rendered.includes('基礎能力値UP(+3%)')&&rendered.includes('芹沢 あさひとの約束'));
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-mixed-abilities.png')});
@@ -179,7 +180,7 @@ try{
    await page.locator('#skill-q').fill('ビジュアルマスタリーVi');
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'サポートスキル'}).click();
+   await openGroup(page.locator('.performance summary').filter({hasText:'サポートスキル'}));
    const rendered=await page.locator('.performance').textContent();
    assert.ok(rendered.includes('ビジュアルマスタリーVi')&&!rendered.includes('ダンスマスタリーDa'));
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-current-support.png')});
@@ -195,7 +196,7 @@ try{
    await page.locator('#skill-q').fill('最大6.5倍');
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'パネルのライブスキル'}).click();
+   await openGroup(page.locator('.performance summary').filter({hasText:'パネルのライブスキル'}));
    assert.ok((await page.locator('.performance').textContent()).includes('Vocal 最大6.5倍（条件未構造化）'));
    await page.getByText('Vocal 最大6.5倍（条件未構造化）',{exact:false}).first().scrollIntoViewIfNeeded();
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-history-appeal.png')});
@@ -210,7 +211,7 @@ try{
    await page.locator('#skill-q').fill('[MB]Scene With You+++');
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'生成ライブスキル'}).click();
+   await openGroup(page.locator('.performance summary').filter({hasText:'生成ライブスキル'}));
    assert.ok((await page.locator('.performance').textContent()).includes('生成元 [MB]Scene With You++(4/5)'));
    assert.ok(!(await page.locator('.performance').textContent()).includes('*1'));
    await page.locator('#reset').click();
@@ -224,7 +225,7 @@ try{
    await page.locator('input[name="mechanic"][value="change"]').check();
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'生成ライブスキル'}).click();
+   await openGroup(page.locator('.performance summary').filter({hasText:'生成ライブスキル'}));
    assert.ok((await page.locator('.performance').textContent()).includes('生成元 new or … / new or …+(☆4)'));
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-shared-generation.png')});
    await page.locator('#reset').click();
@@ -241,7 +242,7 @@ try{
    await page.locator('input[name="mechanic"][value="plus"]').check();
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    await page.locator('.detail-toggle').click();
-   await page.locator('.performance summary').filter({hasText:'生成ライブスキル'}).click();
+   await openGroup(page.locator('.performance summary').filter({hasText:'生成ライブスキル'}));
    const parents='生成元 連綿と、桜++(☆4) / [MB]連綿と、桜++(4/5)';
    assert.ok((await page.locator('.performance').textContent()).includes(parents));
    await page.getByText(parents,{exact:false}).first().scrollIntoViewIfNeeded();
@@ -297,7 +298,7 @@ try{
     assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
     if(await page.locator('.detail-toggle').getAttribute('aria-expanded')==='false')await page.locator('.detail-toggle').click();
     const perf=page.locator('.performance');
-    await perf.locator('summary').filter({hasText:'パッシブスキル'}).click();
+    await openGroup(perf.locator('summary').filter({hasText:'パッシブスキル'}));
     const row=perf.locator('.skill-item').filter({has:page.getByText(item.name,{exact:true})}).filter({has:page.locator('.activation-condition').filter({hasText:condition})}).first();
     assert.equal(await row.count(),1);assert.ok(await row.isVisible());
     await row.scrollIntoViewIfNeeded();
@@ -310,7 +311,7 @@ try{
     await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
     assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
     if(await page.locator('.detail-toggle').getAttribute('aria-expanded')==='false')await page.locator('.detail-toggle').click();
-    await page.locator('.performance summary').filter({hasText:'パッシブスキル'}).click();
+    await openGroup(page.locator('.performance summary').filter({hasText:'パッシブスキル'}));
     assert.equal(await page.locator('.performance .activation-condition').filter({hasText:'未対応（Wikiで確認してください）'}).count(),unsupported.items.filter(i=>conditionFor(i)?.status==='unsupported').length);
     if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-passive-condition-unsupported.png')});
     await page.locator('.detail-toggle').click();
@@ -355,7 +356,7 @@ try{
     await page.reload({waitUntil:'networkidle'});
     assert.equal(await page.locator('#skill-q').inputValue(),query);assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
     if(await page.locator('.detail-toggle').getAttribute('aria-expanded')==='false')await page.locator('.detail-toggle').click();
-    await page.locator('.performance summary').filter({hasText:'パッシブスキル'}).click();
+    await openGroup(page.locator('.performance summary').filter({hasText:'パッシブスキル'}));
     const row=page.locator('.performance .skill-item').filter({has:page.getByText(item.name,{exact:true})}).filter({has:page.locator('.activation-condition').filter({hasText:query.split(' ')[0]})}).first();
     assert.ok(await row.isVisible());const text=await row.locator('.activation-condition').textContent();
     for(const word of query.split(' '))assert.ok(text.includes(word),example.key+': '+word);

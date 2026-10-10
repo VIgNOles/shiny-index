@@ -26,11 +26,15 @@ def audit(master_path, site_path, output, root=ROOT, baseline_version=None):
  source={i['detail_id']:(c,i) for c in resolve(master) for i in c['items']}
  old_items={i['detail_id']:i for c in old['cards'] for i in c['items']}
  facts=collections.Counter();conditions=collections.Counter();scaling=collections.Counter();changed=[];lost=[];scope_corrections=[];condition_updates=[]
+ current_conditions=collections.Counter();mechanic_rules=collections.Counter();standalone_rules=collections.Counter()
  for c in new['cards']:
   for i in c['items']:
    es=i.get('effect_details',{}).get('effects',[])
    facts.update(e['metric'] for e in es)
    conditions.update(e['activation_condition']['status'] for e in es if 'activation_condition' in e)
+   current_conditions.update((e.get('mechanic_condition') or e['activation_condition'])['status'] for e in es if 'activation_condition' in e or 'mechanic_condition' in e)
+   mechanic_rules.update(e['mechanic_condition']['role'] for e in es if 'mechanic_condition' in e)
+   standalone_rules.update(r['condition']['role'] for r in i.get('effect_details',{}).get('mechanic_conditions',[]))
    scaling.update(e['restrictions']['scaling'] for e in es if 'scaling' in e.get('restrictions',{}))
    prior=old_items[i['detail_id']].get('effect_details',{})
    if prior!=i.get('effect_details',{}):
@@ -62,7 +66,7 @@ def audit(master_path, site_path, output, root=ROOT, baseline_version=None):
   'existing_cards_ids_values_and_coverage_equal':True,
   'master_file_sha256':hashlib.sha256(Path(master_path).read_bytes()).hexdigest(),
   'override_count':sum(bool(r.get('override')) for r in master['registry']),
-  'effect_fact_counts':dict(facts),'effect_condition_counts':dict(conditions),'scaling_counts':dict(scaling),
+  'effect_fact_counts':dict(facts),'effect_condition_counts':dict(conditions),'effect_condition_current_counts':dict(current_conditions),'effect_mechanic_rule_counts':dict(mechanic_rules),'standalone_mechanic_rule_counts':dict(standalone_rules),'scaling_counts':dict(scaling),
   'effect_item_status_counts':new['coverage']['effect_detail_counts'],
   'changed_items':len(changed),'old_effect_scope_corrections':scope_corrections,'condition_updates':condition_updates,'old_effects_not_preserved':lost,'changed':changed,'wiki_requests':0}
  if lost:raise ValueError('Previously derived effect lost; review before publication')

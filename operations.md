@@ -502,3 +502,16 @@ ZIP全体と各ファイルを検証して復元する。今回、70ファイル
     .venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui15-ui14-rollback-20261011 private/restored-ui14-current-data --manifest private/ui15-rollback-archive.json
 
 Cのshiny-index-ui15-recovery-20261011/ui14-with-final-ui15-data.zipと対応表を保持する。検証コピーの元パスは整理済み。旧UIへ戻しても新しい効果・条件表示の全機能を提供する意味ではない。現在UI15を戻す場合はGitタグから必要な候補を作り、原本を戻さず、データ版とHTML markerを揃え検証して公開する。47件と実在基礎新規カード本番追加の保留は維持。
+
+## 2026-10-11 UI v16：ライブ条件の更新・復旧
+
+今回の追加依存はありません。既存Python3.12/requirements.txtとNode24/package-lock.json/Playwrightで再現します。保存原本r19と保存HTMLから派生するため、再表示・再検証のためのWiki再取得は不要です。仕様はdocs/ui-v16-spec.md。
+
+- UIは画面/検索操作の変更時だけ更新。原本revision、基礎内容版、詳細内容版と別に管理する。
+- 現在の詳細版はsite/details/latest.jsonとindex.html/manifestの一致を確認する。private/sheets-connection.json.detail_dataset_versionは最後のnative原本反映時の歴史的な内容版であり、派生データだけの更新で上書きしない。
+- recovery_drill.pyは原本SHA、native反映時の保持バンドル、原本revision、基礎版、全カード/項目/ID/手修正/coverageの非effect_detailsフィールドを照合する。同じ原本から効果情報のみを追加した派生版を復旧対象にできる。全く同じ詳細版番号を要求して正常な派生版を拒否する旧前提を修正した。
+- 派生版が原本の非効果フィールドまで変更していれば拒否する。将来、effect_details以外の派生形式を追加する場合は、根拠付きの比較規則と回帰検証を先に追加する。原本への変更を「派生」と称して通さない。
+- 新規の隔離ディレクトリで .venv/Scripts/python.exe scripts/recovery_drill.py --output private/recovery/新しい名前 を実行する。復旧試験は正常なsite/原本/接続を変更せず、コピー内の詳細破損・非効果値の変更・原本破損・原本版参照の不一致を検出し、全保存ファイルを実復元・照合する。Googleや実公開へ障害を起こす操作ではない。
+- 旧UIへ戻す場合は、検証済みui-v15-effects-verified-20261011を指定し、scripts/build_ui_rollback.pyで現行データを保持した新規候補を作る。詳細条件が旧UIの未構造化表示になることは互換fallbackであり、原本の消失ではない。候補の画面検証とcheck_siteを終えてから公開する。
+
+新UIのキーワード例：現在発動中のパッシブスキル6個以上／Grow Lv上昇条件 VocalUP 2個付与ごと／緋田美琴のアピール倍率UPが3個以上付与。効果フィルターとの併用時は同じ効果に条件があるものだけ一致する。条件だけ構造化した区間は効果フィルターと結合しない。

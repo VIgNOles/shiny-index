@@ -1,4 +1,4 @@
-import {effectNames,effectFactText,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
+import {mechanicRuleText,mechanicRuleMatches,effectNames,effectFactText,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -497,9 +497,9 @@ try{
   add(section,'p','効果は参考数値の一部を表示しています。パッシブの発動条件は対応分を表示します。未対応の条件・複合効果はWikiで確認してください。','detail-note');
   for(const [kind,label] of Object.entries(kindNames)){
    const items=card.items.filter(item=>item.kind===kind);if(!items.length)continue;
-   const matchedIds=new Set(hasEffectFilters(params)?items.filter(item=>detailSearch([baseCard],params,new Map([[baseCard.card_id,{items:[item]}]])).length).map(i=>i.detail_id):[]);
+   const matchedIds=new Set((hasEffectFilters(params)||Boolean((params.get('skill_q')??'').trim()))?items.filter(item=>detailSearch([baseCard],params,new Map([[baseCard.card_id,{items:[item]}]])).length).map(i=>i.detail_id):[]);
    if(matchedIds.size)items.sort((a,b)=>Number(matchedIds.has(b.detail_id))-Number(matchedIds.has(a.detail_id)));
-   const group=add(section,'details','','skill-section');add(group,'summary',label+'（'+items.length+'件'+(matchedIds.size?' / 一致 '+matchedIds.size+'件':'')+'）');
+   const group=add(section,'details','','skill-section');if(matchedIds.size)group.open=true;add(group,'summary',label+'（'+items.length+'件'+(matchedIds.size?' / 一致 '+matchedIds.size+'件':'')+'）');
    const list=add(group,'ul','','skill-list');
    for(const item of items){
     const row=add(list,'li','','skill-item');add(row,'strong',item.name);
@@ -518,6 +518,13 @@ try{
     if(itemActivationCondition(item)){
      const conditionText=activationConditionText(itemActivationCondition(item));
      add(row,'p',conditionText?'発動条件：'+conditionText:'発動条件：未対応（Wikiで確認してください）','skill-values activation-condition');
+    }
+    if(item.effect_details?.mechanic_conditions?.length){
+     const rules=add(row,'ul','','skill-effect-rules');
+     for(const rule of item.effect_details.mechanic_conditions){
+      const fact=add(rules,'li',mechanicRuleText(rule),'skill-values');
+      if(matchedIds.has(item.detail_id)&&mechanicRuleMatches(item,rule,params)){fact.classList.add('matched-effect');group.open=true;}
+     }
     }
     if(item.effect_details?.effects.length){
      const facts=add(row,'ul','','effect-facts');
