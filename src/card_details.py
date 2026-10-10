@@ -264,6 +264,39 @@ def attach_random_options(number, table, anchor, nodes, *, memory_boost=False):
         matches[0]['source_positions'].extend([evidence(number,name,anchor),evidence(number,effect,anchor)])
 
 
+def attach_history_appeal_note(number, table, anchor, nodes, notes):
+    grid=table_grid(table)
+    if (notes is None or len(grid)<3 or any(len(row)!=2 for row in grid)
+            or [cell.value for cell in grid[0]]!=['スキル履歴人数','倍率']):
+        raise ValueError('Unknown skill-history appeal table')
+    expected=0;previous=0
+    for cells in grid[1:]:
+        count=re.fullmatch(r'(\d+)(?:[～〜~](\d+))?人',cells[0].value)
+        value=re.fullmatch(r'(\d+(?:\.\d+)?)倍',cells[1].value)
+        if not count or not value:raise ValueError('Unknown skill-history appeal row')
+        first,last=int(count[1]),int(count[2] or count[1]);multiplier=float(value[1])
+        if first!=expected or last<first or multiplier<=previous:
+            raise ValueError('Non-contiguous skill-history appeal rows')
+        expected=last+1;previous=multiplier
+    parents=[]
+    for node in nodes:
+        if node['kind'] not in {'panel_live','mb_live'}:continue
+        matches=re.findall(r'(Vocal|Dance|Visual)最大(\d+(?:\.\d+)?)倍アピール\s*\[スキル履歴が多いほど効果UP\]',node['effect_private'])
+        if matches:
+            if len(matches)!=1 or float(matches[0][1])!=previous:
+                raise ValueError('Skill-history maximum differs from owning skill')
+            parents.append(node)
+    if not parents:raise ValueError('Skill-history table has no matching live skill')
+    positions=[evidence(number,cell,anchor) for row in grid for cell in row]
+    values=[[cell.value for cell in row] for row in grid]
+    for parent in parents:
+        if 'history_appeal_table_private' in parent:raise ValueError('Duplicate skill-history table')
+        parent['history_appeal_table_private']=values
+        parent['source_positions'].extend(positions)
+    notes.append({'name':'スキル履歴人数・倍率','effect_private':json.dumps(values,ensure_ascii=False),
+                  'source_positions':positions})
+
+
 def cap_values(name: Cell, effect: Cell) -> dict:
     attribute = r"(?:Vocal|Dance|Visual|メンタル)"
     pattern = rf"({attribute}(?:\s*&\s*{attribute})*)\s*上限(?:UP)?\+(\d+)"
@@ -349,13 +382,15 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
             nodes.append(node)
     if not nodes:
         raise ValueError("Empty panel")
-    mb = []; compact=[]; random_tables=[]; mb_random_tables=[]
+    mb = []; compact=[]; random_tables=[]; mb_random_tables=[]; history_tables=[]
     for number, table, anchor in tables:
         if table is panels[0][1]:
             continue
         header=label_text(table_grid(table)[0][0].tag)
         if header in ('生成されるライブスキル','[MB]生成されるライブスキル'):
             compact.append((number,table,anchor,header.startswith('[MB]')));continue
+        if header=='スキル履歴人数':
+            history_tables.append((number,table,anchor));continue
         if header=='ランダム効果付与' and len(table_grid(table))==4:
             random_tables.append((number,table,anchor));continue
         if header == "ライブスキル生成(連係図)":
@@ -413,6 +448,7 @@ def parse_panel(tables, *, notes=None, generated=None) -> tuple[list[dict], list
     if generated and len({n['name'] for n in generated})!=len(generated):raise ValueError('Duplicate generated-live name across tables')
     for number,table,anchor in random_tables:attach_random_options(number,table,anchor,nodes)
     for number,table,anchor in mb_random_tables:attach_random_options(number,table,anchor,mb,memory_boost=True)
+    for number,table,anchor in history_tables:attach_history_appeal_note(number,table,anchor,nodes+mb,notes)
     return nodes, mb
 
 

@@ -15,6 +15,18 @@ def candidate(kind='P'):
 def rehash(c):c['content_hash']=digest({k:v for k,v in c.items() if k!='content_hash'});return c
 
 class DetailMasterTests(unittest.TestCase):
+    def test_new_lower_id_appends_without_shifting_native_card_rows(self):
+        first=candidate();before=adopt(empty(first['base_dataset_version']),first)
+        newer=copy.deepcopy(first);new_id='00000000-0000-4000-8000-000000000000'
+        newer['cards'][0]['card_id']=new_id;newer['cards'][0]['card_title']='【別カード】'
+        newer['card_coverage'][0]['card_id']=new_id
+        newer['cards'].append(copy.deepcopy(first['cards'][0]));newer['card_coverage'].append(copy.deepcopy(first['card_coverage'][0]));rehash(newer)
+        after=adopt(before,newer);old_rows=table_rows(before);new_rows=table_rows(after)
+        self.assertEqual(new_rows['詳細カード'][:len(old_rows['詳細カード'])],old_rows['詳細カード'])
+        self.assertEqual(new_rows['詳細カード'][-1][0],new_id)
+        self.assertEqual(from_rows(new_rows),after)
+        self.assertEqual([c['card_id'] for c in resolve(after)],[new_id,CID])
+
     def test_replay_and_reorder_preserve_ids(self):
         c=candidate();m=adopt(empty(c['base_dataset_version']),c)
         c['cards'][0]['panel_nodes'][0].update(effect_private='Vocal3倍アピール',source_positions=[{'table':2,'row':9,'column':1}]);rehash(c)

@@ -174,6 +174,20 @@ try{
    assert.equal(await page.locator('#count').textContent(),'0 / '+total+' 件');
    await page.locator('#reset').click();
   }
+  const historyAppeal=details.cards.find(card=>card.card_id==='1cb8b247-2c8c-4da9-8dab-afc7e2f8e472');
+  if(historyAppeal){
+   const baseCard=cards.find(card=>card.card_id===historyAppeal.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   await page.locator('#skill-kind').selectOption('panel_live');
+   await page.locator('#skill-q').fill('最大6.5倍');
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'パネルのライブスキル'}).click();
+   assert.ok((await page.locator('.performance').textContent()).includes('Vocal 最大6.5倍（条件未構造化）'));
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-history-appeal.png')});
+   assert.ok(!JSON.stringify(historyAppeal).includes('history_appeal_table_private'));
+   await page.locator('#reset').click();
+  }
   const scene=details.cards.find(card=>card.card_id==='be7cb223-2d49-4d67-8f0d-bdbb86893055');
   if(scene){
    const baseCard=cards.find(card=>card.card_id===scene.card_id);

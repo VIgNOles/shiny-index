@@ -154,7 +154,8 @@ def table_rows(master):
     validate(master)
     j=lambda value:json.dumps(value,ensure_ascii=False,separators=(',',':'),sort_keys=True)
     cards=[['card_id','P/S','カード名','アイドル名','アイデア','ひらめき','楽曲熟練度','最大Lv','Vo','Da','Vi','Me','source_json']]
-    for cid,record in sorted(master['cards'].items()):
+    # Retain native row positions; append adopted cards instead of reshuffling UUIDs.
+    for cid,record in master['cards'].items():
         s=record['source'];traits=s.get('traits',{});stats=s.get('max_status',{})
         cards.append([cid,s['card_kind'],s['card_title'],s.get('idol_name',''),traits.get('idea'),traits.get('inspiration'),
                       j(traits.get('music_proficiencies',[])),stats.get('level'),stats.get('vocal'),stats.get('dance'),stats.get('visual'),stats.get('mental'),j(record)])

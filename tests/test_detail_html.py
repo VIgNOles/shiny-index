@@ -33,6 +33,21 @@ def fixture(panel=PANEL, memory=MEMORY, extra=''):
 
 
 class DetailHtmlTests(unittest.TestCase):
+    def test_history_appeal_lookup_requires_contiguous_counts_and_matching_maximum(self):
+        effect='Vocal最大6.5倍アピール[スキル履歴が多いほど効果UP]'
+        panel=PANEL.replace('Vocal2倍<br>(Link)追撃',effect)
+        table='<table><tr><th>スキル履歴人数</th><th>倍率</th></tr><tr><th>0～1人</th><td>1.3倍</td></tr><tr><th>2人</th><td>2.6倍</td></tr><tr><th>3人</th><td>6.5倍</td></tr></table>'
+        card=extract_html(fixture(panel=panel,extra=table),CARD)
+        node=card['panel_nodes'][0]
+        self.assertEqual(node['history_appeal_table_private'][1],['0～1人','1.3倍'])
+        self.assertEqual(len(node['source_positions']),10)
+        self.assertEqual(card['skill_notes_private'][0]['name'],'スキル履歴人数・倍率')
+        self.assertNotIn('history_appeal_table_private',card['panel_nodes'][1])
+        for old,new in [('2人','1人'),('2人','4人'),('6.5倍','6.4倍'),('2.6倍','0.5倍'),('倍率','未確認')]:
+            with self.subTest(new=new),self.assertRaises(ValueError):extract_html(fixture(panel=panel,extra=table.replace(old,new)),CARD)
+        with self.assertRaisesRegex(ValueError,'no matching'):extract_html(fixture(extra=table),CARD)
+        with self.assertRaisesRegex(ValueError,'Duplicate'):extract_html(fixture(panel=panel,extra=table+table),CARD)
+
 
     def test_cap_aliases_require_same_heading_targets(self):
         panel=PANEL.replace('Vocal上限UP (☆3)','Vo & Da & Vi 上限UP (☆3)').replace('Vocal上限+100','Vo&Da&Vi上限+100')
