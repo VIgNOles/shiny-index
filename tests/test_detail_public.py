@@ -1,3 +1,4 @@
+import json
 import copy,unittest
 from src.detail_master import adopt,empty
 from src.detail_public import public_document,validate_public
@@ -234,5 +235,16 @@ class DetailPublicTests(unittest.TestCase):
  def test_ps_mismatch_rejected(self):
   c=candidate();m=adopt(empty(c['base_dataset_version']),c)
   with self.assertRaisesRegex(ValueError,'mixed P/S'):public_document(m,[{'card_id':CID,'card_kind':'S'}])
+
+ def test_effect_facts_use_manual_values_without_rewriting_source(self):
+  c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_live',effect_private='Vocal20%UP[3ターン]')
+  rehash(c);m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}]
+  row=m['registry'][0];before=copy.deepcopy(row['source']);row.update(override={'effect_private':'Dance30%UP[5ターン]'},reason='確認済み',source_ref='test:manual',updated_at='2026-10-11T00:00:00+09:00')
+  d=public_document(m,base);e=d['cards'][0]['items'][0]['effect_details']['effects'][0]
+  self.assertEqual((e['targets'],e['value'],e['turns']),(['Dance'],30,5));self.assertEqual(row['source'],before)
+  self.assertNotIn('effect_private',json.dumps(d,ensure_ascii=False));self.assertEqual(d['coverage']['effect_detail_counts'],{'panel_live':{'partial':1}})
+  for mutation in [lambda x:x['coverage'].pop('effect_detail_counts'),lambda x:x['coverage']['effect_detail_counts']['panel_live'].update(partial=2),lambda x:x['cards'][0]['items'][0]['effect_details']['effects'][0].update(raw_private='本文')]:
+   bad=copy.deepcopy(d);mutation(bad)
+   with self.assertRaises(ValueError):validate_public(bad,base)
 
 if __name__=='__main__':unittest.main()

@@ -1,16 +1,18 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
-## 最新状態（2026-10-11：5条件の補正・公開確認済み）
-基礎r7/1466/v1-93a6a8b8d40e754a不変。詳細原本r19/1419(P548/S871)/24025、公開版UI v13/d1-f5c5c8ded775d398。Google現行接続はprivate/sheets-connection.jsonのID/URL。指定ownerのみを確認したnative全コピーの手修正20セル＋revision1セルを更新し、全21セルと15タブを読み戻し。旧r18原本はmtime不変で保存。旧取得列・全24025 ID・aliases・カード/coverage・既存手修正1を保持し、新手修正5を追加した。
-ユーザーがゲーム内で「発動率UP強化」は発動率UPとパッシブスキル強化の両方が必要と確認。対象2を明示ANDへ補正、同カード☆2のORは維持。人物名「智世子→智代子」2・余分な閉じ括弧1は保存原表の目視による補正。確認者/根拠の種類を理由列に区別。原本の取得列を直さずoverrideで適用。
-公開候補ではパッシブ発動条件5890/5890対応・未対応0。v2旧UI互換5886/4（キーワード4未対応）、v1 4946/944不変。他の効果全文/発動制限の構造化完了は主張しない。全旧68ファイル中66をバイト保持、index/詳細pointerだけ変更、新不変2ファイルを追加。24020旧項目は全値不変、残5もv2条件/手修正根拠以外不変。
-Python192/JS40 PASS（429はmock）、ローカル1280/390/320基本/詳細と同じデータの旧UI v12切戻しPASS。AND表示/URL保持/同一項目検索/横はみ出しなし、ローカル画像2を視認。取得済み全件候補の再適用も原本完全一致・6手修正/全ID/revision19保持。保存原表1画像とnative export抜粋5画像を視認。原本の既存固定幅/行高で長文セルが切れるため全文はAPI/全export照合、Google実画面とは扱わない。
-証拠とcheckpointはprivate/details/manual-corrections-20261011。phaseはcheckpoint実値を優先。旧site/master/connection/native原本を保持。未知の書込応答なし。新Wiki通信0、取得catalog complete4098/active_attemptなし。公開1cfdfb6d7d228013dd689425bd8c57ecdd508bfc、tag ui-v13-corrections-verified-20261011、Actions38068513205 success。匿名70/70ファイルのHTTP200/全バイト一致と公開1280/390/320の基本/詳細PASS。公開画像2を視認。公開前の停止やプロジェクト完成ではない。
-次操作：private/audits/full-effect-structure-census-20261011.jsonから、support_skillのLv式/発動場面/対象、ライブ効果ごとの継続ターン、固有アビリティの倍率とグループ制約の型を設計→境界試験→保存HTML全件照合→別候補/保持監査→旧UI互換→公開確認。通常の変換は保存1363ページを使い、新しいWiki通信は不要。原本編集前に指定owner/profile/最新exportと手修正を確認する。47保留、S90最大Lv360空欄、日付不明56、全効果/全発動制限、独立公式網羅、実在基礎新規追加の本番実証、全面実機/Google実画面/本番全面復旧は残る。Pステージ/適正・Sファイト対象外、CSV非表示を維持。ユーザー判断待ち・プロジェクト完成としていない。
-今回の実障害と復旧：昇格前のバックアップコピーでDドライブ容量不足。現行原本/公開を切り替える前だったことを実確認し、不完全コピーを正常siteの先頭部分と照合してから除いた。検証済みの切戻し全コピーをCの別workspaceへ圧縮し70entry全バイト照合後に重複コピーだけを除いて約288MB確保。正常な旧siteも同C領域へ68entryのZIPとして保存/全バイト照合。原入力/元原本/既存旧版は無変更。D空きは今回終盤約276MBで、大きい全コピーをさらに作る前に容量を確認する。
-圧縮バックアップの場所：C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-recovery-20261011。site-ui13-before-corrections.zipは旧r18正常公開、ui12-rollback-with-r19-data.zipは新r19データを保つ旧UI v12。復旧時は容量のある新ディレクトリへ展開/照合してから使う。元r18原本と接続はprivate/master-r7-details-r18-before-corrections-20261011.xlsx、private/sheets-connection-before-corrections-20261011.json。checkpointのsite_backup_kindはzip。
-最初の公開Gitコミット7fcc3b4はignore対象の新不変バンドル2ファイルが含まれず、Actions38068475793のcheck_siteで拒否・デプロイskip。直後に2ファイルを明示登録した1cfdfb6が正常公開された。7fcc3b4/tag ui-v13-corrections-20261011は検証済みリリースとして使わず、後続verifiedタグを使う。証拠は同privateフォルダーのsuperseded-actions-validation.json。現在は新しいActions成功/匿名70一致まで完了し、公開の破損や未知の書込応答なし。全取得/書込/検証/公開プロセスは終了、checkpointはpublished_verified。
+## 最新状態（2026-10-11：容量整理・効果検索UI v14、公開前検証中）
+元依頼は継続。ユーザーが新カードの本番追加実証を今は保留し、UI版は画面・操作変更時だけ更新と指定した。47個別ページ保留、Pステージ/適正・Sファイト対象外、CSV画面非表示を維持する。
+
+D容量整理：private配下の過去の生成サイト76ディレクトリ10186274703 bytesを、C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-inactive-sites-20261011へZIP970503477 bytesで保存。全ファイルと各ZIPをSHA照合し、削除直前にDの元ファイル全てを再照合後、複製だけ削除。空き約0.276GB→10.468GB。原本・接続・原本JSONの保護ハッシュは維持。旧生成サイトの元パスとZIP対応はprivate/archive-generated-sites-20261011.json。復元CLI scripts/restore_archived_site.py。70ファイルを実復元して整理前siteと全バイト一致。原HTML・原本・手修正・証拠JSON・現行site・Gitやプロジェクト外のデータは削除していない。
+
+現在公開はUI v13/d1-f5c5c8ded775d398、原本r19/基礎r7は不変。公開候補はprivate/site-ui14-release-final-20261011、UI v14/詳細d1-cfe1eff5ac87d5ac、1419カード/24025項目。effect_detailsのみを派生追加し、全旧項目フィールド/カード/coverageと旧不変ファイルの保持を比較した。5033サポート効果・110固有アビリティを型へ変換。ライブ/思い出の倍率・継続ターン・区間も追加したが、複合効果全体の構造化完了とはしない。原文の助詞「するとで」がある既知テンションマスタリー上限5項目は完全一致ルールだけを許し注記、取得原文は不変。以前解消したパッシブ5条件とは別。パッシブ5890/5890・未対応0を維持。
+
+保存1363ページを全再変換し、カード/項目/coverageは現行原本と一致。再変換の新監査パッケージは履歴ハッシュが異なるため、仮適用ではsource_runsとrevisionだけ増える。実際には採用せずr19を保持。既に採用済みのfull-linked候補再適用は原本全体/ID/6手修正/revision19完全一致。証拠private/audits/ui14-offline-reapply-restore-proof-20261011.json。Google原本mtime2026-10-10T16:21:51.833Zを指定接続で再確認し、今回書込なし。
+
+UIの新条件は効果種類・対象・継続ターンで同じ効果へ一致。URL/戻る進む/チップ/リセット、一致スキル優先と該当効果強調、最大スキルLv換算を追加。UI v13に新データを組み合わせた切戻し候補はprivate/site-ui14-final-ui13-rollback-20261011。仕様docs/ui-v14-spec.md。依存追加なし。Python/JS全試験と最終候補の基本/詳細/効果3幅、旧UI3幅を実行中。公開はまだ切替前。以後は実プロセス結果・checkpoint・匿名公開照合を優先して更新する。
+
+次：最終検証の結果を確認→候補を保存/公開→Actions成功・匿名72ファイル一致・3幅の基本/詳細/効果を検証→公開済み記録へ更新。Wiki新通信なし。試作中のprivate/site-ui14-*候補のうちrelease-final以外は未公開の中間版であり検証済みリリースに使わない。基礎新規追加・47件は保留。S90最大Lv360空欄、日付不明56、複合効果、独立公式網羅、全面実機/Google実画面/本番全面復旧は残る。
 <!-- /current-state -->
 
 

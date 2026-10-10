@@ -154,3 +154,25 @@ test('all passive conditions structured still reports zero unsupported',()=>{
  const text=detailCoverageText({detail_card_count:1419,status_counts:{available_partial:1419},activation_condition_current_counts:{structured:5890}},1466);
  assert.ok(text.includes('5890 / 5890項目対応'));assert.ok(text.includes('未対応0項目'));assert.ok(text.includes('数値・条件は一部のみ収録'));
 });
+
+
+test('effect filters never borrow targets or turns from a different effect or skill',()=>{
+ const d=new Map([['P1',{items:[{name:'multi',kind:'panel_live',effect_details:{effects:[
+  {metric:'rate_up',targets:['Vocal'],value:20,unit:'percent',scope:'base',turns:3},
+  {metric:'rate_up',targets:['Dance'],value:30,unit:'percent',scope:'plus',turns:7}]}},
+  {name:'other',kind:'support_skill',effect_details:{effects:[{metric:'support_recovery',targets:['体力'],value:6,unit:'points',scope:'base',trigger:'vocal_lesson'}]}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_target=Vocal&effect_turns=5'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_target=Dance&effect_turns=5'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_target=Dance&effect_turns=5&skill_q=Vocal'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=support_recovery&skill_q=ボーカルレッスン'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_target=体力&mechanic=link'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_turns=not-a-number'),d),[]);
+});
+test('level formulas and group restrictions are searchable without implying numeric completeness',()=>{
+ const d=new Map([['P1',{items:[{name:'boost',kind:'unique_ability',effect_details:{effects:[{metric:'appeal_boost',targets:['アピール値'],value:30,unit:'percent',scope:'base',restrictions:{group:'相アイ',idols:['櫻木真乃']}}]}}]}],['S1',{items:[{name:'bond',kind:'support_skill',effect_details:{effects:[{metric:'support_bond',targets:['絆'],formula:{variable:'skill_level',coefficient:5,offset:0},unit:'points',scope:'base',trigger:'produce_start'}]}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=appeal_boost&skill_q=相アイ+櫻木真乃'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_q=スキルLv×5+プロデュース開始時'),d),[cards[1]]);
+});
+test('legacy data safely does not match new effect filters',()=>{
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_target=Vocal'),details),[]);
+});

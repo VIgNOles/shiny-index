@@ -54,7 +54,7 @@ try{
    assert.ok(coverageText.includes('数値・条件は一部のみ収録'));
   }
 
-  await page.locator('#skill-filters summary').click();
+  await page.locator('#skill-filters > summary').click();
   await page.locator('#detail-available').check();
   assert.equal(await page.locator('#count').textContent(),details.cards.length+' / '+total+' 件');
   await page.reload({waitUntil:'networkidle'});
@@ -276,7 +276,7 @@ try{
 
   if(Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v',''))>=11&&details.coverage.activation_condition_counts){
    await page.locator('#reset').click();
-   if(!await page.locator('#skill-filters').evaluate(node=>node.open))await page.locator('#skill-filters summary').click();
+   if(!await page.locator('#skill-filters').evaluate(node=>node.open))await page.locator('#skill-filters > summary').click();
    await page.locator('#skill-kind').selectOption('panel_passive');
    await page.locator('#skill-condition').selectOption('mental');
    const mentalCards=details.cards.filter(c=>c.items.some(i=>i.kind==='panel_passive'&&conditionFor(i)?.status==='structured'&&fields(conditionFor(i).expression).some(f=>['mental_percent','maximum_mental'].includes(f))));
@@ -347,7 +347,7 @@ try{
     const query=example.query(conditionFor(item).expression),baseCard=cards.find(c=>c.card_id===featured.card_id);
     await page.locator('#reset').click();
     await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
-    if(!await page.locator('#skill-filters').evaluate(n=>n.open))await page.locator('#skill-filters summary').click();
+    if(!await page.locator('#skill-filters').evaluate(n=>n.open))await page.locator('#skill-filters > summary').click();
     await page.locator('#skill-kind').selectOption('panel_passive');
     await page.locator('#skill-condition').selectOption(example.category);
     await page.locator('#skill-q').fill(query);
