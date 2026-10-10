@@ -4,6 +4,33 @@ from src.detail_public import public_document,validate_public
 from tests.test_detail_master import candidate,CID,rehash
 
 class DetailPublicTests(unittest.TestCase):
+ def test_passive_activation_conditions_use_resolved_overrides_and_keep_prose_private(self):
+  c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',effect_private='[条件:メンタル75%以上] [確率:20%]')
+  rehash(c);m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}]
+  d=public_document(m,base);item=d['cards'][0]['items'][0]
+  self.assertEqual(item['activation_condition']['expression']['value'],75)
+  self.assertEqual(d['coverage']['activation_condition_counts'],{'structured':1})
+  self.assertTrue(item['conditions_not_structured'])
+  self.assertNotIn('effect_private',item)
+  row=m['registry'][0];original=copy.deepcopy(row['source'])
+  row.update(override={'effect_private':'[条件:3ターン以前]'},reason='条件訂正',source_ref='test:source',updated_at='2026-10-10T00:00:00+00:00')
+  corrected=public_document(m,base)['cards'][0]['items'][0]
+  self.assertEqual(corrected['activation_condition']['expression'],{'field':'turn','operator':'lte','value':3})
+  self.assertEqual(row['source'],original)
+  row['override']['effect_private']='[条件:未知条件]'
+  d=public_document(m,base)
+  self.assertEqual(d['cards'][0]['items'][0]['activation_condition'],{'status':'unsupported'})
+  self.assertEqual(d['coverage']['activation_condition_counts'],{'unsupported':1})
+ def test_activation_condition_tampering_and_cross_kind_are_rejected(self):
+  c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',effect_private='[条件:メンタル75%以上]')
+  rehash(c);m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}]
+  d=public_document(m,base)
+  for mutate,message in [(lambda x:x['cards'][0]['items'][0]['activation_condition'].update(raw_private='全文'),'activation condition'),
+                         (lambda x:x['cards'][0]['items'][0].update(kind='panel_live'),'non-passive'),
+                         (lambda x:x['coverage']['activation_condition_counts'].update(structured=99),'condition count')]:
+   bad=copy.deepcopy(d);mutate(bad)
+   with self.assertRaisesRegex(ValueError,message):validate_public(bad,base)
+
  def test_acquisition_and_held_gaps_are_not_conflated_with_effect_structure(self):
   c=candidate();m=adopt(empty(c['base_dataset_version']),c);bases=[{'card_id':CID,'card_kind':'P'}]
   d=public_document(m,bases)

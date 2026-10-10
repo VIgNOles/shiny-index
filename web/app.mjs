@@ -1,4 +1,4 @@
-import {detailSearch,loadDetails,detailCoverageText,generationParentText,kindNames,mechanicNames,factText} from './details.mjs';
+import {detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -91,6 +91,7 @@ try{
   render();
  };
 
+ for(const [value,label] of Object.entries(conditionNames))$('skill-condition').add(new Option(label,value));
  for(const [value,label] of Object.entries(kindNames))$('skill-kind').add(new Option(label,value));
  for(const [value,label] of Object.entries(mechanicNames)){
   const wrapper=add($('skill-mechanics'),'label','','filter-option');
@@ -103,13 +104,16 @@ try{
  $('skill-kind').addEventListener('change',event=>{
   params.delete('skill_kind');if(event.target.value)params.set('skill_kind',event.target.value);commitParams();
  });
+ $('skill-condition').addEventListener('change',event=>{
+  if(event.target.value)params.set('skill_condition',event.target.value);else params.delete('skill_condition');commitParams();
+ });
  $('skill-mechanics').addEventListener('change',()=>{
   params.delete('mechanic');for(const input of $('skill-mechanics').querySelectorAll('input:checked'))params.append('mechanic',input.value);commitParams();
  });
  $('detail-available').addEventListener('change',event=>{
   if(event.target.checked)params.set('detail_status','available');else params.delete('detail_status');commitParams();
  });
- $('skill-filters').open=['skill_q','skill_kind','mechanic','detail_status'].some(key=>params.has(key));
+ $('skill-filters').open=['skill_q','skill_kind','skill_condition','mechanic','detail_status'].some(key=>params.has(key));
 
  const filterOrder={
   card_kind:['P','S'],rarity:['UR','SSR','SR','R','N'],
@@ -425,6 +429,7 @@ try{
   if(params.get('skill_q')){addChip('スキル検索：'+params.get('skill_q'),'skill_q',null);count++;}
   for(const value of params.getAll('skill_kind')){addChip(kindNames[value]??value,'skill_kind',value);count++;}
   for(const value of params.getAll('mechanic')){addChip(mechanicNames[value]??value,'mechanic',value);count++;}
+  if(params.get('skill_condition')){addChip('発動条件：'+(conditionNames[params.get('skill_condition')]??params.get('skill_condition')),'skill_condition',null);count++;}
   if(params.get('detail_status')==='available'){addChip('詳細収録済み','detail_status',null);count++;}
   if(!count)active.textContent='絞り込み条件なし';
   const advancedCount=params.getAll('series_ids').length+
@@ -441,6 +446,7 @@ try{
  const renderControls=()=>{
   $('skill-q').value=params.get('skill_q')??'';
   $('skill-kind').value=params.get('skill_kind')??'';
+  $('skill-condition').value=params.get('skill_condition')??'';
   $('detail-available').checked=params.get('detail_status')==='available';
   for(const input of $('skill-mechanics').querySelectorAll('input'))input.checked=params.getAll('mechanic').includes(input.value);
   for(const field of filterFields){
@@ -476,7 +482,7 @@ try{
    const stats=card.max_status;
    detailLine(list,'最大Lv '+stats.level,['Vo','Da','Vi','Me'].map((label,i)=>label+' '+(stats[['vocal','dance','visual','mental'][i]]??'未記載')).join(' / '));
   }
-  add(section,'p','効果は参考数値の一部を表示しています。発動条件・複合効果や、未構造化の効果はWikiで確認してください。','detail-note');
+  add(section,'p','効果は参考数値の一部を表示しています。パッシブの発動条件は対応分を表示します。未対応の条件・複合効果はWikiで確認してください。','detail-note');
   for(const [kind,label] of Object.entries(kindNames)){
    const items=card.items.filter(item=>item.kind===kind);if(!items.length)continue;
    const group=add(section,'details','','skill-section');add(group,'summary',label+'（'+items.length+'件）');
@@ -495,6 +501,10 @@ try{
     attrs.push(...(item.mechanics??[]).map(value=>mechanicNames[value]));
     if(attrs.length)add(row,'p',attrs.join(' · '),'skill-meta');
     if(item.cap_delta!=null)add(row,'p',item.cap_targets.join(' / ')+' 上限 +'+item.cap_delta);
+    if(item.activation_condition){
+     const conditionText=activationConditionText(item.activation_condition);
+     add(row,'p',conditionText?'発動条件：'+conditionText:'発動条件：未対応（Wikiで確認してください）','skill-values activation-condition');
+    }
     if(item.numeric_facts.length)add(row,'p','参考数値：'+item.numeric_facts.map(factText).join(' / '),'skill-values');
     for(const [slot,label] of [['link','Link追加効果'],['charge','チャージ追加効果']]){
      if(item['memory_'+slot+'_present']){

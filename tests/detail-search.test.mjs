@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {detailSearch,factText,generationParentText,detailCoverageText} from '../web/details.mjs';
+import {detailSearch,factText,generationParentText,detailCoverageText,activationConditionText,activationConditionType} from '../web/details.mjs';
 const cards=[{card_id:'P1'},{card_id:'S1'},{card_id:'pending'}];
 const details=new Map([
  ['P1',{items:[{name:'通常',kind:'panel_live',mechanics:['link'],numeric_facts:[]},{name:'MB限定',kind:'mb_live',mechanics:['plus'],numeric_facts:[]},{name:'思い出',kind:'memory_appeal',mechanics:['link'],numeric_facts:[]}]}],
@@ -75,4 +75,33 @@ test('a shared normal and MB child keeps its own Plus and both searchable parent
  ]}]]);
  assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=generated_live&skill_q=[MB]root(4/5)&mechanic=plus'),d),[cards[0]]);
  assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=generated_live&skill_q=[MB]root(4/5)&mechanic=refrain'),d),[]);
+});
+
+test('passive activation condition labels retain direction and thresholds',()=>{
+ assert.equal(activationConditionText({status:'structured',expression:{field:'mental_percent',operator:'gte',value:75}}),'メンタル75%以上');
+ assert.equal(activationConditionText({status:'structured',expression:{field:'turn',operator:'lte',value:3}}),'3ターン以前');
+ assert.equal(activationConditionText({status:'structured',expression:{field:'status_count',status:'注目度UP',operator:'gte',value:2}}),'注目度UPが2個以上付与');
+ assert.equal(activationConditionText({status:'unsupported'}),'');
+ assert.equal(activationConditionType({status:'structured',expression:{field:'maximum_mental'}}),'mental');
+});
+test('condition and numeric search must match the same passive item',()=>{
+ const d=new Map([['P1',{items:[
+  {kind:'panel_passive',name:'Vocal100%UP',activation_condition:{status:'structured',expression:{field:'turn',operator:'lte',value:3}}},
+  {kind:'panel_passive',name:'Vocal3%UP',activation_condition:{status:'structured',expression:{field:'mental_percent',operator:'gte',value:75}}}
+ ]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=panel_passive&skill_q=Vocal3%UP+メンタル７５％以上'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_q=Vocal100%UP+メンタル75%以上'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_condition=mental&skill_q=Vocal100%UP'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_condition=turn&skill_kind=panel_passive'),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_condition=mental&mechanic=link'),d),[]);
+});
+test('legacy and unsupported conditions do not become condition matches',()=>{
+ const d=new Map([['P1',{items:[{name:'不明',kind:'panel_passive',activation_condition:{status:'unsupported'}}]}],['S1',{items:[{name:'旧版',kind:'panel_passive'}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_condition=mental'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_kind=panel_passive'),d),cards.slice(0,2));
+});
+test('condition coverage reports partial support separately from card acquisition',()=>{
+ const text=detailCoverageText({detail_card_count:1419,status_counts:{available_partial:1419,missing_page_on_hold:47},activation_condition_counts:{structured:4946,unsupported:944}},1466);
+ assert.ok(text.includes('発動条件 4946 / 5890項目対応'));
+ assert.ok(text.includes('個別ページなし 47件（保留）'));
 });

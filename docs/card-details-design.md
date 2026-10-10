@@ -218,3 +218,14 @@ P【連綿と、桜】のMB生成表は、子スキル名に[MB]を付けず脚�
 ### 2026-10-10 詳細JSONの転送量削減
 
 詳細1380件の公開JSONは27.4MBになったため、新規d1バンドルだけインデント空白を省いたUTF-8表記へ変更する。同一文書で13.4MB（50.9%減）、gzip転送でも17.3%減を確認。JSONの論理内容・意味による版決定・allowlistは不変。既存の不変バンドルは整形版のまま保持し、manifestは実ファイルのSHAに一致させる。旧版再利用/新内容別版/旧bytes保持を回帰検証した。公開1380は不変、後続の新規版から適用し、依存追加なし。
+
+
+## 2026-10-10 パッシブ発動条件を公開変換で追加（UI v11）
+
+全リンク付きカードの登録後、必要な技能を探す目的に向け、保存済み effect_private の [条件:…] を型付きの事実へ変換する。原本の既存ソース・固定ID・手修正を変更する必要がないため、原本タブを増やさず、resolve後の有効値から公開時に決定的に導出する。effect_private の手修正も同じ変換対象になる。既存の非公開全文を公開しない。
+
+公開の panel_passive 項目に optional activation_condition を追加する。structured の expression は field/operator/value と、status_count の場合だけ status を持つ。mental_percent、maximum_mental、turn、star_count、audience_count、heal_count、unit_type_count、rank、position、status_count、participant、history_participant、generated_live_present の単一述語を扱う。以上/以下、以前/以降、数値と単位、付与数を保持する。人物は基礎原本にあるフルネームだけを照合する。
+
+括弧の不整合、複数の条件欄、複合条件、未知の名称・略称・構文は全体を unsupported にし、認識できた一部だけを採用しない。未対応を「条件なし」に置換しない。既存 conditions_not_structured=true と effect_structure=partial は、効果内の全条件・複合効果が未完である意味を維持する。activation_condition はそのうちパッシブ発動欄だけの対応状況で、全面対応を意味しない。
+
+全5,890パッシブのうち4,946を構造化、944は未対応。全件の原本ソースを保存HTMLのSHA・原セル位置と照合し、取得済み入力だけで検証した。任意フィールドの互換追加なので detail_schema=1.0 を維持し、内容ハッシュによる新しい詳細版を発行する。旧不変バンドルは書き換えず、UI v10が新バンドルを読み込める切戻し候補を確認する。

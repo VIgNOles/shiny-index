@@ -269,6 +269,48 @@ try{
    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
    await page.locator('#reset').click();
   }
+
+  if(Number((process.env.UI_EXPECTED_VERSION??'ui-v0').replace('ui-v',''))>=11&&details.coverage.activation_condition_counts){
+   await page.locator('#reset').click();
+   if(!await page.locator('#skill-filters').evaluate(node=>node.open))await page.locator('#skill-filters summary').click();
+   await page.locator('#skill-kind').selectOption('panel_passive');
+   await page.locator('#skill-condition').selectOption('mental');
+   const mentalCards=details.cards.filter(c=>c.items.some(i=>i.kind==='panel_passive'&&i.activation_condition?.status==='structured'&&['mental_percent','maximum_mental'].includes(i.activation_condition.expression.field)));
+   assert.equal(await page.locator('#count').textContent(),mentalCards.length+' / '+total+' 件');
+   assert.ok((await page.locator('#active-filters').textContent()).includes('発動条件：メンタル'));
+   await page.reload({waitUntil:'networkidle'});
+   assert.equal(await page.locator('#skill-condition').inputValue(),'mental');
+   const keys=new Map();for(const c of cards){const key=c.card_title+c.idol_name;keys.set(key,(keys.get(key)??0)+1);}
+   for(const kind of ['P','S']){
+    const featured=mentalCards.find(c=>c.card_kind===kind&&c.items.some(i=>i.activation_condition?.expression?.field==='mental_percent')&&keys.get(cards.find(b=>b.card_id===c.card_id).card_title+cards.find(b=>b.card_id===c.card_id).idol_name)===1);
+    assert.ok(featured);
+    const item=featured.items.find(i=>i.activation_condition?.expression?.field==='mental_percent');
+    const predicate=item.activation_condition.expression;
+    const condition='メンタル'+predicate.value+'%'+(predicate.operator==='gte'?'以上':'以下');
+    const baseCard=cards.find(c=>c.card_id===featured.card_id);
+    await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+    await page.locator('#skill-q').fill(condition);
+    assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+    if(await page.locator('.detail-toggle').getAttribute('aria-expanded')==='false')await page.locator('.detail-toggle').click();
+    const perf=page.locator('.performance');
+    await perf.locator('summary').filter({hasText:'パッシブスキル'}).click();
+    const row=perf.locator('.skill-item').filter({has:page.getByText(item.name,{exact:true})}).filter({has:page.locator('.activation-condition').filter({hasText:condition})}).first();
+    assert.equal(await row.count(),1);assert.ok(await row.isVisible());
+    await row.scrollIntoViewIfNeeded();
+    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-passive-condition-'+kind+'.png')});
+   }
+   await page.locator('#reset').click();
+   const unsupported=details.cards.find(c=>c.items.some(i=>i.activation_condition?.status==='unsupported')&&keys.get(cards.find(b=>b.card_id===c.card_id).card_title+cards.find(b=>b.card_id===c.card_id).idol_name)===1);
+   const baseCard=cards.find(c=>c.card_id===unsupported.card_id);
+   await page.locator('#q').fill(baseCard.card_title+' '+baseCard.idol_name);
+   assert.equal(await page.locator('#count').textContent(),'1 / '+total+' 件');
+   if(await page.locator('.detail-toggle').getAttribute('aria-expanded')==='false')await page.locator('.detail-toggle').click();
+   await page.locator('.performance summary').filter({hasText:'パッシブスキル'}).click();
+   assert.equal(await page.locator('.performance .activation-condition').filter({hasText:'未対応（Wikiで確認してください）'}).count(),unsupported.items.filter(i=>i.activation_condition?.status==='unsupported').length);
+   if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-passive-condition-unsupported.png')});
+   await page.locator('.detail-toggle').click();
+   await page.locator('#reset').click();
+  }
   const missing=details.cards.find(card=>card.max_status?.missing_fields?.length);
   if(missing){
    const baseCard=cards.find(card=>card.card_id===missing.card_id);

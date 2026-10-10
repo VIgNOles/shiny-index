@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import urlsplit,unquote
 from src.detail_master import resolve,validate,KINDS,validate_generation_parents
 from src.indexer import digest,read,write,now
+from src.skill_conditions import activation_condition,validate_condition
 
 MECHANICS={'link','plus','change','grow','refrain'}
 COVERAGE_FIELDS={'skill_panel','review','memory_appeal','memory_boost','generated_live','unique_ability','stage_skill','aptitude','fight_skill','max_status','possessed_live','quick_skill','support_skills','traits'}
@@ -31,6 +32,7 @@ def public_document(master,base_cards,base_version=None):
     base_version=base_version or master['base_dataset_version']
     validate(master);bases={c['card_id']:c for c in base_cards}
     if len(bases)!=len(base_cards):raise ValueError('Duplicate base card')
+    known_idols={c['idol_name'] for c in base_cards if c.get('idol_name')}
     cards=[]
     for source in resolve(master):
         cid=source['card_id']
@@ -44,6 +46,8 @@ def public_document(master,base_cards,base_version=None):
             public={key:item[key] for key in ITEM_FIELDS if key in item}
             public.update(numeric_facts=numeric_facts(item),effect_structure='partial',conditions_not_structured=True,
                           source_positions=item.get('source_positions',[]))
+            condition=activation_condition(item,known_idols)
+            if condition is not None:public['activation_condition']=condition
             if item['kind']=='memory_appeal':
                 for slot,source_field in [('link','link_appeal_private'),('charge','charge_appeal_private')]:
                     text=(item.get(source_field) or '').strip()
@@ -64,6 +68,7 @@ def public_document(master,base_cards,base_version=None):
         if base_version==master['base_dataset_version']:raise ValueError('Missing base coverage')
         represented={r['card_id'] for r in coverage}
         coverage.extend({'card_id':cid,'card_kind':bases[cid]['card_kind'],'status':'not_in_acquisition_catalog'} for cid in sorted(set(bases)-represented))
+    condition_counts=Counter(i['activation_condition']['status'] for c in cards for i in c['items'] if 'activation_condition' in i)
     counts=Counter(row['status'] for row in coverage)
     unverified=['Complete effect/condition structure','Independent official verification']
     if any(state not in {'available_partial','missing_page_on_hold'} for state in counts):
@@ -73,6 +78,7 @@ def public_document(master,base_cards,base_version=None):
     body={'cards':cards,'coverage':{'complete':False,'base_card_count':len(bases),'detail_card_count':len(cards),
           'detail_item_count':sum(len(c['items']) for c in cards),'by_kind':dict(Counter(c['card_kind'] for c in cards)),
           'status_counts':dict(counts),'card_status':coverage,
+          'activation_condition_counts':dict(condition_counts),
           'not_collected':['P.stage_skill','P.aptitude','S.fight_skill'],
           'unverified':unverified}}
     version='d1-'+digest({'base_dataset_version':base_version,**body})[:16]
@@ -109,6 +115,7 @@ def validate_memory_facts(item):
 def validate_public(doc,base_cards):
     if set(doc)!={'meta','cards','coverage'}:raise ValueError('Non-public document field')
     bases={c['card_id']:c for c in base_cards};ids=set();items=set()
+    known_idols={c['idol_name'] for c in base_cards if c.get('idol_name')}
     if doc['meta']['detail_schema']!='1.0':raise ValueError('Unknown detail schema')
     for card in doc['cards']:
         if set(card)-{'card_id','card_kind','wiki_url','fetched_at','source_sha256','coverage','items','traits','max_status'}:raise ValueError('Non-public card field')
@@ -123,6 +130,9 @@ def validate_public(doc,base_cards):
         datetime.fromisoformat(card['fetched_at'])
         for item in card['items']:
             uuid.UUID(item['detail_id'])
+            if 'activation_condition' in item:
+                if item['kind']!='panel_passive':raise ValueError('Activation condition on non-passive')
+                validate_condition(item['activation_condition'],known_idols)
             validate_memory_facts(item)
             validate_generation_parents(item)
             if item['detail_id'] in items or item['kind'] not in KINDS[card['card_kind']]:raise ValueError('Invalid detail item')
@@ -139,11 +149,17 @@ def validate_public(doc,base_cards):
                         or type(option['value']) not in (int,float) or not math.isfinite(option['value']) or option['value']<0
                         or type(option['turns']) is not int or option['turns']<1):raise ValueError('Invalid random-effect option')
             if set(item.get('mechanics',[]))-MECHANICS:raise ValueError('Invalid mechanic')
-            if set(item)-set(ITEM_FIELDS+['numeric_facts','effect_structure','conditions_not_structured','source_positions','progression','manual_source_ref']):raise ValueError('Non-public detail field')
+            if set(item)-set(ITEM_FIELDS+['numeric_facts','effect_structure','conditions_not_structured','source_positions','progression','manual_source_ref','activation_condition']):raise ValueError('Non-public detail field')
     coverage=doc['coverage'];rows=coverage['card_status']
     if len(rows)!=len(bases) or {r['card_id'] for r in rows}!=set(bases):raise ValueError('Coverage anomaly')
     if coverage['detail_card_count']!=len(ids) or coverage['detail_item_count']!=len(items):raise ValueError('Count anomaly')
     if coverage['status_counts']!=dict(Counter(r['status'] for r in rows)):raise ValueError('Status count mismatch')
+    if 'activation_condition_counts' in coverage:
+        passives=[i for c in doc['cards'] for i in c['items'] if i['kind']=='panel_passive']
+        if any('activation_condition' not in i for i in passives):raise ValueError('Missing passive activation condition')
+        expected=dict(Counter(i['activation_condition']['status'] for i in passives))
+        actual=coverage['activation_condition_counts']
+        if not isinstance(actual,dict) or actual!=expected or any(type(v) is not int or v<0 for v in actual.values()):raise ValueError('Activation condition count mismatch')
     if coverage['complete'] is not False:raise ValueError('Partial effects must not claim complete')
     body={'base_dataset_version':doc['meta']['base_dataset_version'],'cards':doc['cards'],'coverage':coverage}
     if doc['meta']['detail_version']!='d1-'+digest(body)[:16]:raise ValueError('Detail content version mismatch')

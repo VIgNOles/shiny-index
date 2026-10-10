@@ -390,3 +390,12 @@ Googleの後続エクスポートでmtime16:10:24.240UTCとZIP包装差を観測
 保存入力からやり直す場合は、scripts/transform_detail_catalog.py private/raw/detail-catalog-20261009 private/audits/<新しい候補名>.jsonを使い、正式原本や旧候補を上書きしない。全件1419候補・47保留を基準に、構造例外・件数・旧値/固定ID/手修正を確認する。古いworkflow-report.jsonは稼働時コードの監査履歴で、正式公開結果は同runのlatest-verified-publication.jsonとdocs/verification.mdを読む。
 
 原本への追加・修正は前述の編集列と根拠・日時を使う。fresh exportをreview/applyし、基礎と詳細を同じエクスポートから新候補へ生成→check_site→PC/スマホ検索→不変版保持→明示公開→匿名確認。検証前に現行原本/サイトへ上書きしない。再取得結果の採用もnative全コピーへの差分登録から始め、元Sheetを保持する。現行版のタグはui-v10-details1419-20261010。UIだけの切戻しではbuild_ui_rollback.pyに現行siteをsourceとして指定し、データを古い版へ戻さない。
+
+
+## パッシブ発動条件の更新・切戻し（UI v11）
+
+発動条件は原本のパッシブ effect_private の有効値から公開時に導出する。生成JSONや activation_condition を直接編集しない。訂正は既存の手修正列に理由・出典・日時を付け、fresh exportをreview/applyする。未知の表記は未対応のまま保存され、公開からカードを落とさない。複合条件の一部だけを単純条件として登録しない。
+
+原本を変えない公開変換の改善も、旧siteを保存して別の候補ディレクトリへUIを配置し、scripts/export_detail_sheet.pyで詳細を生成する。check_site、Python/JS試験、3幅の基本/詳細検索、旧データ/固定ID/手修正保持、同じデータの旧UI切戻しを確認してから昇格する。発動条件の対応数はcoverage.activation_condition_countsにあり、旧バンドルにはこの任意フィールドがない。
+
+UI v10への切戻しは scripts/build_ui_rollback.py --ref ui-v10-details1419-20261010 --source site --output private/<新しい切戻し候補> を使う。条件フィルターと条件表示は旧UIにないが、現行の基礎・詳細版と配布を保つ。候補を3幅で検証した後にsiteへ昇格し、通常のpublishコミット・Actions・匿名URL照合を行う。条件だけを元に戻す場合も旧不変ファイルを上書きせず、版の組を検証する。
