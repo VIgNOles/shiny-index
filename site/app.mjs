@@ -1,4 +1,4 @@
-import {detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
+import {detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -501,8 +501,8 @@ try{
     attrs.push(...(item.mechanics??[]).map(value=>mechanicNames[value]));
     if(attrs.length)add(row,'p',attrs.join(' · '),'skill-meta');
     if(item.cap_delta!=null)add(row,'p',item.cap_targets.join(' / ')+' 上限 +'+item.cap_delta);
-    if(item.activation_condition){
-     const conditionText=activationConditionText(item.activation_condition);
+    if(itemActivationCondition(item)){
+     const conditionText=activationConditionText(itemActivationCondition(item));
      add(row,'p',conditionText?'発動条件：'+conditionText:'発動条件：未対応（Wikiで確認してください）','skill-values activation-condition');
     }
     if(item.numeric_facts.length)add(row,'p','参考数値：'+item.numeric_facts.map(factText).join(' / '),'skill-values');
