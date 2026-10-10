@@ -2,11 +2,11 @@
 
 現在は**全期間のWiki一覧から1,466索引行を収録した公開版**です。[公開サイト](https://vignoles.github.io/shiny-index/)をログインなしで閲覧・検索・取得できます。
 一覧掲載1,410件＋ロード派生56件、基礎P548/S918。基礎版v1-93a6a8b8d40e754a（収録確認日2026-10-08）を維持しています。
-**個別Wikiページがある全1,419カード（P548/S871）・24,025項目を原本r18へ登録済み。UI v12・詳細d1-776465cddea6c059を公開確認しました。** 1,363ページ保存（新規1,358/再利用5）、現行コードの全入力再変換で構造例外0。
-**パッシブ発動条件5,437/5,890項目（92.3%）を表示・検索できます。** 491項目を追加し、全員・ユニット内の指定人物のみ・範囲・かつ/または・履歴・付与状態を区別。未対応453項目（人物名だけの略記381＋その他72）は明示し、条件なしとは扱いません。
-公開66/66ファイル一致、PC1280/390/320の基本・詳細検索と新条件表示、旧UI v11への現行データ保持切戻しを確認済み。原本・固定ID・手修正・旧24,025項目・従来条件は不変。今回のWiki通信/Google原本書込みは0件。詳細JSONは約14.5MB、旧不変版も保持しています。
-隔離した復旧演習で詳細JSON破損・原本破損・版参照不一致を検出し、66公開ファイル/原本/接続を保存版から復元・全バイト照合しました。本番サイトやGoogle原本を壊す演習は行っていません。
-ページなし47件は索引に収録済みで、リンク追加・詳細収集はユーザー指定で保留。S90カードの最大Lv360セルは原文も空欄のため欠損を維持。判明実装日2018-04-24～2026-10-02、日付不明56件。**全ゲームの独立公式照合、効果・条件の全面構造化は未完了**です。
+**個別Wikiページがある全1,419カード（P548/S871）・24,025項目を原本r18へ登録済み。UI v13・詳細d1-b6cec417eefae09eを公開確認しました。** カードページ1,363件保存、現行コードの全入力再変換で構造例外0。
+**パッシブ発動条件5,885/5,890項目（99.9%）を表示・検索できます。** 今回448項目追加。人物名だけの旧表記は解説を根拠に参加条件へ変換し、履歴とジャンルのAND、ユニット全員のOR、スキル所持者本人のキーワードを区別します。未対応5項目は原文の誤記・区切り不明・括弧不整合で、無条件とは扱いません。
+公開68/68ファイル一致、PC1280/390/320の基本・詳細検索と新条件表示、旧UI v12への現行データ保持切戻しを確認済み。原本・固定ID・手修正・旧24,025項目・従来の条件は不変。今回は参照解説1ページとrobots確認だけを取得し、Google原本書込み0。詳細JSONは約14.6MB、旧不変版も保持しています。
+隔離した復旧演習では、詳細JSON破損・原本破損・版参照不一致の検出と、保存版からの全復元を確認しました。本番サイトやGoogle原本を壊す演習は行っていません。
+ページなし47件は索引に収録済みで、リンク追加・詳細収集はユーザー指定で保留。S90カードの最大Lv360セルは原文も空欄のため欠損を維持。判明実装日2018-04-24～2026-10-02、日付不明56件。**99.9%はパッシブの発動条件欄だけの対応率です。全ゲームの独立公式照合、全スキル効果・発動制限の構造化は未完了**です。
 編集原本は指定アカウントの非公開Google Sheets。15タブの全値を実エクスポートで照合済みです。更新方法はoperations.md、[完成条件別の結果と残件](docs/verification.md)、[詳細接続手順](docs/card-details-integration.md)を参照してください。
 
 ## セットアップ
@@ -46,7 +46,7 @@ UI操作の再現試験はPlaywright 1.62.1を使います。通常のNode/npm�
 
 ```powershell
 ./.venv/Scripts/python.exe -m unittest discover -s tests -v
-node --test tests/search.test.mjs
+node --test tests/search.test.mjs tests/detail-search.test.mjs
 $env:UI_BROWSER_PATH = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 node tests/ui-v4-smoke.mjs
 ./.venv/Scripts/python.exe scripts/update_drill.py
@@ -121,7 +121,7 @@ P2/S2の実HTML試験を経て、ユーザーの指示で全件詳細HTMLの取�
 UI v7の詳細256カード（P126/S130）・3,685項目を原本へ登録し、公開URLの40ファイル一致とPC/390px/320pxの基本・詳細検索を確認済み。公開URLでの最新結果は詳細接続手順の末尾へ記録します。基礎カード1,466件と版は変更していません。スキル種別・名前・Link/Plus/Change/Grow/Refrainを検索でき、Pパネル/MB/生成/S所持ライブを区別します。ランダム効果の構造化済み候補も検索できます。Wiki原文は配布せず、認識した参考数値を表示する段階です。全件詳細・発動条件の全面構造化は未完成です。原本・更新・検証・残件は[詳細接続手順](docs/card-details-integration.md)、全件取得は[取得手順](docs/card-details-full-acquisition.md)。公開URLでの結果は詳細接続手順の末尾で確認してください。
 
 ```powershell
-node --test tests/search.test.mjs tests/detail-search.test.mjs
+node --test tests/search.test.mjs tests/detail-search.test.mjs tests/detail-search.test.mjs
 $env:UI_EXPECTED_VERSION = [regex]::Match((Get-Content -LiteralPath 'site/index.html' -Raw), "window.UI_VERSION='([^']+)'").Groups[1].Value
 node tests/ui-v4-smoke.mjs site
 node tests/ui-v5-smoke.mjs site

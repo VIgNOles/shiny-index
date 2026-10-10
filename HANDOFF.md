@@ -1,9 +1,14 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
-## 続行中（2026-10-11 JST）
-公開はUI v12/d1-776465cddea6c059、原本r18/1419/24025不変。UI v13候補はprivate/site-ui13-conditions-candidate-20261011、d1-b6cec417eefae09e、パッシブ5885/5890対応/未対応5、まだ公開前。checkpoint private/audits/ui13-condition-release-checkpoint-20261011.json。参照R01本文1＋robots1成功、原本SHA/native mtime/owner不変確認済み。取得catalogは完了のまま再起動しない。
-Python191/JS39 PASS（429はmock）。原セル全5890の再照合とローカル3幅のUI試験を進行中。完了結果を実ログで確認→保持監査→現行データ付き旧UI v12切戻し試験→保存/publish→Actions/匿名全ファイル/3幅確認→接続参照更新/記録保存が次。実行結果不明の昇格やネット書込はまだない。後続節は履歴で、現行の公開完了とは扱わない。
+## 最新状態（2026-10-11 00:53 JST）
+UI v13・詳細d1-b6cec417eefae09eを公開確認済み。原本r18/1419(P548/S871)/24025、基礎r7/1466/v1-93a6a8b8d40e754a不変。現行Googleはprivate/sheets-connection.jsonのID/URL、owner指定/mtime04:56:30.698Z不変を再確認。原本セル書込0、参照解説R01本文1+robots1だけ成功。個別カード1363ページを再取得していない。
+条件を448追加し5885/5890対応・未対応5。旧UI v12は5881/9、v11は4946/944を維持。人物名旧表記を解説で確定し参加条件へ変換。履歴人物とジャンルのall、各ユニット全員のOR、所持者本人のキーワードを区別。v2は既存型のみ444追加、v3はキーワード4件、current_counts追加。全5890原セル/SHA、旧24025全項目・固定ID/手修正・旧491式/5437表示文、旧不変版保持を照合。
+公開91542d444e951510ccb79f4678f7e9f4e6376626、tag ui-v13-conditions-20261011、Actions38064733667 success。匿名68/68バイト一致、公開/ローカル/旧UI v12切戻しの1280/390/320基本・詳細PASS。新4実例・URL保持・同一項目検索・横はみ出しなし、画像ローカル3/公開2確認。Python191/JS39 PASS（429はmock）。checkpoint private/audits/ui13-condition-release-checkpoint-20261011.jsonはpublished_verified。
+公開後の実ローカルsite/master/current connectionを隔離コピーし、3障害検出→68ファイル/原本/接続の保存版復元→全バイト一致/元入力無変更を確認。private/recovery/ui13-conditions-20261011/report.json。本番全面障害復旧は未検証。旧siteと接続backupを保持。
+取得runはcomplete4098・active_attemptなし。今回の取得/変換/検証/公開/復旧処理は全て完了、ロック/未知書込応答/稼働中workerなし。単ページの共有ゲートも完了後60秒以上をmonotonic所要時間で保存するよう補強した。取得を二重起動しない。
+次はprivate/audits/full-effect-structure-census-20261011.jsonから、support_skillのLv式/条件/対象、ライブ効果ごとの継続ターン、固有アビリティの倍率とグループ制約を型付きに設計→境界試験→保存HTML全件照合→別候補/保持監査→旧UI互換→公開確認。numeric_factsなしを欠損や未取得と混同せずcap_delta/思い出Lv/技能Lv等の既存専用値を保持する。原本編集があればowner/profile/fresh exportを確認して先に手修正を取り込む。
+未対応5は誤記2・状態名の区切り不明2・括弧不整合1（passive-condition-v13-unsupported-triage-20261011.json）。根拠なく訂正しない。47ページ保留・S90最大Lv原文空欄・日付不明56・全効果/全発動制限構造化・公式独立全網羅・本番基礎新規実在カード追加実証・全面実機/Google実画面/本番全面復旧は未完了。Pステージ/適正・Sファイト対象外、CSV画面非表示を維持。ユーザー操作待ち・プロジェクト完成・停止指示の適用ではない。以下の過去記録は履歴。
 <!-- /current-state -->
 
 
@@ -806,3 +811,17 @@ UI v10・詳細d1-fe052456be3b2b43。実原本候補と同じ1380データのUI 
 追加のscripts/recovery_drill.pyで、UI v12候補と同版の接続参照を隔離コピーし、詳細JSON破損/元XLSX破損/原本・公開版不一致の3障害を全て検出。保存版から66公開ファイル・完全原本r18/1419/24025・接続を戻し、全バイト一致と元入力の無変更を確認。既存出力の再使用は拒否し、公開/Google原本・ネットワークへの書込みはない。private/recovery/ui12-conditions-20261011/report.json。本番の実障害からの全面復旧完了とは扱わない。
 証拠はprivate/audits/ui12-conditions-public-verification-20261011.json、ui12-condition-release-checkpoint-20261011.json（published_verified）、ui12-conditions-preservation-20261011.json、passive-condition-v2-native-html-provenance-20261011.json、ui12-condition-all-labels-20261011.json。旧site/接続backupを保持し、接続の公開詳細版だけを更新した。取得runはcomplete4098のまま、未知の書込応答/稼働中の取得・公開処理なし。
 残る453は人物略記381、その他64、ユニットを共有したOR句8。分類/原文/出典をpassive-condition-v2-unsupported-triage-20261011.jsonに保存。次は略記条件の説明や履歴ジャンルの定義を根拠付きで確認し、残り構文と効果全体の構造化を進める。47保留・S90原文空欄・全効果/独立公式網羅・本番基礎新規追加実証・全面実機/Google実画面/本番全面復旧は残る。対象外項目とCSV非表示は維持。
+
+## 2026-10-11 UI v13：略記の根拠確認と448条件の追加公開
+
+原本r18/1419(P548/S871)/24025・基礎r7/1466を保持し、UI v13/詳細d1-b6cec417eefae09eを公開した。発動条件5885/5890対応（P2075/2075、S3810/3815）、未対応5。旧UI v12で読めるv2条件は5881/9、旧UI v11の条件/集計は4946/944を保持。追加444のv2は既存の述語型だけ、キーワード4項目はoptional v3とcurrent_countsに分離し、所持者本人/複数allを区別する。説明R01を本文1＋robots1で取得成功、残りは保存1363ページを再利用。実429なし、原本セルへの書込0。単ページ共有ゲートも完了後60秒以上を保存するよう補強した。
+
+全5890原本のSHA/原セル、旧24025項目全値/固定ID/手修正、旧491拡張式/5437表示文を照合。既存66ファイル中63を生バイト保持、index/details.mjs/詳細pointerだけを変更し新不変バンドル2ファイルを追加。原本XLSX SHA/native mtime/ownerを再確認、原本JSONは完全一致。詳細JSON14,582,144bytes。候補・旧UI v12切戻し・公開が1280/390/320の基本/詳細試験PASS。旧人物名、履歴とジャンルのall、ユニット全員のOR、所持キーワード、URL保持/同一項目検索/横はみ出しなしを実例で確認。画像ローカル3/公開2を視認。Python191/JS39 PASS（テストの429はmock）。
+
+実装9b9664e、準備796854e、公開91542d444e951510ccb79f4678f7e9f4e6376626、tag ui-v13-conditions-20261011、Actions38064733667 success。匿名68/68ファイルがHTTP200・全バイト一致。checkpointと公開確認はprivate/audits/ui13-condition-release-checkpoint-20261011.json、ui13-conditions-public-verification-20261011.json（published_verified）。原本の公開版参照だけを更新し、旧site/接続backupを保存。取得catalogはcomplete4098/active_attemptなしで再起動していない。
+
+未対応5は原文の人物誤記2・状態名の区切り不明2・余分な閉じ括弧1。private/audits/passive-condition-v13-unsupported-triage-20261011.jsonへ原文/出典を保存し、勝手な訂正や無条件化をしない。全効果の棚卸しはfull-effect-structure-census-20261011.json（24025項目、追加取得/採用なし）。サポート技能のLv式/発動場面、ライブ効果ごとの継続ターン、固有アビリティの倍率とグループ制約が次の構造化対象。上限4248はcap_delta等、思い出Lvは専用項目があり、numeric_factsがないだけで欠損扱いしない。
+
+47ページ保留・S90最大Lv原文空欄・日付不明56・全効果/全発動制限の構造化・公式独立全網羅・本番基礎新規実在カード追加実証・全面実機/Google実画面/本番全面復旧は未完了。Pステージ/適正・Sファイトは対象外。ユーザー操作待ちやプロジェクト完成とは扱わない。
+
+今回のUI v13では、公開確認後の実ローカルsite/原本/現行接続の組から隔離復旧を実行。3障害を検出し、68ファイル・原本r18/1419/24025・接続を全バイト一致で復元し、元入力の無変更を確認した。private/recovery/ui13-conditions-20261011/report.json。本番やGoogleに破損を起こす演習ではない。依存追加なし。今回の取得・検証・復旧・公開処理はすべて終了し、未知の書込応答なし。

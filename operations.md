@@ -429,3 +429,7 @@ UIだけをv11へ戻す場合はbuild_ui_rollback.py --ref ui-v11-conditions-202
 UIをv12へ戻す場合は、scripts/build_ui_rollback.py --ref ui-v12-conditions-20261011 --source site --output private/<新しい候補> を使用する。現行の基礎・詳細データを保持し、旧UIはキーワード4条件だけを未対応と表示する。3幅検証→publish→Actions→匿名の版/全ファイル照合まで行う。v13を基準へ戻す場合も同じ手順でv13タグを指定する。旧不変版を書き換えない。
 
 参照解説はsource_manifest.jsonのreference_pagesにだけ登録し、scripts/collect_one.py fetch R01 private/raw/<新しい参照保存先> で1ページずつ取得する。既存保存入力を優先し、カード一覧の全件再取得を起動しない。共有ゲートとロックを使い、完了後60秒以上・失敗時24時間以上とRetry-Afterを維持する。本文は非公開のまま、公開するのは型付きの事実と出典リンクだけ。
+
+UI v13の再現検証は node --test tests/search.test.mjs tests/detail-search.test.mjs と Python全回帰に加え、UI_BROWSER_PATHにブラウザ実行ファイル、UI_EXPECTED_VERSIONにui-v13を指定して node tests/ui-v4-smoke.mjs site / node tests/ui-v5-smoke.mjs site をそれぞれ実行する。公開URLはUI_BASE_URLに設定する。実画面のスクリーンショットを確認し、バイト照合だけで表示成功と扱わない。
+
+今回のUI v13では、公開確認後の実ローカルsite/原本/現行接続の組から隔離復旧を実行。3障害を検出し、68ファイル・原本r18/1419/24025・接続を全バイト一致で復元し、元入力の無変更を確認した。private/recovery/ui13-conditions-20261011/report.json。本番やGoogleに破損を起こす演習ではない。依存追加なし。今回の取得・検証・復旧・公開処理はすべて終了し、未知の書込応答なし。

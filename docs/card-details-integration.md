@@ -325,3 +325,15 @@ Googleのnative全コピーへ詳細6タブを359 bounded batchで登録し、�
 追加のscripts/recovery_drill.pyで、UI v12候補と同版の接続参照を隔離コピーし、詳細JSON破損/元XLSX破損/原本・公開版不一致の3障害を全て検出。保存版から66公開ファイル・完全原本r18/1419/24025・接続を戻し、全バイト一致と元入力の無変更を確認。既存出力の再使用は拒否し、公開/Google原本・ネットワークへの書込みはない。private/recovery/ui12-conditions-20261011/report.json。本番の実障害からの全面復旧完了とは扱わない。
 証拠はprivate/audits/ui12-conditions-public-verification-20261011.json、ui12-condition-release-checkpoint-20261011.json（published_verified）、ui12-conditions-preservation-20261011.json、passive-condition-v2-native-html-provenance-20261011.json、ui12-condition-all-labels-20261011.json。旧site/接続backupを保持し、接続の公開詳細版だけを更新した。取得runはcomplete4098のまま、未知の書込応答/稼働中の取得・公開処理なし。
 残る453は人物略記381、その他64、ユニットを共有したOR句8。分類/原文/出典をpassive-condition-v2-unsupported-triage-20261011.jsonに保存。次は略記条件の説明や履歴ジャンルの定義を根拠付きで確認し、残り構文と効果全体の構造化を進める。47保留・S90原文空欄・全効果/独立公式網羅・本番基礎新規追加実証・全面実機/Google実画面/本番全面復旧は残る。対象外項目とCSV非表示は維持。
+
+## 2026-10-11 UI v13：略記の根拠確認と448条件の追加公開
+
+原本r18/1419(P548/S871)/24025・基礎r7/1466を保持し、UI v13/詳細d1-b6cec417eefae09eを公開した。発動条件5885/5890対応（P2075/2075、S3810/3815）、未対応5。旧UI v12で読めるv2条件は5881/9、旧UI v11の条件/集計は4946/944を保持。追加444のv2は既存の述語型だけ、キーワード4項目はoptional v3とcurrent_countsに分離し、所持者本人/複数allを区別する。説明R01を本文1＋robots1で取得成功、残りは保存1363ページを再利用。実429なし、原本セルへの書込0。単ページ共有ゲートも完了後60秒以上を保存するよう補強した。
+
+全5890原本のSHA/原セル、旧24025項目全値/固定ID/手修正、旧491拡張式/5437表示文を照合。既存66ファイル中63を生バイト保持、index/details.mjs/詳細pointerだけを変更し新不変バンドル2ファイルを追加。原本XLSX SHA/native mtime/ownerを再確認、原本JSONは完全一致。詳細JSON14,582,144bytes。候補・旧UI v12切戻し・公開が1280/390/320の基本/詳細試験PASS。旧人物名、履歴とジャンルのall、ユニット全員のOR、所持キーワード、URL保持/同一項目検索/横はみ出しなしを実例で確認。画像ローカル3/公開2を視認。Python191/JS39 PASS（テストの429はmock）。
+
+実装9b9664e、準備796854e、公開91542d444e951510ccb79f4678f7e9f4e6376626、tag ui-v13-conditions-20261011、Actions38064733667 success。匿名68/68ファイルがHTTP200・全バイト一致。checkpointと公開確認はprivate/audits/ui13-condition-release-checkpoint-20261011.json、ui13-conditions-public-verification-20261011.json（published_verified）。原本の公開版参照だけを更新し、旧site/接続backupを保存。取得catalogはcomplete4098/active_attemptなしで再起動していない。
+
+未対応5は原文の人物誤記2・状態名の区切り不明2・余分な閉じ括弧1。private/audits/passive-condition-v13-unsupported-triage-20261011.jsonへ原文/出典を保存し、勝手な訂正や無条件化をしない。全効果の棚卸しはfull-effect-structure-census-20261011.json（24025項目、追加取得/採用なし）。サポート技能のLv式/発動場面、ライブ効果ごとの継続ターン、固有アビリティの倍率とグループ制約が次の構造化対象。上限4248はcap_delta等、思い出Lvは専用項目があり、numeric_factsがないだけで欠損扱いしない。
+
+47ページ保留・S90最大Lv原文空欄・日付不明56・全効果/全発動制限の構造化・公式独立全網羅・本番基礎新規実在カード追加実証・全面実機/Google実画面/本番全面復旧は未完了。Pステージ/適正・Sファイトは対象外。ユーザー操作待ちやプロジェクト完成とは扱わない。
