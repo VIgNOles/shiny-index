@@ -1,4 +1,4 @@
-import {detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
+import {effectNames,effectFactText,effectMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -52,6 +52,10 @@ try{
   detailCoverageText(detailDoc.coverage,cards.length):
   '詳細情報を読み込めませんでした：'+detailError+'。基本情報の検索は利用できます。';
  $('skill-controls').disabled=!detailDoc;
+ const effectCounts=detailDoc?.coverage.effect_detail_counts;
+ $('effect-coverage-text').textContent=effectCounts?
+  'サポートスキル '+(effectCounts.support_skill?.structured??0)+'項目、固有アビリティ '+(effectCounts.unique_ability?.structured??0)+'項目の効果を検索できます。ライブ・思い出はアピール倍率や、継続ターンを読み取れた効果が対象です。未対応の複合効果もあるため、検索結果が0件でも該当カードがないとは限りません。':
+  'このデータ版は効果の種類・対象・継続ターンの検索に未対応です。';
  if(detailDoc){
   $('detail-version').textContent='詳細データ版 '+detailDoc.meta.detail_version+' / 更新日時 '+detailDoc.meta.published_at;
   for(const [file,label] of [['details.json','詳細 JSON'],['manifest.json','詳細の版情報']]){
@@ -91,6 +95,12 @@ try{
   render();
  };
 
+ const availableEffects=[...(detailMap.values())].flatMap(c=>c.items.flatMap(i=>i.effect_details?.effects??[]));
+ for(const [value,label] of Object.entries(effectNames))if(availableEffects.some(e=>e.metric===value))$('effect-type').add(new Option(label,value));
+ for(const value of [...new Set(availableEffects.flatMap(e=>e.targets))])$('effect-target').add(new Option(value,value));
+ for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns']]){
+  $(id).addEventListener('change',event=>{if(event.target.value)params.set(key,event.target.value);else params.delete(key);commitParams();});
+ }
  for(const [value,label] of Object.entries(conditionNames))$('skill-condition').add(new Option(label,value));
  for(const [value,label] of Object.entries(kindNames))$('skill-kind').add(new Option(label,value));
  for(const [value,label] of Object.entries(mechanicNames)){
@@ -113,7 +123,7 @@ try{
  $('detail-available').addEventListener('change',event=>{
   if(event.target.checked)params.set('detail_status','available');else params.delete('detail_status');commitParams();
  });
- $('skill-filters').open=['skill_q','skill_kind','skill_condition','mechanic','detail_status'].some(key=>params.has(key));
+ $('skill-filters').open=['skill_q','skill_kind','skill_condition','mechanic','detail_status','effect_type','effect_target','effect_turns'].some(key=>params.has(key));
 
  const filterOrder={
   card_kind:['P','S'],rarity:['UR','SSR','SR','R','N'],
@@ -430,6 +440,7 @@ try{
   for(const value of params.getAll('skill_kind')){addChip(kindNames[value]??value,'skill_kind',value);count++;}
   for(const value of params.getAll('mechanic')){addChip(mechanicNames[value]??value,'mechanic',value);count++;}
   if(params.get('skill_condition')){addChip('発動条件：'+(conditionNames[params.get('skill_condition')]??params.get('skill_condition')),'skill_condition',null);count++;}
+  for(const [key,label] of [['effect_type','効果'],['effect_target','対象'],['effect_turns','継続']])if(params.get(key)){addChip(label+'：'+(key==='effect_type'?effectNames[params.get(key)]??params.get(key):params.get(key)+(key==='effect_turns'?'ターン以上':'')),key,null);count++;}
   if(params.get('detail_status')==='available'){addChip('詳細収録済み','detail_status',null);count++;}
   if(!count)active.textContent='絞り込み条件なし';
   const advancedCount=params.getAll('series_ids').length+
@@ -444,6 +455,7 @@ try{
   }
  };
  const renderControls=()=>{
+  for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns']])$(id).value=params.get(key)??'';
   $('skill-q').value=params.get('skill_q')??'';
   $('skill-kind').value=params.get('skill_kind')??'';
   $('skill-condition').value=params.get('skill_condition')??'';
@@ -485,7 +497,9 @@ try{
   add(section,'p','効果は参考数値の一部を表示しています。パッシブの発動条件は対応分を表示します。未対応の条件・複合効果はWikiで確認してください。','detail-note');
   for(const [kind,label] of Object.entries(kindNames)){
    const items=card.items.filter(item=>item.kind===kind);if(!items.length)continue;
-   const group=add(section,'details','','skill-section');add(group,'summary',label+'（'+items.length+'件）');
+   const matchedIds=new Set(hasEffectFilters(params)?items.filter(item=>detailSearch([baseCard],params,new Map([[baseCard.card_id,{items:[item]}]])).length).map(i=>i.detail_id):[]);
+   if(matchedIds.size)items.sort((a,b)=>Number(matchedIds.has(b.detail_id))-Number(matchedIds.has(a.detail_id)));
+   const group=add(section,'details','','skill-section');add(group,'summary',label+'（'+items.length+'件'+(matchedIds.size?' / 一致 '+matchedIds.size+'件':'')+'）');
    const list=add(group,'ul','','skill-list');
    for(const item of items){
     const row=add(list,'li','','skill-item');add(row,'strong',item.name);
@@ -504,6 +518,18 @@ try{
     if(itemActivationCondition(item)){
      const conditionText=activationConditionText(itemActivationCondition(item));
      add(row,'p',conditionText?'発動条件：'+conditionText:'発動条件：未対応（Wikiで確認してください）','skill-values activation-condition');
+    }
+    if(item.effect_details?.effects.length){
+     const facts=add(row,'ul','','effect-facts');
+     for(const e of item.effect_details.effects){
+      const fact=add(facts,'li',effectFactText(e),'skill-values');
+      if(matchedIds.has(item.detail_id)&&effectMatches(e,params)){fact.classList.add('matched-effect');group.open=true;}
+     }
+     if(item.kind==='support_skill'){
+      const levels=(item.progression??[]).map(p=>p.skill_level).filter(n=>Number.isFinite(n));
+      const top=levels.length?Math.max(...levels):null;
+      if(top!=null&&item.effect_details.effects.some(e=>e.formula||e.probability?.formula))add(row,'p','取得表の最大スキルLv '+top+'：'+item.effect_details.effects.map(e=>effectFactText(e,top)).join(' / '),'skill-meta');
+     }
     }
     if(item.numeric_facts.length)add(row,'p','参考数値：'+item.numeric_facts.map(factText).join(' / '),'skill-values');
     for(const [slot,label] of [['link','Link追加効果'],['charge','チャージ追加効果']]){

@@ -186,3 +186,6 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 .skill-item{padding:.8rem 0;border-top:1px solid var(--line,#ddd);overflow-wrap:anywhere}
 .skill-item p{margin:.35rem 0}
 #detail-downloads{display:flex;flex-wrap:wrap;gap:.75rem;margin:.75rem 0}
+
+/* Effect fields remain a single column on narrow screens. */
+.effect-filters{margin:1rem 0;padding:.75rem;border:1px solid var(--border,#d3d9e3);border-radius:.5rem;display:grid;gap:.65rem}.effect-filters label{min-width:0}.effect-filters select{width:100%;max-width:100%}.effect-facts{padding-left:1.2rem}.effect-facts li{margin:.5rem 0;overflow-wrap:anywhere}.matched-effect{background:#eef5ff;border-left:3px solid #315fa5;padding:.4rem .55rem}.effect-filters .filter-help{margin:0}

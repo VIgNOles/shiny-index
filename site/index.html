@@ -77,13 +77,21 @@
         <details id="skill-filters" class="filter-group">
           <summary>スキルから探す</summary>
           <p id="detail-coverage" class="filter-help">詳細情報を読み込み中…</p>
+          <details id="effect-coverage"><summary>効果検索の対応範囲</summary><p id="effect-coverage-text" class="filter-help"></p></details>
           <fieldset id="skill-controls">
             <legend class="visually-hidden">スキルの条件</legend>
-            <label for="skill-q">スキル名・数値・発動条件で検索</label>
-            <input id="skill-q" type="search" placeholder="例：Vocal メンタル75%以上" autocomplete="off" aria-controls="cards">
+            <label for="skill-q">スキル名・効果・発動条件で検索</label>
+            <input id="skill-q" type="search" placeholder="例：体力回復 ボーカルレッスン" autocomplete="off" aria-controls="cards">
             <label for="skill-kind">スキルの種類<select id="skill-kind"><option value="">すべて</option></select></label>
-            <label for="skill-condition">発動条件に含まれる要素<select id="skill-condition"><option value="">指定なし</option></select></label>
+            <label for="skill-condition">パッシブ発動条件の要素<select id="skill-condition"><option value="">指定なし</option></select></label>
             <div id="skill-mechanics" class="filter-options" role="group" aria-label="ライブスキルの機能"></div>
+            <fieldset class="effect-filters">
+              <legend>効果を絞り込む</legend>
+              <label for="effect-type">効果の種類<select id="effect-type"><option value="">指定なし</option></select></label>
+              <label for="effect-target">効果の対象<select id="effect-target"><option value="">指定なし</option></select></label>
+              <label for="effect-turns">継続ターン<select id="effect-turns"><option value="">指定なし</option><option value="1">1ターン以上</option><option value="2">2ターン以上</option><option value="3">3ターン以上</option><option value="4">4ターン以上</option><option value="5">5ターン以上</option><option value="7">7ターン以上</option><option value="10">10ターン以上</option></select></label>
+              <p class="filter-help">効果の種類・対象・継続ターンは、同じ1つの効果に一致するカードを表示します。継続ターンは記載を読み取れた効果が対象です。詳細では一致するスキルを先に表示し、該当効果を強調します。</p>
+            </fieldset>
             <label class="filter-option"><input id="detail-available" type="checkbox">詳細収録済みのカードだけ</label>
             <p class="filter-help">機能はライブスキル、発動条件は対応済みのパッシブが対象です。種類・キーワード・機能・発動条件は同じスキルに一致するカードを表示します。未収録のカードはスキル検索に含まれません。</p>
           </fieldset>
@@ -121,7 +129,7 @@
       </details>
     </footer>
   </main>
-  <script>window.DATA_VERSION='v1-93a6a8b8d40e754a';window.UI_VERSION='ui-v13';window.DETAIL_VERSION='d1-f5c5c8ded775d398';</script>
+  <script>window.DATA_VERSION='v1-93a6a8b8d40e754a';window.UI_VERSION='ui-v14';window.DETAIL_VERSION='d1-cfe1eff5ac87d5ac';</script>
   <script type="module" src="app.mjs"></script>
 </body>
 </html>
