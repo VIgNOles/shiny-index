@@ -68,6 +68,43 @@ class SkillEffectTests(unittest.TestCase):
   del d['effects'][0]['raw_text'];d['effects'][0]['formula']['coefficient']=float('nan')
   with self.assertRaises(ValueError):validate_effect_details(d,set())
 
+class SavedLiveFactGapTests(unittest.TestCase):
+ def parse(self,text,**extra):
+  d=effect_details({'kind':'panel_live','effect_private':text,**extra});validate_effect_details(d,set());return d['effects']
+ def test_all_audience_interest_keeps_audience_and_its_own_turns(self):
+  es=self.parse('全観客の興味0.7倍[1ターン]/Vocal3倍アピール')
+  self.assertEqual(es[0]['metric'],'interest');self.assertEqual(es[0]['audience'],'all');self.assertEqual(es[0]['turns'],1)
+  self.assertNotIn('audience',es[1])
+ def test_japanese_attribute_alias_is_a_known_target_not_unknown_prose(self):
+  es=self.parse('ボーカル2倍アピール')
+  self.assertEqual(es[0]['targets'],['Vocal']);self.assertEqual(es[0]['value'],2)
+  self.assertEqual(self.parse('未知ボーカル2倍アピール'),[])
+ def test_quick_cost_bracket_does_not_turn_instant_gauge_into_duration(self):
+  es=self.parse('思い出ゲージ10%UP[コスト:2]')
+  self.assertEqual(es[0]['metric'],'memory_gauge_gain');self.assertNotIn('turns',es[0])
+  self.assertEqual(self.parse('思い出ゲージ10%UP[3ターン]')[0]['metric'],'rate_up')
+  self.assertEqual(self.parse('思い出ゲージ10%UP[未知の継続]'),[])
+ def test_damage_limited_rate_does_not_invent_a_fixed_duration(self):
+  es=self.parse('Vo&Da&Vi10%UP[ダメージを受けるまで]')
+  self.assertEqual(es[0]['targets'],['Vocal','Dance','Visual']);self.assertEqual(es[0]['restrictions'],{'until_damage':True})
+  self.assertNotIn('turns',es[0])
+ def test_naked_memory_link_rate_stays_partial_and_slot_bound(self):
+  d=effect_details({'kind':'memory_appeal','effect_private':'思い出アピール[Lv1]','link_appeal_private':'注目度5%DOWN'})
+  validate_effect_details(d,set());e=d['effects'][0]
+  self.assertEqual(e['scope'],'memory_link');self.assertEqual(e['metric'],'rate_down');self.assertNotIn('turns',e)
+  self.assertEqual(self.parse('注目度5%DOWN'),[])
+ def test_random_candidates_remain_alternatives_while_fixed_main_effects_survive(self):
+  es=self.parse('Vocal4倍アピール/ランダム効果3個付与(Plus)[未知]交換数UP[1回]',random_effect_options=[{'target':'Dance','value':20}])
+  self.assertEqual([e['metric'] for e in es],['appeal','exchange_count_up'])
+  self.assertTrue(all(e['targets']!=['Dance'] for e in es))
+  self.assertEqual(self.parse('Vocal20%UP[3ターン]/Dance20%UP[3ターン]',random_effect_options=[{'target':'Dance'}]),[])
+ def test_grow_maximum_interest_and_passive_strengthening_keep_upper_bounds(self):
+  es=self.parse('(Grow)[注目度UPを付与]全観客に興味最大1.6倍[2ターン]/興味最小0.1倍[1ターン]/パッシブスキル最大50%強化[2ターン]')
+  self.assertEqual([e['metric'] for e in es],['interest','passive_boost'])
+  self.assertEqual([e['value'] for e in es],[1.6,50]);self.assertTrue(all(e['maximum'] for e in es))
+  self.assertEqual(es[0]['audience'],'all')
+  self.assertEqual(self.parse('興味最大1.6倍[2ターン]'),[])
+
 class LiveEffectExtensionTests(unittest.TestCase):
  def setUp(self):
   from src.skill_conditions_v2 import context

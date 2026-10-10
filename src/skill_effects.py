@@ -131,16 +131,16 @@ def ability(text,known_idols):
   for e in out:e['restriction_status']='partial'
  return {'status':'partial' if partial and out else 'structured' if out else 'unsupported','effects':out}
 # A match includes its own adjacent duration; target aliases are normalized facts.
-ATTR=r'(?:Vocal|Dance|Visual|Vo|Da|Vi)'
-RATE=re.compile(r'(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|注目度|思い出ゲージ|リアクション回避率|回避率|メンタルダメージ|メンタル|影響力|パッシブスキル発動率)(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN|CUT)\[(?P<turns>\d+)ターン\]')
+ATTR=r'(?:Vocal|Dance|Visual|Vo|Da|Vi|ボーカル|ダンス|ビジュアル)'
+RATE=re.compile(r'(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|注目度|思い出ゲージ|リアクション回避率|回避率|メンタルダメージ|メンタル|影響力|パッシブスキル発動率)(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN|CUT)(?:\[(?P<turns>\d+)ターン\]|\[(?P<until_damage>ダメージを受けるまで)\])')
 APPEAL=re.compile(r'(?P<order>必ず最初に|必ず最後に)?(?P<audience>全観客に)?(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|Excellent)(?P<maximum>最大)?(?:(?P<minimum>\d+(?:\.\d+)?)[～〜~])?(?P<value>\d+(?:\.\d+)?)倍アピール')
-INTEREST=re.compile(r'興味(?P<value>\d+(?:\.\d+)?)倍\[(?P<turns>\d+)ターン\]')
+INTEREST=re.compile(r'(?P<audience>全観客に|全観客の)?興味(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)倍\[(?P<turns>\d+)ターン\]')
 LIVE_EXTRA=[
  (re.compile(r'メンタル(?P<value>\d+(?:\.\d+)?)%回復'),'mental_recovery','メンタル','percent'),
  (re.compile(r'自身のメンタルを(?P<value>\d+(?:\.\d+)?)%減ら(?:す|し)'),'mental_cost','メンタル','percent'),
- (re.compile(r'思い出ゲージ(?P<value>\d+(?:\.\d+)?)%UP(?!\[|\d)'),'memory_gauge_gain','思い出ゲージ','percent'),
+ (re.compile(r'思い出ゲージ(?P<value>\d+(?:\.\d+)?)%UP(?!\[(?!コスト:\d+\])|\d)'),'memory_gauge_gain','思い出ゲージ','percent'),
  (re.compile(r'リラックス効果(?P<value>\d+(?:\.\d+)?)%付与\[(?P<turns>\d+)ターン\]'),'relax','リラックス','percent'),
- (re.compile(r'パッシブスキル(?P<value>\d+(?:\.\d+)?)%強化\[(?P<turns>\d+)ターン\]'),'passive_boost','パッシブスキル','percent'),
+ (re.compile(r'パッシブスキル(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)%強化\[(?P<turns>\d+)ターン\]'),'passive_boost','パッシブスキル','percent'),
  (re.compile(r'交換数UP\[(?P<value>\d+)回\]'),'exchange_count_up','交換数','points'),
  (re.compile(r'リフレイン\[(?P<value>\d+)ターン前\]'),'refrain','過去のアピール','points'),
 ]
@@ -192,8 +192,8 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
     # Reject a suffix match inside a longer status or '最大' conditional number.
     if m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]) and part[m.start()-1] not in ']':continue
     if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
-    if metric is None and m.groupdict().get('maximum') and current!='grow':continue
-    targets=['興味'] if metric=='interest' else [{'Vo':'Vocal','Da':'Dance','Vi':'Visual','回避率':'リアクション回避率'}.get(x,x) for x in m['targets'].split('&')]
+    if metric!='appeal' and m.groupdict().get('maximum') and current!='grow':continue
+    targets=['興味'] if metric=='interest' else [{'Vo':'Vocal','Da':'Dance','Vi':'Visual','ボーカル':'Vocal','ダンス':'Dance','ビジュアル':'Visual','回避率':'リアクション回避率'}.get(x,x) for x in m['targets'].split('&')]
     e=effect(metric or 'rate_'+m['direction'].lower(),targets,'multiplier' if metric else 'percent',scope=current,value=float(m['value']),restriction_status='partial')
     if metric=='appeal':
      if m['minimum'] is not None:e['minimum']=float(m['minimum'])
@@ -201,17 +201,23 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
      if m['audience']:e['audience']='all'
      if m['order']:e['appeal_order']='first' if m['order']=='必ず最初に' else 'last'
     else:
-     e['turns']=int(m['turns'])
+     if m['turns']:e['turns']=int(m['turns'])
      if m.groupdict().get('maximum'):e['maximum']=True
     r=adjacent_restrictions(part,m.end())
+    if m.groupdict().get('until_damage'):r['until_damage']=True
+    if m.groupdict().get('audience'):e['audience']='all'
     if r:e['restrictions']=r
     if condition:e['activation_condition']=condition
     in_piece.append((m.start(),e))
+  if current=='memory_link' and (m:=re.fullmatch(r'(注目度)(\d+(?:\.\d+)?)%(UP|DOWN)',part)):
+   in_piece.append((0,effect('rate_'+m[3].lower(),[m[1]],'percent',scope=current,value=float(m[2]),restriction_status='partial')))
   for pattern,metric,target,unit in LIVE_EXTRA:
    for m in pattern.finditer(part):
     if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
     if m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]):continue
+    if m.groupdict().get('maximum') and current!='grow':continue
     e=effect(metric,[target],unit,scope=current,value=float(m['value']),restriction_status='partial')
+    if m.groupdict().get('maximum'):e['maximum']=True
     if m.groupdict().get('turns'):e['turns']=int(m['turns'])
     r=adjacent_restrictions(part,m.end())
     if r:e['restrictions']=r
@@ -229,7 +235,11 @@ def effect_details(item,known_idols=(),condition_context=None):
  if kind=='unique_ability':return ability(item.get('effect_private',''),known_idols)
  if kind in LIVE:
   standalone=[]
-  effects=[] if item.get('random_effect_options') else live(item.get('effect_private',''),ctx=condition_context,standalone=standalone)
+  text=item.get('effect_private','')
+  # Candidate-table alternatives are separate. A source cell explicitly saying
+  # random effects are granted can still contain independent deterministic effects.
+  candidate_only=bool(item.get('random_effect_options')) and not re.search(r'ランダム効果\d+個付与',normalized(text))
+  effects=[] if candidate_only else live(text,ctx=condition_context,standalone=standalone)
   if kind=='memory_appeal':
    for slot in ('link','charge'):effects+=live(item.get(slot+'_appeal_private',''),'memory_'+slot,condition_context,standalone,slot)
   return {'status':'partial' if effects or standalone else 'unsupported','effects':effects,**({'mechanic_conditions':standalone} if standalone else {})}
@@ -267,7 +277,7 @@ def validate_effect_details(doc,known_idols,condition_context=None):
    if condition_context is None or e.get('activation_condition')!={'status':'unsupported'}:raise ValueError('Invalid mechanic condition fallback')
    validate_rule(e['mechanic_condition'],condition_context,e['scope'])
   if 'minimum' in e and (e['metric']!='appeal' or type(e['minimum']) not in (int,float) or not math.isfinite(e['minimum']) or not 0<=e['minimum']<=e['value']):raise ValueError('Invalid effect range')
-  if 'audience' in e and (e['metric']!='appeal' or e['audience']!='all'):raise ValueError('Invalid appeal audience')
+  if 'audience' in e and (e['metric'] not in {'appeal','interest'} or e['audience']!='all'):raise ValueError('Invalid appeal audience')
   if 'probability' in e:validate_amount(e['probability'],True)
   if 'source_notation' in e and e['source_notation']!='extra_particle_de':raise ValueError('Invalid source notation')
   if 'advice' in e and e['advice'] not in {'ベスト','メンタル','ビジュアル','お仕事','ダンス','限界突破','ひらめき'}:raise ValueError('Invalid advice fact')
