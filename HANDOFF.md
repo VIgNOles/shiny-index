@@ -736,3 +736,10 @@ private/details/after631-adoption678-20261010は631のfresh exportから作成�
 native全値が計画一致、基礎9タブ/旧631カード/旧10405 registry全値/手修正1を保持。書込311325セルと周囲を含む316119セル全書式/validation/chips/formula、追加11463出典URLと収録範囲1419URLの表示/実リンク一致、5フィルター全範囲PASS。Google原本r15・1293件/21868項目・意味hash77d544...へ昇格、旧631とlocal/site/connection backup保持。旧source631のmtime不変も確認。匿名公開a076317e751d36831441a52d5dc6a5c815e1261f、準備48bc653、タグui-v9-details1293-20261010、Actions38020818029 success。公開UI3幅PASS（新規の別アビリティ併存/調整前Sサポートの非混入を含む）。全56ファイルの匿名生バイト照合は実行中。native XLSX代替11画像はArtifact import実行中、Google実画面は以前からCUA不可。原本の内容/書式/リンクはAPIと実exportで確認済み。
 
 次の保存入力もafter1293-expanded-frozen/candidate-20261010へ全再変換中。取得012の残件は継続し、1293を上限としない。
+
+
+### 1,344件版の原本昇格・公開準備
+
+frozen3872・保存1288ページから1344候補(P523/S821)/22746項目を生成。保存入力の全再変換と完全一致(hash4e40e688a92dab6c366efc372868290c23dcfdc463ee45d175114b069cda7f9a)。P【花は】の条件倍率補足をprivate保持し、既存1293カード/21868 registry全値/手修正1件を保持。native既存行順を保持して51カード/878項目を追加し、30バッチ全ACK・unknownなし。全15タブ実値一致、基礎9タブ不変、23574書込セルと周囲含む31392セル書式/validation/chips/formula、878追加出典URL/1419収録範囲URL実リンク、5フィルターPASS。
+
+新原本はprivate/sheets-connection.json参照(r16/1344)。旧1293nativeのmtime不変を確認し、旧master/接続/siteをbefore1344名で保存後に昇格した。詳細版d1-8e85e1726126325e・UI v9。実原本から生成した候補と旧UI v8切戻し候補の基本/詳細がPC1280/390/320でPASS、条件付き最大倍率の表示/検索もPASS。新依存なし、Python152/JS25 PASS。旧56公開ファイルのうちindex/latestだけ更新し不変バンドルを保持、候補58ファイル。公開Actions/匿名確認は次に実行し、現時点では1344公開済みと扱わない。native1293/1344のXLSX代替表示はread-only import実行中、Google実画面はCUA不可。原本の全値/書式/出典リンクはAPI/実exportで検証済み。取得012は継続、二重起動しない。

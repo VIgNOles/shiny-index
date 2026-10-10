@@ -184,6 +184,7 @@ try{
    await page.locator('.detail-toggle').click();
    await page.locator('.performance summary').filter({hasText:'パネルのライブスキル'}).click();
    assert.ok((await page.locator('.performance').textContent()).includes('Vocal 最大6.5倍（条件未構造化）'));
+   await page.getByText('Vocal 最大6.5倍（条件未構造化）',{exact:false}).first().scrollIntoViewIfNeeded();
    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.UI_SCREENSHOT_DIR,name+'-history-appeal.png')});
    assert.ok(!JSON.stringify(historyAppeal).includes('history_appeal_table_private'));
    await page.locator('#reset').click();
