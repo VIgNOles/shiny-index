@@ -244,3 +244,35 @@ test('Grow conditions attached to effects are labelled as growth, not activation
  assert.ok(text.includes('Grow Lv上昇条件：'));assert.ok(text.includes('または'));assert.ok(text.includes('使用後Lv0'));
  assert.ok(!text.includes('発動条件：'));assert.ok(text.includes('最大3倍'));
 });
+
+test('resurrection and audience clear retain delayed trigger, exclusions and no instantaneous duration',()=>{
+ const res={metric:'resurrection',targets:['メンタル'],unit:'percent',scope:'memory_link',value:10,turns:3,uses:1,trigger:'mental_zero'};
+ const clear={metric:'audience_status_clear',targets:['観客ステータス'],unit:'boolean',scope:'base',value:1,audience:'all',excludes:['興味変動無効']};
+ const d=new Map([['P1',{items:[{name:'memory',kind:'memory_appeal',memory_link_present:true,effect_details:{effects:[res]}}]}],['S1',{items:[{name:'clear',kind:'quick_skill',effect_details:{effects:[clear]}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'resurrection',skill_q:'メンタルが0 思い出Link'}),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'mental_recovery'}),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'audience_status_clear',effect_turns:'1'}),d),[]);
+ const text=effectFactText(clear);assert.ok(text.includes('興味変動無効を除く'));assert.ok(text.includes('アビリティは解除対象外'));
+});
+test('duet specific person, unit and current-turn addition are searchable without borrowing',()=>{
+ const duet={metric:'duet',targets:['アピール履歴'],scope:'base',unit:'boolean',value:1,duet_target:{kind:'unit',name:'放課後クライマックスガールズ'}};
+ const add={...duet,metric:'duet_add',duet_target:{kind:'formation'},timing:'current_turn'};
+ const d=new Map([['P1',{items:[{name:'call',kind:'panel_live',effect_details:{effects:[duet,{...duet,duet_target:{kind:'idol',name:'小宮果穂'}}]}}]}],['S1',{items:[{name:'add',kind:'quick_skill',effect_details:{effects:[add]}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'duet',skill_q:'放課後クライマックスガールズ'}),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'duet_add',skill_q:'このターン 編成アイドル'}),d),[cards[1]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'duet',skill_q:'放課後 小宮果穂'}),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'duet_add',effect_turns:'1'}),d),[]);
+});
+test('duration ranges use the lower bound and maximum-only duration gives no minimum guarantee',()=>{
+ const es=[
+ {metric:'enthusiasm',targets:['熱狂'],unit:'boolean',scope:'grow',value:1,turn_range:{minimum:2,maximum:4},grant_count_maximum:3},
+ {metric:'enthusiasm',targets:['熱狂'],unit:'boolean',scope:'grow',value:1,turns_maximum:3}
+ ];
+ const d=new Map([['P1',{items:[{name:'grow',kind:'panel_live',effect_details:{effects:es}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'enthusiasm',effect_turns:'2'}),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'enthusiasm',effect_turns:'3'}),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'enthusiasm',effect_turns:'1',skill_q:'最大3ターン'}),d),[]);
+ assert.ok(effectFactText(es[0]).includes('2～4ターン'));assert.ok(effectFactText(es[0]).includes('最大3つ付与'));
+ const min=effectFactText({metric:'interest_minimum',targets:['興味'],unit:'multiplier',scope:'grow',value:0.1,turns:2});
+ assert.ok(min.includes('最小値'));assert.ok(!min.includes('0.1～'));
+});

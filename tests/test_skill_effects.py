@@ -100,8 +100,8 @@ class SavedLiveFactGapTests(unittest.TestCase):
   self.assertEqual(self.parse('Vocal20%UP[3ターン]/Dance20%UP[3ターン]',random_effect_options=[{'target':'Dance'}]),[])
  def test_grow_maximum_interest_and_passive_strengthening_keep_upper_bounds(self):
   es=self.parse('(Grow)[注目度UPを付与]全観客に興味最大1.6倍[2ターン]/興味最小0.1倍[1ターン]/パッシブスキル最大50%強化[2ターン]')
-  self.assertEqual([e['metric'] for e in es],['interest','passive_boost'])
-  self.assertEqual([e['value'] for e in es],[1.6,50]);self.assertTrue(all(e['maximum'] for e in es))
+  self.assertEqual([e['metric'] for e in es],['interest','interest_minimum','passive_boost'])
+  self.assertEqual([e['value'] for e in es],[1.6,0.1,50]);self.assertTrue(all(e['maximum'] for e in (es[0],es[2])));self.assertNotIn('maximum',es[1])
   self.assertEqual(es[0]['audience'],'all')
   self.assertEqual(self.parse('興味最大1.6倍[2ターン]'),[])
 

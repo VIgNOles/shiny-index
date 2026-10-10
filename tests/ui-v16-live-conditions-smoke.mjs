@@ -41,7 +41,7 @@ try{
    const c=cases[index],params=new URLSearchParams({skill_q:c.q});if(c.type)params.set('effect_type',c.type);if(c.kind)params.set('skill_kind',c.kind);
    const expected=doc.cards.filter(c.check).length;assert.ok(expected>0);
    await page.goto(base+'?'+params,{waitUntil:'networkidle'});
-   assert.equal(await page.evaluate(()=>window.UI_VERSION),'ui-v16');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
+   assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v16');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
    assert.equal(await page.locator('#count').textContent(),expected+' / '+total+' 件',width+' case '+index+' '+c.q);
    await page.locator('.detail-toggle').first().click();const match=page.locator('.matched-effect').first();assert.ok(await match.isVisible(),width+' case '+index+' '+c.q);await match.scrollIntoViewIfNeeded();
    const text=await match.textContent();
