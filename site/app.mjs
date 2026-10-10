@@ -1,4 +1,4 @@
-import {detailSearch,loadDetails,generationParentText,kindNames,mechanicNames,factText} from './details.mjs';
+import {detailSearch,loadDetails,detailCoverageText,generationParentText,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -49,7 +49,7 @@ try{
  catch(error){detailError=error.message;}
  const detailMap=new Map((detailDoc?.cards??[]).map(card=>[card.card_id,card]));
  $('detail-coverage').textContent=detailDoc?
-  '詳細 '+detailDoc.coverage.detail_card_count+' / '+cards.length+'カード収録（順次取得中）。数値・条件は一部のみ収録。':
+  detailCoverageText(detailDoc.coverage,cards.length):
   '詳細情報を読み込めませんでした：'+detailError+'。基本情報の検索は利用できます。';
  $('skill-controls').disabled=!detailDoc;
  if(detailDoc){

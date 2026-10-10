@@ -757,3 +757,10 @@ frozen3980（保存1324/1363、新規1319/再利用5、pending39）から1379候
 UI v10は未収録と47件保留を分ける表示へ修正。1344データ維持のローカルpreviewで3幅基本/詳細PASS。公開はUI v9・1344のまま。共有生成元の検索と子自身のPlus/MB親Refrainの非混同回帰を追加、Python155/JS29 PASS（HTTP429のログは合成fault試験であり実Wiki障害ではない）。
 
 1293/1344native代替表示は各6詳細タブの先頭/末尾11画像を確認済み。全体importが20〜45分を超えたため、所有者確認済みread-only検証node27256/9508だけを終了した。原本/公開/完全exportは不変。代わりに標準ZIP/XMLで実exportから対象行だけを抽出し、保持セル値/書式ID/位置とstyles.xml不変・元file SHA不変を検証したexcerptをArtifact Toolへimport/renderした。Google実画面や完全workbookの再描画成功とは主張しない。全native値/書式/linksはAPI/完全exportの別検証で確認済み。private/audits/native1293/1344-bounded-preview-provenance*、whole-native-visual-import-cancellation-20261010.json参照。再開時は重い全体renderを二重起動せず、この境界を保持する。取得012は継続中、停止待機ではない。
+
+
+### 1,380件原本昇格・UI v10公開準備
+
+frozen3980の保存入力を最新コードで全再変換し、補完1380候補と全JSON一致を確認。原本r17・1380(P535/S845)/23369項目、1344から36カード/623項目追加。private/details/after1344-expanded-adoption-20261010、意味hash201f5dffc35cb8b6e1f7ccb745e633e92805c3de95b73d979a1f9acf2818018e。新native全コピーへ21バッチ全ACK・unknownなし。全15タブ実値/基礎9タブ不変、旧1344カード/22746registry全値/手修正1保持、16514書込セルと周囲25136セルの書式/validation/chips/formula、623追加出典リンク/1419収録範囲リンク・保留47空URLの実リンクなし、5フィルターPASS。native代替11範囲を描画し変更6画像を確認、保持セル/書式/位置とsourcefile SHA不変を証明。Google実画面はCUA不可。
+
+UI v10・詳細d1-fe052456be3b2b43。実原本候補と同じ1380データのUI v9切戻し候補がPC1280/390/320基本/詳細PASS。共有通常/MB生成先の2子項目・両生成元表示/検索・子Plusと親Refrainの非混同、未収録39件/保留47件の区別を確認、変更2画像を確認。旧58公開ファイルのうちindex/app/details/latestだけ更新、不変版保持・候補60ファイル。旧1344nativeのmtime03:47:48.879UTC不変を確認してlocal/master/connection/siteをbefore1380名で保存後、新原本へ昇格した。公開Actions/匿名確認はこれから実行、1380公開済みとはまだ扱わない。取得012は残件へ継続。
