@@ -1,6 +1,54 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 最新状態（2026-10-11：UI22の最大UP補完を公開検証・保存）
+
+元の目的/要件/明示変更を保持。全体完成ではない。47個別ページと実在新規基礎カード本番追加は指定保留。Pステージ/適正・Sファイト対象外、CSV画面非表示。UI番号は表示/操作変更時のみ更新。新しいユーザー確認待ちはない。
+
+### 正常版と変更
+
+公開 https://vignoles.github.io/shiny-index/ 、UI v22のまま。基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754a、詳細原本r20/1419(P548/S871)/24025、公開詳細d1-bf612e2cb40aacc5。
+実装3eedde97204aeafbcbdeea489f71b6f058b2507d、公開af45a48f00b0f8ccf3c189b131c9c0e7cb1ee1e7。Pages38144763422 success、コードCI38143751882/公開CI38144763509はWindows3.13.16/Linux3.12.14ともsuccess。保存タグdata-mental-spent-verified-20261011。直前UI22/fc0bのui-v22-random-verified-20261011と旧UI21以前も保持。
+
+16カード(P10/S6)・30スキル（パネル26/MB4）の「自身のメンタルをX%減らし、属性最大Y%UP」を隣接する増加条件/継続期間と一組で構造化。2括弧順序と既知属性に対応。最大値を確定値にせずmaximum/scaling=mental_spentを付ける。コストから実UP量を計算せず、「自身」はコストだけに適用。旧19911効果保持・30追加・計19941。既存mental_cost101/random61不変。取得原文/原本の欠落ではなく変換未対応の補完。表示資産/操作不変なのでUI22を維持。
+
+変更：src/skill_effects.py、tests/test_mental_spent_effects.py（新規）/detail-search.test.mjs/ui-mental-spent-smoke.mjs（新規）、docs/data-mental-spent-20261011.md（新規）/verification.md、README/TASK/HANDOFF/operationsとローカルdesign.md。siteはindex.html/details/latest.jsonと新不変バンドル2ファイルだけ変更。app/details/search/styleは不変。private監査/receipt/checkpoint/ZIP対応表も保存。
+
+### 原本・取得状態と保護
+
+private/master.xlsx SHA1340b6a3319861e74885f1ae74f3ebb140c249e9a98454622e1f81b47ea17611、canonical private/details/master-r20-visual-authoritative-20261011.json SHAb74c3e922cab5cbd541516d5071a22b6cea38ba85682b3fb32fcb24e4a240315。
+private/sheets-connection.json SHA4de02ecf1c7f2915595aa361509d8a1c514d7d7372526cb5b3aec245485c2a4c。全24025 ID/8手修正/非効果項目/coverageを保持。native r20/15タブ採用履歴ccdbと派生公開bf612eは効果構造だけ異なる正常な組。接続のnative履歴を派生版へ書き換えない。
+取得state complete/revision4098/active_attempt=null、SHA434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e。今回Wiki通信/原本・Google書込0。中断取得/原本更新・結果不明書込はない。最終保存状態/実行中処理はprivate/audits/mental-spent-checkpoint-20261011.jsonと実状態を照合する。
+
+### 検証
+
+Python316/JS65、両OSのコード/公開CI成功。保存16HTML/60位置/30フィールド全一致。実XLSX/canonical JSONから全cards/coverage/内容ID再変換一致。旧効果欠落0、パッシブ5890/5890、区間条件688構造化/未対応0、旧fallback57維持。ライブ全体はpartialのまま。
+ローカル/匿名公開1280/390/320で正例7・否定8、全16/P10/S6、通常/MB・括弧順序・期間・値・同一効果・強調・再読込・解除・横溢れPASS。公開基本/詳細3幅、ランダム8+10のローカル回帰もPASS。公開320pxの最大80%/3ターンと390pxのMB最大240%/4ターンを視認。公開98/98匿名HTTP200・全バイト/全Git blob一致。
+隔離4障害→98サイトファイル/原本/接続を全復元。ZIP100ファイル実展開・全SHA/check_pair一致。新bf612e不変バンドルを残すUI22/fc0b切戻し候補は全版/ランダム3幅合格。本番全面障害注入/本番切戻しは未実施。
+最大値棚卸し47フィールドは今回30＋既に構造化されたGrow17。47を未取得/未対応件数としない。初回テストのP16という期待値のみP10/S6へ訂正し成功。原本P/S混同・公開破損はない。
+
+### 保存・整理・復元
+
+証拠private/audits/mental-spent-*、private/recovery/mental-spent-20261011/report.json。直前の2ポインター/receiptはprivate/mental-spent-before-publication-20261011。正常ZIPと切戻しZIPの対応表private/mental-spent-recovery-archive.json。
+C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-mental-spent-recovery-20261011/：
+- mental-spent-r20-verified-snapshot.zip、100ファイル/74583657bytes、SHA320fb5dc1a0660f7661470fdc0cc9cbf2b33eee9fde75b8801515ec880e6c269
+- ui22-fc0b-with-mental-spent-immutable-bundles.zip、98ファイル/68764391bytes、SHA46a8755df3b86bdc2e27ac5d7bae8a76b8a83ce01c77ce1e752651e6da70b14f
+今回作成した4重複フォルダーだけをZIP/削除直前の全SHA照合後に整理。論理2192984898bytes、D空き7639527424→9833123840bytes。raw/原本/接続/canonical/site/監査/Git/旧ZIPを保持。
+復元は未作成private出力先へ：
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/mental-spent-20261011/restored private/restored-mental-spent-next --manifest private/mental-spent-recovery-archive.json
+切戻し候補は同manifestのprivate/site-mental-spent-rollback-20261011を別の未作成出力先へ復元。全新旧不変バンドルを残しcheck_site/check_pair/対応ブラウザ試験を通してから採用。operations.md末尾を参照。
+
+### 未完了と次の操作
+
+1. Git/タグ、上記4SHA、site/details/latest.json、receiptと取得stateを実照合。現行UI22/bf612e/r20を基準にする。fc0bは直前切戻し、ccdbはnative採用履歴。古い文書/ポインターでlatestを上書きしない。
+2. 保存原文の残る複合効果・発動制限を棚卸し、明示された範囲を変換。complex-effect-inventoryはキーワード件数で未対応総数ではない。mental-spent-maximum-inventory-reconcileで30＋既存Grow17を確認済み。回数/消去/無効も既存対応との突合を行い、partialというラベルだけで未収集扱いしない。旧効果/原セル/全版/画面/公開の検証を継続。データのみの変更ならUI22維持。
+3. ROOTS3候補単位は未確認表示を保持。ゲーム内等で確認できた場合だけ根拠付き補正。現在の独立工程を止めるユーザー確認待ちにはしない。
+4. Google実画面はCuaのkernel exit1/windows sandbox failed/helper_unknown_errorで接続前失敗。直前private/audits/ui22-google-screen-attempt-20261011.json、今回再試行なし。影響は画面外観確認のみ、API/全値/実exportは合格済み。環境復旧後に再試行。
+5. S90最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧は未完了。47個別ページ/実在新規基礎カード本番追加は指定保留。通常の続行区切りであり、待機指示やプロジェクト完成ではない。
+<!-- /current-state -->
+
+## 最大UP公開前とUI22初回の履歴（当時の記録）
+
 ## 続行中：UI22を維持した最大UP補完（公開はfc0bのまま）
 
 候補private/site-mental-spent-candidate-20261011、詳細d1-bf612e2cb40aacc5。16カード(P10/S6)/30スキル（パネル26/MB4）、旧19911効果を保持して計19941。原本r20/全ID/8手修正/非効果項目/coverage不変。保存16HTML/60位置/30フィールド、XLSX再変換全cards/coverage/内容ID一致。Python316/JS65合格。画面・全版・復旧・公開・保存を続行中。private/audits/mental-spent-checkpoint-20261011.jsonを実状態と照合。Wiki通信・原本/Google書込0。以下は直前正常版。
@@ -59,7 +107,7 @@ UI21切戻し候補は同manifestのprivate/site-ui22-ui21-rollback-20261011を�
 5. S90最大Lv360原文空欄、日付不明56、全ゲーム独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧は未完了。47個別ページ/実在新規基礎カード本番追加は指定保留。通常の続行区切りであり停止指示ではない。
 
 
-<!-- /current-state -->
+
 
 ## UI22公開前とUI21の履歴（当時の記録）
 

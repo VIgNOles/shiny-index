@@ -717,3 +717,29 @@ node tests/ui-v22-random-smoke.mjs private/site-ui22-replay-next
 98ファイル（site96/原本/接続）のZIPを実展開・全SHA/check_pair照合済み。復元先のsiteをcheck_site、master.xlsx/connection.jsonとのcheck_pair、UI22ブラウザ試験で確認してから採用する。本番へ自動採用しない。
 
 UI21/c848へ切り戻す場合は同manifestのprivate/site-ui22-ui21-rollback-20261011を別の未作成private出力先へ復元する。全96ファイルに新fc0b不変バンドルを保持した状態で全版検査/共有対象3幅を確認済み。タグdata-shared-target-verified-20261011と直前資産private/ui22-before-publication-20261011も保持する。本番全面障害注入・本番UI切戻しは未実施。今回作成した4重複フォルダーは全SHA再照合後に整理済みなので、パスがなくてもZIPから復元する。
+
+
+## 2026-10-11 UI22を維持した最大UP補完の再変換・復元
+
+仕様docs/data-mental-spent-20261011.md。16カード(P10/S6)/30スキルを保存r20から派生変換。原本・native履歴を書き換えず、UI22/詳細d1-bf612e2cb40aacc5だけ更新。取得済み入力から再変換でき、Wiki通信は不要。
+
+~~~powershell
+if (Test-Path -LiteralPath private/site-mental-spent-replay-next) { throw '既存の出力先は上書きしません' }
+Copy-Item -LiteralPath site -Destination private/site-mental-spent-replay-next -Recurse
+.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/site-mental-spent-replay-next
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx private/site-mental-spent-replay-next --master-snapshot private/details/mental-spent-replay-next.json
+.venv/Scripts/python.exe scripts/audit_effect_structure.py private/details/master-r20-visual-authoritative-20261011.json private/site-mental-spent-replay-next private/audits/mental-spent-replay-next.json --baseline-version d1-fc0b1a202bdea7c5
+$env:UI_BROWSER_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+$env:UI_EXPECTED_VERSION='ui-v22'
+node tests/ui-mental-spent-smoke.mjs private/site-mental-spent-replay-next
+~~~
+
+ブラウザパスは環境に合わせる。最大UP率と自己消費率を別factに保持し、同じ効果内の属性/期間/語句で検索する。未知単位や遠くの別節を借りず、通常/MB/Linkを混ぜない。原本/全ID/8手修正・旧19911効果を守り、全版・原セル・ブラウザ・CI合格後にpublish:で公開する。公開後は匿名全ファイル/画面を確認する。
+
+正常な原本/接続付きZIPの復元：
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/mental-spent-20261011/restored private/restored-mental-spent-next --manifest private/mental-spent-recovery-archive.json
+~~~
+100ファイル（site98/原本/接続）を実展開・全SHA/check_pair照合済み。復元先siteのcheck_siteと原本/接続のcheck_pair、UI22の新/既存ブラウザ試験を通してから採用する。
+
+直前UI22/fc0bへ切り戻す場合は同manifestのprivate/site-mental-spent-rollback-20261011を別の未作成private出力先へ復元する。新bf612e不変バンドルも保持した98ファイルで全版/ランダム3幅確認済み。index.html/details/latest.jsonを一組で扱い、原本/native採用履歴を変更しない。タグui-v22-random-verified-20261011、直前2ファイル/receiptはprivate/mental-spent-before-publication-20261011、さらに旧UI21以前も保持。正常bf612eへの復帰は新ZIPの2ファイルを使う。本番全面障害注入/切戻しは未実施。
