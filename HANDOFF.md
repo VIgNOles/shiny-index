@@ -1,6 +1,64 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 最新状態（2026-10-11：UI v22・ランダム候補検索を公開検証・保存）
+
+元の要件/明示変更を保持。全体完成ではない。47個別ページと実在新規基礎カード本番追加は指定保留。Pステージ/適正・Sファイト対象外、CSV画面非表示。UI番号は表示/操作変更時のみ更新。新しいユーザー確認待ちはない。
+
+### 正常版と今回の変更
+
+公開 https://vignoles.github.io/shiny-index/ 、UI v22、基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754a、詳細原本r20/1419(P548/S871)/24025、公開詳細d1-fc0b1a202bdea7c5。
+実装39b21b8956ab8f389178cab27f68217b6b1f7011、公開da0f80bd2061ec519229a72ef527ea7a2bf7bf8f。Pages38139333080 success、コードCI38139165745/公開CI38139333113はWindows3.13.16/Linux3.12.14ともsuccess。保存タグui-v22-random-verified-20261011。旧UI21/c848のdata-shared-target-verified-20261011以前も保持。
+
+29カード(P18/S11)・61スキル（panel_live44/mb_live17）にランダム付与factと候補poolを追加。既存19850効果を保持し計19911。60pool構造化、S【ROOTS】緋田美琴の1pool/3候補は原文「アピール倍率0.2UP」に単位がないため未確認として表示し候補検索から除く。以前の不明確な5条件の再発ではない。原本補足欄35表と既存候補3表は取得済みで、今回取得漏れを補ったのではなく派生変換/検索の対応を追加した。
+
+効果の種類「ランダム効果（候補から探す）」を選択すると、同じ候補内で属性/継続/キーワードを検索。候補を確定UPへ混ぜない。付与個数と候補の期間を分離し、通常/MBを原表位置・同じsectionで区別する。重複付与可能・確率不明・付与非保証を表示。数値先頭キーワードの境界を確認して40%UPと140%UPの誤一致を防ぐ。仕様docs/ui-v22-spec.md。
+
+### 変更ファイル
+
+src/random_effects.py（新規）、src/skill_effects.py、src/detail_public.py、web/app.mjs/details.mjs/index.html、tests/test_random_effects.py（新規）・test_skill_effects.py・detail-search.test.mjs・ui-v22-random-smoke.mjs（新規）・ui-shared-target-smoke.mjs。docs/ui-v22-spec.md（新規）/verification.md、README/TASK/HANDOFF/operations、ローカルdesign.mdを更新。site/index.html/app.mjs/details.mjs/details/latest.jsonと新不変バンドル2ファイルを公開。private監査・チェックポイント・receipt・ZIP対応表も保存。原本・接続・取得stateは変更していない。
+
+### 原本・取得状態
+
+private/master.xlsx SHA1340b6a3319861e74885f1ae74f3ebb140c249e9a98454622e1f81b47ea17611、canonical private/details/master-r20-visual-authoritative-20261011.json SHAb74c3e922cab5cbd541516d5071a22b6cea38ba85682b3fb32fcb24e4a240315。全24025 ID/8手修正/非効果項目/coverage不変。原本/Google書込0、Wiki通信0。
+native r20/15タブの採用履歴ccdbと派生公開fc0bは効果構造だけが異なる正常な組。接続のnative履歴を派生公開版へ上書きしない。
+acquisition state complete/revision4098/active_attempt=null、SHA434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e。中断取得/原本更新や実行中処理は残っていない。
+
+### 検証結果
+
+Python308/JS64成功、両OSのコード/公開CI成功。保存29 HTML/38候補表/204セル位置/131フィールドとR01 random節を照合。見出し*1を既存取得器が除去していた4位置は脚注差分として記録し、原文・原本は保持。原本XLSX/canonical JSONと全cards/coverage/内容IDが再変換一致。既存19850効果の欠落0。パッシブ5890/5890、区間条件688構造化/未対応0、旧fallback57を維持。ライブ全体のpartialを保持。
+
+ローカル/匿名公開1280/390/320でランダム正例8・否定10、通常/MB・同じ候補・未知単位・個人倍率・名称効果・選択/再読込/チップ解除/強調/横溢れが成功。基本/詳細も双方3幅成功、ローカルは順序6+7・共有対象4+8の回帰も成功。公開320px ROOTS未確認表示と390px MB候補表示を視認。
+公開96/96匿名HTTP200・ローカル全バイト一致、全96 Git blob一致。新fc0bバンドルを残すUI21/c848切戻し候補は全版検査/共有対象3幅に合格。隔離4障害→96サイトファイル/原本/接続を全復旧、ZIP98ファイルを実展開し全SHA/check_pairを再照合。本番全面障害注入/本番切戻しは未実施。
+
+初回ブラウザ試験で数値部分一致40→140が判明し、新候補検索の数値境界を補正して再検証成功。原表検証補助のR01アンカーはname属性で参照するよう修正。取得原文/原本/本番データの破損はない。
+
+### 保存・整理・復元
+
+証拠private/audits/ui22-random-checkpoint/structure/source-proof/xlsx-replay/local/public-*、ui22-public-files/public-git-bytes、ui22-code-ci-jobs/release-ci-jobs/pages-jobs、ui22-archive-restore-proof/cleanup-proof。隔離復旧private/recovery/ui22-random-20261011/report.json。直前版の資産/receiptはprivate/ui22-before-publication-20261011。
+C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-ui22-recovery-20261011/：
+- ui22-r20-verified-snapshot.zip、98ファイル/71899955bytes、SHAcf38cef3ed5d8c0e71d1abff6c8be254485c14c4a073b16b5e46334353e718cc
+- ui21-coherent-with-ui22-immutable-bundles.zip、96ファイル/66079567bytes、SHAa3f8335a0dc7a7cd8651dc58676ad22b1738b26a0e3165a89dfa0ecb2654aa18
+対応表private/ui22-recovery-archive.json。旧ZIPは保持。
+今回作成した重複4フォルダーだけをZIPと削除直前も全SHA照合し整理。論理2119138190bytes、D空き7739265024→9859018752bytes。raw/site/原本/接続/canonical/監査/Git/旧バックアップは保持。
+
+復元は未作成のprivate出力先へ：
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui22-random-20261011/restored private/restored-ui22-next --manifest private/ui22-recovery-archive.json
+UI21切戻し候補は同manifestのprivate/site-ui22-ui21-rollback-20261011を別の未作成出力先へ復元。新旧不変バンドルと原本を保持し、check_site/check_pair/対応ブラウザ試験を通してから採用する。operations.md末尾を参照。
+
+### 未完了と次の具体的な操作
+
+1. Git、原本SHA、site/details/latest.json、接続、取得stateを実照合。現行UI22/fc0b/r20を基準にする。c848は切戻し、ccdbはnative採用履歴であり古い記録でlatestを上書きしない。
+2. 保存原文の残る複合効果（最大値/回数/消去など）を棚卸し・構造化。private/audits/complex-effect-inventory-20261011.jsonは単語を含むフィールドの件数であり、未取得/未対応件数ではない。ランダム61付与の対応は完了。保存入力で変換し旧効果保持・原セル一致・全版/画面/公開検証を行う。データのみの更新ならUI22を維持。
+3. ROOTS3候補の単位をゲーム内等で確認できた場合だけ、原文を残して根拠付き補正する。現時点では新しい確認依頼を必須にせず、未確認表示を維持して独立工程を進められる。
+4. Google実画面は今回もCuaが接続前にkernel exit1/windows sandbox failed: helper_unknown_error: setup refresh had errorsで失敗（2試行）。private/audits/ui22-google-screen-attempt-20261011.json。影響は実画面確認だけ。原本/API/実export検証は合格済み。環境復旧後に再試行。
+5. S90最大Lv360原文空欄、日付不明56、全ゲーム独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧は未完了。47個別ページ/実在新規基礎カード本番追加は指定保留。通常の続行区切りであり停止指示ではない。
+
+
+<!-- /current-state -->
+
+## UI22公開前とUI21の履歴（当時の記録）
+
 ## 続行中：UI22ランダム候補（公開はUI21/c848のまま）
 
 候補private/site-ui22-random-candidate-20261011、派生詳細d1-fc0b1a202bdea7c5。29カード/61付与fact追加、旧19850効果保持、計19911。原本r20/全ID/8手修正/非効果項目/coverage不変。Python308/JS63、29HTML/38表/204位置/131フィールド（4見出し脚注差分を記録）、XLSX再変換一致。Wiki通信/原本・Google書込0。ROOTS3候補は単位欠落のため未確認で保持。画面検証・公開・復旧・保存を続行中。private/audits/ui22-random-checkpoint-20261011.jsonを実状態と照合。以下は直前正常版。
@@ -40,7 +98,7 @@ C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a33
 3. Google実画面はCua起動前のwindows sandbox failed: helper_unknown_error: setup refresh had errors（kernel exit1）で未接続。private/audits/ui21-google-screen-attempt-20261011.json。影響は実画面確認のみ、原本/API/実export照合は合格済み。操作環境復旧後に再試行。
 4. 全複合効果、S90最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧が残る。47個別ページ/実在新規基礎カード本番追加は保留。
 5. 通常の続行区切りで、追加停止指示ではない。最新チェックポイントと実ファイルを照合して続行できる。
-<!-- /current-state -->
+
 
 ## UI21共有対象補正前の履歴（当時の記録）
 

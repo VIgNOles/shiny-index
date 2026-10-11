@@ -690,3 +690,30 @@ UI21の原本/接続付き正常コピーは同manifestのprivate/recovery/ui21-
 このZIPは96ファイル（site94/原本/接続）。実展開・全SHA/check_pair一致を確認済み。復元後はcheck_siteと対応ブラウザ試験を通す。本番へ自動採用しない。
 a95cへ戻す場合は新しい復旧候補のsiteへprivate/shared-target-before-publication-20261011（またはprivate/shared-target-rollback-pointers-20261011）のindex.html/details/latest.jsonだけをコピーする。UI21と原本r20を維持し、新c848を含む全不変バンドルを残す。全版検査と順序回帰3幅を通してから公開する。正常c848への復帰は新ZIPの2ファイルを使う。
 本番全面障害注入と本番UI切戻しは未実施。既存UI21/UI20以前のZIP・タグを削除しない。
+
+## 2026-10-11 UI22：ランダム候補の再変換・復旧
+
+仕様はdocs/ui-v22-spec.md。原本r20から補足表35＋既存候補3を読み、61付与factを派生生成する。原本・native採用履歴を書き換えず、候補の原文単位が欠ける3件は未確認のまま表示する。Wikiへの再取得は不要。UI22/詳細d1-fc0b1a202bdea7c5、基礎版は不変。
+
+保存XLSXから再変換する場合、新しいprivate候補へsiteをコピーし、既存のprepare→export経路を使う。prepareが現在のweb資産と基礎版を生成し、exportが詳細版のHTMLマーカーを揃える。
+
+~~~powershell
+if (Test-Path -LiteralPath private/site-ui22-replay-next) { throw '既存の出力先は上書きしません' }
+Copy-Item -LiteralPath site -Destination private/site-ui22-replay-next -Recurse
+.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/site-ui22-replay-next
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx private/site-ui22-replay-next --master-snapshot private/details/ui22-replay-next.json
+.venv/Scripts/python.exe scripts/audit_effect_structure.py private/details/master-r20-visual-authoritative-20261011.json site private/audits/ui22-replay-audit.json --baseline-version d1-c848c4e505d2a840
+$env:UI_BROWSER_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+$env:UI_EXPECTED_VERSION='ui-v22'
+node tests/ui-v22-random-smoke.mjs private/site-ui22-replay-next
+~~~
+
+ブラウザのパスは環境に合わせる。通常/MBの候補対応は原表位置・同一sectionを必須とし、曖昧な対応は変換を拒否する。旧効果の欠落0・原本/非効果値の一致・全版検査に合格した候補だけを公開する。公開はコードCI合格後にpublish:コミットで行い、Pages成功→匿名全ファイル照合→公開画面確認を済ませる。
+
+正常版の復元：
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui22-random-20261011/restored private/restored-ui22-next --manifest private/ui22-recovery-archive.json
+~~~
+98ファイル（site96/原本/接続）のZIPを実展開・全SHA/check_pair照合済み。復元先のsiteをcheck_site、master.xlsx/connection.jsonとのcheck_pair、UI22ブラウザ試験で確認してから採用する。本番へ自動採用しない。
+
+UI21/c848へ切り戻す場合は同manifestのprivate/site-ui22-ui21-rollback-20261011を別の未作成private出力先へ復元する。全96ファイルに新fc0b不変バンドルを保持した状態で全版検査/共有対象3幅を確認済み。タグdata-shared-target-verified-20261011と直前資産private/ui22-before-publication-20261011も保持する。本番全面障害注入・本番UI切戻しは未実施。今回作成した4重複フォルダーは全SHA再照合後に整理済みなので、パスがなくてもZIPから復元する。
