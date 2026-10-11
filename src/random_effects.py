@@ -28,12 +28,14 @@ def candidate(text, known_idols=()):
     m = re.fullmatch(r'交換数UP\[(\d+)回\]', n)
     if m:
         return dict(kind='exchange_count_up', targets=['交換数'], value=int(m[1]), unit='points')
-    m = re.fullmatch(r'(.+?)のアピール(?:倍率|値)(\d+(?:\.\d+)?)倍UP\[(\d+)ターン\]', n)
-    if m:
+    m = re.fullmatch(r'(.+?)のアピール(倍率|値)(\d+(?:\.\d+)?)(倍?)UP\[(\d+)ターン\]', n)
+    # User-confirmed: 倍率0.2UP and 倍率0.2倍UP have the same unit.
+    # アピール値 still requires an explicit 倍; percent is a different effect.
+    if m and (m[2] == '倍率' or m[4] == '倍'):
         ids = [name for name in known_idols if normalized(name) == m[1]]
         if len(ids) == 1:
             return dict(kind='idol_appeal_bonus', targets=['アピール値'], idols=ids,
-                        value=float(m[2]), unit='multiplier', turns=int(m[3]))
+                        value=float(m[3]), unit='multiplier', turns=int(m[5]))
     m = re.fullmatch(r'フレキシブル\[(\d+)ターン\]', n)
     if m:
         return dict(kind='flexible', targets=['フレキシブル'], value=1, unit='boolean', turns=int(m[1]))

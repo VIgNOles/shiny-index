@@ -1,0 +1,138 @@
+{
+  "date": "2026-10-12",
+  "authority": "User confirmation in TASK.md; not independent game-screen verification",
+  "source_gap_review": [
+    {
+      "detail_id": "cc1f4da7-6cdd-492e-a99d-a2fdc844f13c",
+      "card_id": "2222df85-6e9f-470b-8383-443ba0bb46fe",
+      "card_title": "【カトレアの花言葉】",
+      "decision": "corrected",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "6ea2928b-be4d-4974-b371-3c2d2a1fc0d4",
+      "card_id": "2222df85-6e9f-470b-8383-443ba0bb46fe",
+      "card_title": "【カトレアの花言葉】",
+      "decision": "corrected",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "783505d3-52df-48ca-bbd4-3c62da748731",
+      "card_id": "2222df85-6e9f-470b-8383-443ba0bb46fe",
+      "card_title": "【カトレアの花言葉】",
+      "decision": "corrected",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "e864bfb5-ccc5-4801-ad79-ffd9f3621d09",
+      "card_id": "4973a6f5-5cf0-4ca3-80c7-de97a53f427a",
+      "card_title": "【ワーキングスナップ～デート】",
+      "decision": "corrected",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "ba297d5b-a867-4a87-a72e-93b5852d8902",
+      "card_id": "4f58fe01-083b-4d62-825b-f5857cb202fe",
+      "card_title": "【ワーキングスナップ～デート】",
+      "decision": "corrected",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "5bc910db-09c1-4efe-ace1-a8ef5bd28d31",
+      "card_id": "8557006d-e62d-4d5e-9bf1-0151baf101b5",
+      "card_title": "【よそゆき顔のセレナーデ】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "87b1410a-0f9f-4a6c-9617-bbc2dccc2d73",
+      "card_id": "8557006d-e62d-4d5e-9bf1-0151baf101b5",
+      "card_title": "【よそゆき顔のセレナーデ】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "a0958378-0984-488e-bf01-c926bd36763a",
+      "card_id": "8557006d-e62d-4d5e-9bf1-0151baf101b5",
+      "card_title": "【よそゆき顔のセレナーデ】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "754720dd-11e6-4e83-9fcd-c78b37742786",
+      "card_id": "8557006d-e62d-4d5e-9bf1-0151baf101b5",
+      "card_title": "【よそゆき顔のセレナーデ】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "782a89a9-ab9a-4a2d-b303-65655d98e437",
+      "card_id": "8557006d-e62d-4d5e-9bf1-0151baf101b5",
+      "card_title": "【よそゆき顔のセレナーデ】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "e50f52e1-2f85-4bd9-abf4-c63015152c16",
+      "card_id": "b92f50c0-72dd-49a9-aac1-a9979812e3f9",
+      "card_title": "【は～と♡に火をつけて】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "88d22b34-d78c-4f1f-91b0-5afede932a72",
+      "card_id": "b92f50c0-72dd-49a9-aac1-a9979812e3f9",
+      "card_title": "【は～と♡に火をつけて】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "26814bfc-7970-47d9-99ab-830276a2ba49",
+      "card_id": "b92f50c0-72dd-49a9-aac1-a9979812e3f9",
+      "card_title": "【は～と♡に火をつけて】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "55e28b63-909a-41bc-ae9c-1bc7d7a121ea",
+      "card_id": "f678464d-3907-4434-821c-103370e6c7e3",
+      "card_title": "【泣けよ洗濯機】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    },
+    {
+      "detail_id": "b4cc3c97-7415-4b34-a57a-515f0b5b8756",
+      "card_id": "f678464d-3907-4434-821c-103370e6c7e3",
+      "card_title": "【泣けよ洗濯機】",
+      "decision": "duration_intentionally_unspecified",
+      "evidence": "2026-10-12 user response",
+      "duration_inferred": false
+    }
+  ],
+  "corrected_items": 5,
+  "duration_intentionally_unspecified": 10,
+  "actionable_review_items": 0,
+  "roots": {
+    "card_id": "38fbe122-b666-4dbe-b25a-2a47698f902e",
+    "detail_id": "8b719dc8-980f-445c-a745-df307547ceb0",
+    "decision": "appeal multiplier without 倍 is equivalent to explicit 倍",
+    "structured_candidates": 3,
+    "selection_probability": "unknown",
+    "same_option_can_repeat": true
+  },
+  "semantic_coverage_proven": false
+}

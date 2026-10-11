@@ -16,6 +16,7 @@ const server=process.env.UI_BASE_URL?null:createServer(async(req,res)=>{
 });
 if(server)await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base=process.env.UI_BASE_URL??'http://127.0.0.1:'+server.address().port+'/';
+const rootsConfirmed=process.env.ROOTS_CONFIRMED==='1';
 const cases=[
  {q:'song for you',skill_kind:'panel_live',skill_q:'60%UP',effect_target:'Vocal',effect_turns:'4',expectedItems:2},
  {q:'song for you',skill_kind:'mb_live',skill_q:'140%UP',effect_target:'Vocal',effect_turns:'4',expectedItems:2},
@@ -32,8 +33,8 @@ const negative=[
  {q:'ウォーターパーク☆リポート',effect_target:'Vocal',skill_q:'10%強化'},
  {q:'ウォーターパーク☆リポート',effect_target:'パッシブスキル',effect_turns:'4'},
  {q:'ウォーターパーク☆リポート',effect_target:'交換数',effect_turns:'1'},
- {q:'ROOTS',effect_target:'アピール値'},
- {q:'ROOTS',skill_q:'0.2倍'},
+ rootsConfirmed?{q:'ROOTS',effect_target:'アピール値',effect_turns:'5'}:{q:'ROOTS',effect_target:'アピール値'},
+ rootsConfirmed?{q:'ROOTS',skill_q:'0.3倍'}:{q:'ROOTS',skill_q:'0.2倍'},
  {q:'白・架・祝・幻',effect_target:'フレキシブル',skill_q:'30%回復'},
  {q:'白・架・祝・幻',effect_target:'フレキシブル',effect_turns:'2'},
  {q:'ウォーターパーク☆リポート',effect_target:'Vocal',effect_recipient:'self'},
@@ -53,7 +54,8 @@ try{
    if(expectedItems)assert.equal(await matches.count(),expectedItems);
    const text=await matches.first().textContent();
    assert.ok(text.includes('個付与'));assert.ok(text.includes('付与は保証されません'));assert.ok(text.includes('選択確率不明'));
-   if(ix===7){assert.ok(text.includes('不明な候補 3件'));assert.ok(!text.includes('0.2倍'));}
+   if(ix===7&&!rootsConfirmed){assert.ok(text.includes('不明な候補 3件'));assert.ok(!text.includes('0.2倍'));}
+   else if(ix===7){assert.ok(text.includes('候補：'));assert.ok(text.includes('0.2倍'));assert.ok(!text.includes('不明な候補'));}
    else assert.ok(text.includes('候補：'));
    assert.ok(!text.includes('undefined'));await matches.first().scrollIntoViewIfNeeded();
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

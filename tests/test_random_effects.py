@@ -17,14 +17,26 @@ class RandomEffectsTests(unittest.TestCase):
         self.assertNotIn('turns',p['options'][2]);self.assertEqual(p['selection_probability'],'unknown')
         for s in ['Vocal40%UP[4ターン]謎条件','最大Vocal40%UP[4ターン]','Vocal40%UP[4～5ターン]']:
             self.assertIsNone(candidate(s,IDS))
-    def test_person_bonus_requires_explicit_multiplier_and_known_name(self):
+    def test_person_bonus_accepts_confirmed_ratio_alias_and_requires_known_name(self):
         o=candidate('小宮 果穂のアピール倍率0.1倍UP[5ターン]',IDS)
         self.assertEqual((o['value'],o['unit'],o['idols']),(0.1,'multiplier',['小宮果穂']))
-        self.assertIsNone(candidate('七草 にちかのアピール倍率0.2UP[4ターン]',IDS))
+        self.assertEqual(candidate('七草 にちかのアピール倍率0.2UP[4ターン]',IDS),candidate('七草 にちかのアピール倍率0.2倍UP[4ターン]',IDS))
+        self.assertIsNone(candidate('七草にちかのアピール値0.2UP[4ターン]',IDS))
+        self.assertIsNone(candidate('七草にちかのアピール倍率0.2%UP[4ターン]',IDS))
+        self.assertIsNone(candidate('七草にちかのアピール倍率0.2UP',IDS))
         self.assertIsNone(candidate('架空人物のアピール倍率0.1倍UP[5ターン]',IDS))
     def test_unknown_candidate_count_preserves_partial_without_prose(self):
-        p=note_pool(note(3,'・七草にちかのアピール倍率0.2UP[4ターン]'),IDS)
+        p=note_pool(note(3,'・七草にちかのアピール値0.2UP[4ターン]'),IDS)
         self.assertEqual((p['status'],p['unstructured_count'],p['options']),('partial',1,[]))
+    def test_roots_three_confirmed_alternatives_preserve_duration_and_unknown_odds(self):
+        ids={'七草にちか','緋田美琴','斑鳩ルカ'}
+        text='・七草 にちかのアピール倍率0.2UP[4ターン] ・緋田 美琴のアピール倍率0.2UP[4ターン] ・斑鳩 ルカのアピール倍率0.2UP[4ターン] 同一の効果が付与される場合もあり'
+        p=note_pool(note(3,text),ids)
+        self.assertEqual((p['status'],p['unstructured_count']),('structured',0))
+        self.assertEqual({o['idols'][0] for o in p['options']},ids)
+        self.assertTrue(all(o['value']==0.2 and o['unit']=='multiplier' and o['turns']==4 for o in p['options']))
+        self.assertEqual(p['selection_probability'],'unknown');self.assertTrue(p['same_option_can_repeat'])
+
     def test_optional_intro_and_exact_explanatory_trailer(self):
         p=note_pool(note(3,'・Dance40%UP[4ターン] ・フレキシブル[1ターン] 白・架・祝・幻+の場合、同一の効果が付与される場合もあり'),IDS)
         self.assertEqual(p['unstructured_count'],0);self.assertEqual(len(p['options']),2)

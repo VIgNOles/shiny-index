@@ -273,6 +273,16 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect',random_pool=No
     if m.groupdict().get('recipient'):e['recipient']=RECIPIENTS[m['recipient']]
     if condition:e['activation_condition']=condition
     in_piece.append((m.start(),e))
+  # Whole untimed attribute clauses retain their known amount, with duration absent.
+  # Never borrow a preceding effect's turns or accept an unparsed trailing condition.
+  for m in re.finditer(r'(?:^|/)(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*)(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN)(?=/|$)',part):
+   prefix=part[:m.start('targets')]
+   if prefix.count('[')!=prefix.count(']'):continue
+   aliases={'Vo':'Vocal','Da':'Dance','Vi':'Visual','ボーカル':'Vocal','ダンス':'Dance','ビジュアル':'Visual'}
+   targets=[aliases.get(t,t) for t in m['targets'].split('&')]
+   e=effect('rate_'+m['direction'].lower(),targets,'percent',scope=current,value=float(m['value']),restriction_status='partial')
+   if condition:e['activation_condition']=condition
+   in_piece.append((m.start('targets'),e))
   if current=='memory_link' and (m:=re.fullmatch(r'(注目度)(\d+(?:\.\d+)?)%(UP|DOWN)',part)):
    in_piece.append((0,effect('rate_'+m[3].lower(),[m[1]],'percent',scope=current,value=float(m[2]),restriction_status='partial')))
   for m in IDOL_BONUS.finditer(part):
