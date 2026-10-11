@@ -414,3 +414,18 @@ test('random numeric words do not match a suffix of a larger amount',()=>{
  const m=q=>effectSearchMatches(i,e,new URLSearchParams({effect_type:'random_grant',skill_q:q}));
  assert.ok(m('140%UP'));assert.ok(!m('40%UP'));assert.ok(!m('1'));assert.ok(m('3個付与'));
 });
+
+test('mental-spent maximum buff searches its own target duration and scaling',()=>{
+ const cost={metric:'mental_cost',targets:['メンタル'],unit:'percent',scope:'base',value:30,recipient:'self'};
+ const buff={metric:'rate_up',targets:['Dance'],unit:'percent',scope:'base',value:80,maximum:true,turns:3,restrictions:{scaling:'mental_spent'},restriction_status:'partial'};
+ const item={name:'試験',kind:'panel_live',effect_details:{status:'partial',effects:[cost,buff]}};
+ const p=extra=>new URLSearchParams({effect_type:'rate_up',effect_target:'Dance',effect_turns:'3',skill_q:'最大80% 減少値が多いほど効果UP',...extra});
+ assert.ok(effectSearchMatches(item,buff,p({})));
+ assert.ok(!effectSearchMatches(item,cost,p({})));
+ assert.ok(!effectSearchMatches(item,buff,p({effect_target:'メンタル'})));
+ assert.ok(!effectSearchMatches(item,buff,p({effect_turns:'4'})));
+ assert.ok(!effectSearchMatches(item,buff,p({effect_recipient:'self'})));
+ assert.ok(!effectSearchMatches(item,buff,p({skill_q:'30%'})));
+ const text=effectFactText(buff);assert.ok(text.includes('最大80%'));assert.ok(text.includes('[3ターン]'));assert.ok(text.includes('減少値が多いほど効果UP'));
+ assert.ok(!text.includes('30%'));assert.ok(!text.includes('自身'));
+});

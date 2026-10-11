@@ -160,6 +160,10 @@ LIVE_EXTRA=[
  (re.compile(r'リフレイン\[(?P<value>\d+)ターン前\]'),'refrain','過去のアピール','points'),
 ]
 
+# The maximum buff is explicitly tied to the immediately preceding self cost.
+# Accept both observed bracket orders; do not generalise arbitrary maximum buffs.
+MENTAL_SPENT_RATE=re.compile(r'自身のメンタルを(?P<cost>\d+(?:\.\d+)?)%減らし、(?P<targets>'+ATTR+r')最大(?P<value>\d+(?:\.\d+)?)%UP(?:\[減少値が多いほど効果UP\]\[(?P<turns>\d+)ターン\]|\[(?P<turns_first>\d+)ターン\]\[減少値が多いほど効果UP\])')
+
 def effect_condition(part,ctx,scope=None):
  """Only leading mechanic brackets apply to the following mechanic block."""
  matches=re.match(r'((?:\[[^\[\]]*\])+)',part)
@@ -206,9 +210,21 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect',random_pool=No
   # A recognised action prefix opens only its own immediately following effect.
   orders=[m for m in LONG_ORDER.finditer(part) if (not m.start() or part[m.start()-1] in '/]') and part[:m.start()].count('[')==part[:m.start()].count(']')]
   order_ends={m.end() for m in orders}
+  spent_spans=[]
+  for m in MENTAL_SPENT_RATE.finditer(part):
+   if m.start() not in order_ends and m.start() and part[m.start()-1] not in '/]':continue
+   if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
+   if not 0<float(m['cost'])<=100:continue
+   target={'Vo':'Vocal','Da':'Dance','Vi':'Visual','ボーカル':'Vocal','ダンス':'Dance','ビジュアル':'Visual'}.get(m['targets'],m['targets'])
+   e=effect('rate_up',[target],'percent',scope=current,value=float(m['value']),maximum=True,
+            turns=int(m['turns'] or m['turns_first']),restrictions={'scaling':'mental_spent'},restriction_status='partial')
+   e['restrictions'].update(adjacent_restrictions(part,m.end()))
+   if condition:e['activation_condition']=condition
+   in_piece.append((m.start('targets'),e));spent_spans.append((m.start('targets'),m.end()))
   for pattern,metric in [(RATE,None),(INTEREST,'interest'),(APPEAL,'appeal')]:
    for m in pattern.finditer(part):
     if any(a<=m.start()<b for a,b in reaction_spans):continue
+    if any(a<=m.start()<b for a,b in spent_spans):continue
     # Reject a suffix match inside a longer status or '最大' conditional number.
     if m.start() not in order_ends and m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]) and part[m.start()-1] not in ']':continue
     if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
