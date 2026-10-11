@@ -45,7 +45,7 @@ try{
   for(let ix=0;ix<cases.length;ix++){
    const {expectedItems,...params}=cases[ix];
    await page.goto(base+'?'+new URLSearchParams({effect_type:'random_grant',...params}),{waitUntil:'networkidle'});
-   assert.equal(await page.evaluate(()=>window.UI_VERSION),'ui-v22');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
+   assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v22');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
    assert.equal(await page.locator('#count').textContent(),'1 / 1466 件',JSON.stringify(params));
    assert.equal(await page.locator('#effect-type').inputValue(),'random_grant');
    await page.locator('.detail-toggle').first().click();

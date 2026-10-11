@@ -17,13 +17,15 @@ SCOPES={'base','link','plus','change','grow','refrain','memory_link','memory_cha
 TARGETS.update({'パッシブスキル発動率','パッシブスキル','リラックス','過去のアピール'})
 METRICS.update({'mental_recovery','mental_cost','memory_gauge_gain','relax','passive_boost','refrain'})
 METRICS.update(SPECIAL_METRICS)
-METRICS.update({'action_order','random_grant'})
+METRICS.update({'action_order','random_grant','idol_appeal_bonus'})
 TARGETS.add('ランダム効果')
 TARGETS.add('行動順')
+TARGETS.add('アピール倍率')
 TARGETS.update(SPECIAL_TARGETS)
 TRIGGERS.add('mental_zero')
 TRIGGERS.update(REACTION_TRIGGERS)
 SCALING={
+ 'メンタルが多い程効果UP':'mental','注目度が高い程効果UP':'attention',
  'メンタルが多いほど効果UP':'mental','メンタルが少ないほど効果UP':'mental_descending',
  'メンタルが低いほど効果UP':'mental_descending','Meが少ない程効果UP':'mental_descending',
  '注目度が高いほど効果UP':'attention','注目度が低いほど効果UP':'attention_descending',
@@ -164,6 +166,18 @@ LIVE_EXTRA=[
 # Accept both observed bracket orders; do not generalise arbitrary maximum buffs.
 MENTAL_SPENT_RATE=re.compile(r'自身のメンタルを(?P<cost>\d+(?:\.\d+)?)%減らし、(?P<targets>'+ATTR+r')最大(?P<value>\d+(?:\.\d+)?)%UP(?:\[減少値が多いほど効果UP\]\[(?P<turns>\d+)ターン\]|\[(?P<turns_first>\d+)ターン\]\[減少値が多いほど効果UP\])')
 
+IDOL_BONUS=re.compile(r'(?P<idols>[^/\[\]、()]+?)の(?:アピール|ライブスキル)倍率(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)倍UP\[(?P<turns>\d+)ターン\]')
+
+def adjacent_enhancement(part,end):
+ # Only adjacent known brackets modify this one appeal. No buff is granted.
+ found=[]
+ while (m:=re.match(r'\[([^\[\]]*)\]',part[end:])):
+  b=m[1]
+  if b in {'Vocal強化','Dance強化','Visual強化','魅了強化'}:
+   target=b.removesuffix('強化');found.append({'target':target,'factor':1.5 if target=='魅了' else 2,'this_appeal_only':True})
+  end+=m.end()
+ return found[0] if len(found)==1 else None
+
 def effect_condition(part,ctx,scope=None):
  """Only leading mechanic brackets apply to the following mechanic block."""
  matches=re.match(r'((?:\[[^\[\]]*\])+)',part)
@@ -237,6 +251,7 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect',random_pool=No
      if m['audience']:e['audience']='all'
      if m['order']:e.update(appeal_order='first' if m['order']=='必ず最初に' else 'last',order_excludes=['collaboration_fes'])
      if consumption:=adjacent_consumption(part,m.end()):e['status_consumption']=consumption
+     if enhancement:=adjacent_enhancement(part,m.end()):e['appeal_enhancement']=enhancement
     else:
      if m['turns']:e['turns']=int(m['turns'])
      if m.groupdict().get('maximum'):e['maximum']=True
@@ -249,6 +264,20 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect',random_pool=No
     in_piece.append((m.start(),e))
   if current=='memory_link' and (m:=re.fullmatch(r'(注目度)(\d+(?:\.\d+)?)%(UP|DOWN)',part)):
    in_piece.append((0,effect('rate_'+m[3].lower(),[m[1]],'percent',scope=current,value=float(m[2]),restriction_status='partial')))
+  for m in IDOL_BONUS.finditer(part):
+   if not ctx or (m['maximum'] and current!='grow'):continue
+   if m.start() and part[m.start()-1] not in '/]':continue
+   if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
+   tokens=m['idols'].split('&')
+   names=[[name for name in ctx['idols'] if normalized(name)==token] for token in tokens]
+   if not all(len(matches)==1 for matches in names):continue
+   idols=[matches[0] for matches in names]
+   if len(idols)!=len(set(idols)):continue
+   e=effect('idol_appeal_bonus',['アピール倍率'],'multiplier',scope=current,value=float(m['value']),turns=int(m['turns']),restrictions={'idols':idols},restriction_status='partial')
+   if m['maximum']:e['maximum']=True
+   e['bonus_excludes']=['memory_base','memory_extra','memory_charge']
+   if condition:e['activation_condition']=condition
+   in_piece.append((m.start(),e))
   for pattern,metric,target,unit in LIVE_EXTRA:
    for m in pattern.finditer(part):
     if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
@@ -317,9 +346,15 @@ def validate_effect_details(doc,known_idols,condition_context=None):
    if key in seen:raise ValueError('Duplicate mechanic segment')
    seen.add(key);validate_rule(r['condition'],condition_context,r['scope'])
  for e in doc['effects']:
-  if set(e)-{'random_pool','metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses','status_consumption','starts_next_turn','order_excludes'}:raise ValueError('Non-public effect field')
+  if set(e)-{'bonus_excludes','appeal_enhancement','random_pool','metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses','status_consumption','starts_next_turn','order_excludes'}:raise ValueError('Non-public effect field')
   if e.get('metric') not in METRICS or not isinstance(e.get('targets'),list) or not e['targets'] or len(e['targets'])!=len(set(e['targets'])) or set(e['targets'])-TARGETS or e.get('unit') not in {'points','percent','multiplier','boolean'} or e.get('scope') not in SCOPES:raise ValueError('Invalid effect fact')
   validate_amount({k:e[k] for k in ('value','formula','amount_unknown') if k in e})
+  if 'appeal_enhancement' in e:
+   a=e['appeal_enhancement']
+   if e['metric']!='appeal' or e['unit']!='multiplier' or not isinstance(a,dict) or set(a)!={'target','factor','this_appeal_only'} or a.get('target') not in {'Vocal','Dance','Visual','魅了'} or a.get('factor')!=(1.5 if a.get('target')=='魅了' else 2) or a.get('this_appeal_only') is not True:raise ValueError('Invalid appeal enhancement')
+  if e['metric']=='idol_appeal_bonus':
+   if e['targets']!=['アピール倍率'] or e['unit']!='multiplier' or e.get('bonus_excludes')!=['memory_base','memory_extra','memory_charge'] or not e.get('restrictions',{}).get('idols') or 'turns' not in e or (e.get('maximum') and e['scope']!='grow') or set(e)-{'bonus_excludes','metric','targets','unit','scope','value','turns','restrictions','restriction_status','maximum','activation_condition','mechanic_condition'}:raise ValueError('Invalid idol appeal bonus')
+  elif 'bonus_excludes' in e:raise ValueError('Unexpected bonus exclusions')
   if 'status_consumption' in e:validate_consumption(e)
   if e['metric']=='refrain' and (e['unit']!='points' or type(e.get('value')) not in (int,float) or e['value']%1 or e['value']<1):raise ValueError('Invalid refrain distance')
   if e['metric']=='random_grant':

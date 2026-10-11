@@ -429,3 +429,15 @@ test('mental-spent maximum buff searches its own target duration and scaling',()
  const text=effectFactText(buff);assert.ok(text.includes('最大80%'));assert.ok(text.includes('[3ターン]'));assert.ok(text.includes('減少値が多いほど効果UP'));
  assert.ok(!text.includes('30%'));assert.ok(!text.includes('自身'));
 });
+
+test('enhanced appeals remain local and separate from grants',()=>{
+ const items=[{name:'modified',kind:'panel_live',effect_details:{effects:[{metric:'appeal',targets:['Vocal'],value:3,unit:'multiplier',scope:'base',appeal_enhancement:{target:'Dance',factor:2,this_appeal_only:true}},{metric:'rate_up',targets:['Dance'],value:50,unit:'percent',scope:'link',turns:4}]}}];
+ const details=new Map([['P1',{items}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=appeal_enhanced&effect_target=Vocal&skill_q=Danceステータス効果'),details),[cards[0]]);
+ for(const query of ['effect_type=appeal_enhanced&effect_target=Dance','effect_type=appeal_enhanced&effect_turns=1','effect_type=rate_up&skill_q=このアピールのみ'])assert.deepEqual(detailSearch(cards,new URLSearchParams(query),details),[]);
+});
+test('personal multiplier bonus is distinct from percent value boosts and random candidates',()=>{
+ const details=new Map([['P1',{items:[{name:'bonus',kind:'panel_live',effect_details:{effects:[{metric:'idol_appeal_bonus',targets:['アピール倍率'],value:.5,unit:'multiplier',scope:'plus',turns:4,restrictions:{idols:['緋田美琴']}}]}}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=idol_appeal_bonus&effect_turns=4&skill_q=緋田美琴+0.5倍を加算'),details),[cards[0]]);
+ for(const query of ['effect_type=appeal_boost','effect_type=appeal','effect_type=random_grant','effect_type=idol_appeal_bonus&effect_turns=5','effect_type=idol_appeal_bonus&skill_q=七草にちか'])assert.deepEqual(detailSearch(cards,new URLSearchParams(query),details),[]);
+});

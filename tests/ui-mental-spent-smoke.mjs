@@ -43,7 +43,7 @@ try{
   for(let ix=0;ix<cases.length;ix++){
    const {items,maximum,...params}=cases[ix];
    await page.goto(base+'?'+new URLSearchParams({effect_type:'rate_up',...params}),{waitUntil:'networkidle'});
-   assert.equal(await page.evaluate(()=>window.UI_VERSION),'ui-v22');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
+   assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v22');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
    assert.equal(await page.locator('#count').textContent(),'1 / 1466 件',JSON.stringify(params));
    await page.locator('.detail-toggle').first().click();
    const matches=page.locator('.matched-effect');assert.equal(await matches.count(),items,JSON.stringify(params));
