@@ -1,6 +1,49 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 最新状態（2026-10-11：UI v21・アピール順序指定を公開検証済み）
+
+元の要件・後続変更を保持。プロジェクト全体の完成ではない。47個別ページと実在新規基礎カード本番追加はユーザー指定保留。Pステージ/適正・Sファイト対象外、CSV画面非表示。UI番号は表示/操作変更時のみ更新する。ユーザーへの新しい確認待ちはない。
+
+### 現在の正常版
+公開 https://vignoles.github.io/shiny-index/ 、UI v21、基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754a、詳細原本r20/1419(P548/S871)/24025、公開詳細d1-a95c6ed4b3ba8cc1。
+実装910001b0036d45210363b80f5f02ac31a05ab18e、公開3b8c2ffd280bf64a2237b476ef2fadd5551e4bd4。保存タグui-v21-order-verified-20261011。Pages38135218968 success、コードCI38134997584/公開CI38135218962はWindows3.13.16/Linux3.12.14ともsuccess。
+原本private/master.xlsx SHA1340b6a3319861e74885f1ae74f3ebb140c249e9a98454622e1f81b47ea17611、canonical private/details/master-r20-visual-authoritative-20261011.json SHAb74c3e922cab5cbd541516d5071a22b6cea38ba85682b3fb32fcb24e4a240315。全ID/8手修正を保持。原本/Google書込0、Wiki通信0。
+非公開native r20/15タブの採用履歴ccdb6d01a44d5a37と派生公開a95c6ed4b3ba8cc1は効果構造だけが異なる正常な組。接続記録を公開版に合わせて上書きしない。
+
+### 完成したこと
+- 「必ず最初/最後にアピール」を同じ効果内の属性・受け手・継続・キーワードと組み合わせて検索。行動順指定/最初/最後を選択でき、URL再読込・チップ解除・一致強調に対応。原文42フィールド/26カードを全数対応。
+- 18数値アピール・2独立順序指定・2能力効果の22効果を追加し、既存22順序指定へコラボフェス除外を補完。42項目/26カードを変更、計19850効果。旧19828効果の欠落0。数値のない順序指定に架空のアピール倍率を作らず、後続バフやLinkへ順序/属性/継続を継承しない。
+- コラボフェスでは順序指定が無効という原文を表示。アピールメーターの判定によらない順序と、メーターを使うアピール値の計算を区別。ライブ全項目のpartialを保持。
+- src/skill_effects.py、web/details.mjs/index.html、Python/JS/新ブラウザ試験、docs/ui-v21-spec.md。TASK/design/README/operations/検証記録に根拠を反映。原本/全ID/8手修正/非効果項目/coverage不変。
+
+### 検証結果
+Python291/JS60成功。Windows/Linuxのコード/公開CIとも成功。保存26HTML/84セル位置/42フィールド、保存R01 appeal_011（SHA31fc776620cf8afe25d60f2acc634d2bcdf9721972c4b7143054f026deedb913）を照合。原本XLSX/canonical JSON一致、XLSXから派生全cards/coverage/内容IDを再生成して一致。パッシブ5890/5890、区間条件688構造化/未対応0、旧fallback57を維持。
+ローカル1280/390/320で基本/詳細/受け手回帰/順序正例6・否定7が成功。匿名公開も同3幅の基本/詳細/順序6+7、選択・再読込・チップ解除・強調・横溢れが成功。公開320pxの独立順序表示を視認。公開92/92が匿名HTTP200・ローカル全バイト一致、全92 Git blob一致。旧不変バンドルを保持。
+UI20+a3b2切戻し候補は新a95cバンドルも保持し、全版検査/3幅詳細・受け手試験が成功。UI21/r20隔離コピーで4障害を検出し92サイトファイル/原本/接続を全復旧。ZIP94ファイルを実展開し全SHAとnative/public関連を再確認。本番全面障害注入/本番UI切戻しは未実施。
+
+### 保存・整理
+証拠private/audits/ui21-action-order-checkpoint-20261011.json、ui21-action-order-structure/source-proof/reference-proof/inventory-coverage、ui21-xlsx-replay、ui21-public-files/public-git-bytes、ui21-code-ci-jobs/release-ci-jobs/pages-jobs、ui21-archive-restore-proof。receipt直前版はprivate/ui21-before-publication-20261011へ保存。
+C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-ui21-recovery-20261011/ にui21-r20-verified-snapshot.zip（94ファイル/66,542,240bytes）とui20-coherent-with-ui21-immutable-bundles.zip（92ファイル/60,722,748bytes）。対応表private/ui21-recovery-archive.json、隔離復旧private/recovery/ui21-action-order-20261011/report.json。以前のZIPも保持。
+今回作成した重複4フォルダーだけをZIPと削除直前も全SHA照合して整理。論理サイズ1971692837bytes、D空き7992229888→9964462080bytes。証拠ui21-cleanup-proof。raw/site/原本/接続/canonical/監査/Gitは保持。
+復元（未作成のprivate出力先へ）：
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui21-action-order-20261011/restored private/restored-ui21-next --manifest private/ui21-recovery-archive.json
+UI20切戻しは同manifestのprivate/site-ui21-ui20-rollback-20261011を復元。復元後は全SHA/check_site/check_pairと対応ブラウザ試験を通す。
+
+### 未完了と次の操作
+1. Git、原本SHA、site/details/latest.json、接続を実照合。基準はUI21/a95c/r20。a3b2は切戻し、ccdbはnative履歴であり古い記録で公開latestを上書きしない。
+2. 保存原文の複合効果を継続。private/audits/ui21-next-shared-target-inventory-20261011.jsonに「注目度&メンタルダメージ」の共有値・継続を4フィールド/2カードで棚卸し済み（全未対応件数ではない）。原文確認→同一効果の対象補完→保存入力再変換→旧効果を失わない差分監査→公開の順で進める。データのみならUI21を維持。
+3. Google原本の実画面を開こうとしたが、Cua起動前にwindows sandbox failed: helper_unknown_error: setup refresh had errors、kernel exit1で失敗。Sheets未接続・書込なし。証拠private/audits/ui21-google-screen-attempt-20261011.json。影響は実画面確認のみで、API/実export/全XLSX照合の既存合格を否定しない。環境が復旧すれば実画面確認を再試行。
+4. 全複合効果、S90最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧は未完了。47個別ページ/実在新規基礎カード本番追加は保留。
+5. acquisition stateはcomplete/revision4098/active_attempt=null、SHA434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e。取得/原本更新なし。未解決の中断編集・実行中取得なし。通常の続行区切りで停止指示ではない。
+<!-- /current-state -->
+
+## UI21前の履歴（当時の記録）
+
+## 続行中：UI v21候補（2026-10-11、公開はまだUI20）
+
+原本r20/8手修正/取得run4098のSHAを照合し不整合なし。保存42順序指定/26カードを変換し、18数値アピール/2独立順序/2能力効果を追加、22既存順序へコラボフェス除外を補完。候補private/site-ui21-action-order-candidate-20261011、詳細d1-a95c6ed4b3ba8cc1。Python291/JS60合格、保存26HTML/84セル位置/42フィールド完全一致。原本/Google書込・Wiki通信0。候補生成/ブラウザ/公開/切戻し/保存は実行中。private/audits/ui21-action-order-checkpoint-20261011.jsonを実ファイルと照合する。古いUI20の公開状態は以下に保持。
+
 ## 最新状態（2026-10-11：UI v20・効果を受ける側を公開検証済み）
 
 元の要件・後続変更を保持して続行。プロジェクト全体の完成ではない。47個別ページと実在新規基礎カード本番追加はユーザー指定で保留。Pステージ/適正・Sファイト対象外、CSV画面非表示、低負荷取得。UI番号は表示/操作変更時のみ更新する。新しいユーザー判断待ちはない。
@@ -33,7 +76,6 @@ C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a33
 2. 保存1419カード原文の未構造化の複合効果を継続監査する。private/audits/ui20-order-inventory-20261011.jsonには「必ず/自身」の47原文フィールドを棚卸し済み（未対応47件という意味ではない）。次は長い「必ず最初/最後にアピールを行い…」の作用を確認する。数値アピールのない後続効果へ架空のアピールを作らず、行動順と後続効果を分けて設計する。変換/検証は保存入力で実施し不要なWiki通信を避ける。画面変更時のみ次UI21、データのみならUI20を維持する。
 3. S90最大Lv360原文空欄、日付不明56、全複合効果/独立公式網羅/全面実機・Google実画面/私的全入力の別PC再変換/本番全面復旧は未完了。47個別ページと実在新規基礎カード本番追加は保留。
 4. acquisition stateはcomplete/revision4098/active_attempt=null、SHA434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e。取得/原本更新はなし。初期補助スクリプトの空白・R01 anchor名・文言照合は修正再実行済みで、本番影響/未解決中断処理/ユーザー判断待ちはない。通常の続行区切りで追加停止指示ではない。
-<!-- /current-state -->
 
 ## UI20前の履歴（旧UI19・候補段階の記録）
 

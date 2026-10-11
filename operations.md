@@ -1,6 +1,6 @@
 # 管理者の操作手順
 
-2026-10-11の現行はUI20・詳細原本r20/1419カード・24025項目・8手修正。最新の検証・再開基準はHANDOFF.mdとdocs/verification.md、UI20/r20の復元は本書末尾を参照してください。後続の日時付き工程・旧版の停止/稼働記録は当時の履歴です。
+2026-10-11の現行はUI21・詳細原本r20/1419カード・24025項目・8手修正。最新の検証・再開基準はHANDOFF.mdとdocs/verification.md、UI21/r20の復元は本書末尾を参照してください。後続の日時付き工程・旧版の停止/稼働記録は当時の履歴です。
 
 ## 現在の原本
 
@@ -645,3 +645,33 @@ UI v19への切戻しは、旧UIとd1-5004defda130126eの組を使い、新し�
 ~~~
 
 現行UI v20の原本/接続付き正常スナップショットは同manifestのprivate/recovery/ui20-recipients-20261011/restored。復元先は既存ディレクトリを上書きしない新しいprivate名を使う。切戻し候補・ZIP実展開の検証は隔離環境で行い、本番全面障害注入や本番UI切戻し実施とは区別する。復元後はsite/master.xlsx/connection.jsonの全バイトとcheck_pairで原本採用履歴/派生公開版を照合する。
+
+
+## UI v21の行動順検索と再変換（2026-10-11）
+
+保存入力から42順序指定を構造化した。効果の種類で「アピールの行動順指定」「必ず最初にアピール」「必ず最後にアピール」を選択する。属性や継続は同じ1効果で判定し、倍率のない独立順序へ隣接能力効果の属性やターンを借りない。コラボフェスでは順序指定だけが無効である。
+
+原本r20/8手修正とGoogle接続のnative採用履歴ccdbは変更しない。派生公開版はd1-a95c6ed4b3ba8cc1。UIの表示/操作追加で21とし、今後データのみの更新ではUI番号を変えない。
+
+再変換は既存siteを新しいprivate候補へコピーし、旧不変バンドルを全て保持する。原本スナップショットJSONは新しいファイルへ出力する。
+
+~~~powershell
+if (Test-Path -LiteralPath private/site-ui21-replay-next) { throw '既存の出力先は上書きしません' }
+Copy-Item -LiteralPath site -Destination private/site-ui21-replay-next -Recurse
+.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/site-ui21-replay-next
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx private/site-ui21-replay-next --master-snapshot private/details/ui21-replay-next.json
+.venv/Scripts/python.exe scripts/check_site.py private/site-ui21-replay-next
+$env:UI_BROWSER_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+$env:UI_EXPECTED_VERSION='ui-v21'
+node tests/ui-v21-action-order-smoke.mjs private/site-ui21-replay-next
+~~~
+
+実行環境のブラウザパスは必要に応じて変更する。原本更新・取得は別工程であり、保存済み入力からの再変換でWikiへの通信は発生しない。prepareとexportの途中で中断した候補は公開せず、HTMLの基礎/詳細/UI版、全版検査とブラウザ試験を揃えてから公開する。
+
+UI20へ切り戻す場合は、タグui-v20-recipients-verified-20261011とd1-a3b293a6ff62c088を組にする。新d1-a95c6ed4b3ba8cc1を含む不変URL、原本r20、手修正、接続は保持する。private/ui21-recovery-archive.jsonのprivate/site-ui21-ui20-rollback-20261011を未作成のprivate出力先へ復元する。
+
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui21-ui20-rollback-20261011 private/restored-ui20-next --manifest private/ui21-recovery-archive.json
+~~~
+
+UI21の原本/接続付き正常コピーは同manifestのprivate/recovery/ui21-action-order-20261011/restored。復元後は全SHAとcheck_pairでnative採用履歴/派生公開版を照合する。検証済み切戻し候補とZIPの実展開は隔離試験であり、本番UI切戻しや本番全面障害注入は未実施。
