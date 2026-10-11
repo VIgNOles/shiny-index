@@ -22,3 +22,5 @@
 UI24正常保存点は `ui-v24-before-filter-redesign-20261012`。`python scripts/build_ui_rollback.py --ref ui-v24-before-filter-redesign-20261012 --source site --output private/site-ui24-restore-candidate` で未作成の隔離候補を作り、旧UIの表示・データ版を確認する。原本/取得データを巻き戻さず、候補の5資産のみをsiteへ反映して `publish: ` コミットで公開できる。今回本番の切戻しは行わない。
 
 実行環境補足：この作業環境の共用node_modulesは変更しない。npmが同梱されていなかったため、公式registryのintegrityを検証したnpm11.6.2をprivateへ展開し、隔離projectでpackage-lock.jsonを生成した。ルートにはlockのみを保存。通常のNode+npm環境とCIはnpm ciで再現できる。旧ランダム回帰はr21の回答反映に合わせROOTS_CONFIRMED=1とUI_EXPECTED_VERSION=ui-v25を指定する。
+
+次回UI番号を更新する場合は、HTMLのCSS/appとappのdetails/searchのuiクエリも同じ番号へ揃える。データだけの更新ではUI番号とクエリを変えない。
