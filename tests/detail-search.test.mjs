@@ -370,3 +370,16 @@ test('collaboration exception applies to order alone and preserves appeal value 
  const label=effectFactText(e);
  assert.ok(label.includes('4.5倍'));assert.ok(label.includes('全観客'));assert.ok(label.includes('コラボフェスでは順序指定は無効'));assert.ok(!label.includes('アピール無効'));
 });
+
+test('shared named targets search the same value and duration without borrowing another effect',()=>{
+ const shared={metric:'rate_up',targets:['注目度','メンタルダメージ'],unit:'percent',value:50,turns:1,scope:'base'};
+ const separate={metric:'rate_up',targets:['Vocal'],unit:'percent',value:20,turns:3,scope:'link'};
+ const d=new Map([['P1',{items:[{name:'共有値',kind:'panel_live',mechanics:['link'],effect_details:{effects:[shared,separate]}}]}]]);
+ const count=p=>detailSearch(cards,new URLSearchParams(p),d).length;
+ for(const target of shared.targets)assert.equal(count({effect_type:'rate_up',effect_target:target,effect_turns:'1',skill_q:'50%'}),1);
+ assert.equal(count({effect_type:'rate_up',effect_target:'注目度',effect_turns:'3'}),0);
+ assert.equal(count({effect_type:'rate_up',effect_target:'注目度',skill_q:'Link'}),1);
+ assert.equal(count({effect_type:'rate_up',effect_target:'注目度',skill_q:'Link：'}),0);
+ assert.equal(count({effect_type:'rate_up',effect_target:'Vocal',skill_q:'50%'}),0);
+ assert.ok(effectFactText(shared).includes('注目度 / メンタルダメージ'));
+});

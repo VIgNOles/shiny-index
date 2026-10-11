@@ -143,7 +143,7 @@ def ability(text,known_idols):
 ATTR=r'(?:Vocal|Dance|Visual|Vo|Da|Vi|ボーカル|ダンス|ビジュアル)'
 RECIPIENT_PREFIX=r'(?P<recipient>全ユニットの|全ユニットに|ライバルの|ライバルに|自身の|自身に)?'
 RECIPIENTS={'全ユニットの':'all_units','全ユニットに':'all_units','ライバルの':'rivals','ライバルに':'rivals','自身の':'self','自身に':'self'}
-RATE=re.compile(RECIPIENT_PREFIX+r'(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|注目度|思い出ゲージ|リアクション回避率|回避率|メンタルダメージ|メンタル|影響力|パッシブスキル発動率)(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN|CUT)(?:\[(?P<turns>\d+)ターン\]|\[(?P<until_damage>ダメージを受けるまで)\])')
+RATE=re.compile(RECIPIENT_PREFIX+r'(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|注目度&メンタルダメージ|注目度|思い出ゲージ|リアクション回避率|回避率|メンタルダメージ|メンタル|影響力|パッシブスキル発動率)(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN|CUT)(?:\[(?P<turns>\d+)ターン\]|\[(?P<until_damage>ダメージを受けるまで)\])')
 LONG_ORDER=re.compile(r'(?P<order>必ず最初に|必ず最後に)アピールを行い')
 APPEAL=re.compile(r'(?:(?P<order>必ず最初に|必ず最後に)(?:アピールを行い)?)?(?P<audience>全観客に)?(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|Excellent)(?P<maximum>最大)?(?:(?P<minimum>\d+(?:\.\d+)?)[～〜~])?(?P<value>\d+(?:\.\d+)?)倍アピール')
 INTEREST=re.compile(r'(?P<audience>全観客に|全観客の)?興味(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)倍\[(?P<turns>\d+)ターン\]')

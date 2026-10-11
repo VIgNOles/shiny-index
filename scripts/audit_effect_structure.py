@@ -2,9 +2,39 @@
 import argparse, collections, hashlib, json, re, sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from src.skill_effects import normalized
 from src.detail_master import resolve
 from src.detail_public import public_document
 from src.indexer import ROOT, read, write
+
+
+def source_proven_shared_target_update(before, after, source):
+ """Only the saved named pair may enrich an otherwise identical old fact.
+ A raw exact clause must confirm value/direction/duration in the same mechanic
+ slot. This is deliberately narrower than allowing arbitrary target supersets.
+ """
+ if before.get('targets')!=['メンタルダメージ'] or after.get('targets')!=['注目度','メンタルダメージ']:
+  return False
+ if {k:v for k,v in before.items() if k!='targets'}!={k:v for k,v in after.items() if k!='targets'}:
+  return False
+ if before.get('metric') not in {'rate_up','rate_down','rate_cut'} or before.get('unit')!='percent':
+  return False
+ if before.get('recipient') or before.get('maximum') or 'turns' not in before:return False
+ # Reconstruct only the source slot/marker, independently of the effect matcher.
+ for field,initial in [('effect_private','base'),('link_appeal_private','memory_link'),('charge_appeal_private','memory_charge')]:
+  if source.get('kind')!='memory_appeal' and initial!='base':continue
+  parts=re.split(r'\((Link|Plus|Change|GrowUp|Grow|Refrain|Reflain)\)',normalized(source.get(field,'')),flags=re.I)
+  scope=initial
+  for index,part in enumerate(parts):
+   if index%2:
+    scope=initial if initial in {'memory_link','memory_charge'} else {'growup':'grow','reflain':'refrain'}.get(part.lower(),part.lower())
+    continue
+   if scope!=before.get('scope'):continue
+   for match in re.finditer(r'(?<![\w&])注目度&メンタルダメージ(\d+(?:\.\d+)?)%(UP|DOWN|CUT)\[(\d+)ターン\]',part):
+    if part[:match.start()].count('[')!=part[:match.start()].count(']'):continue
+    if (float(match[1])==before.get('value') and 'rate_'+match[2].lower()==before['metric']
+        and int(match[3])==before['turns']):return True
+ return False
 
 def audit(master_path, site_path, output, root=ROOT, baseline_version=None):
  root=Path(root);site=Path(site_path);output=Path(output)
@@ -25,7 +55,7 @@ def audit(master_path, site_path, output, root=ROOT, baseline_version=None):
   raise ValueError('Existing coverage changed')
  source={i['detail_id']:(c,i) for c in resolve(master) for i in c['items']}
  old_items={i['detail_id']:i for c in old['cards'] for i in c['items']}
- facts=collections.Counter();conditions=collections.Counter();scaling=collections.Counter();changed=[];lost=[];scope_corrections=[];condition_updates=[]
+ facts=collections.Counter();conditions=collections.Counter();scaling=collections.Counter();changed=[];lost=[];scope_corrections=[];condition_updates=[];target_updates=[]
  current_conditions=collections.Counter();mechanic_rules=collections.Counter();standalone_rules=collections.Counter()
  for c in new['cards']:
   for i in c['items']:
@@ -45,6 +75,10 @@ def audit(master_path, site_path, output, root=ROOT, baseline_version=None):
       'before':prior,'after':i.get('effect_details')})
    for e in prior.get('effects',[]):
     if not any(all(other.get(k)==v for k,v in e.items()) for other in es):
+     shared=[other for other in es if source_proven_shared_target_update(e,other,source[i['detail_id']][1])]
+     if shared:
+      target_updates.append({'detail_id':i['detail_id'],'before':e,'after':shared,'source_proven':True})
+      continue
      moved=[other for other in es if all(other.get(k)==v for k,v in e.items() if k!='scope')]
      if moved and e['scope']=='base':
       scope_corrections.append({'detail_id':i['detail_id'],'old_scope':e['scope'],'new_scopes':[other['scope'] for other in moved],'old_effect':e})
@@ -68,10 +102,10 @@ def audit(master_path, site_path, output, root=ROOT, baseline_version=None):
   'override_count':sum(bool(r.get('override')) for r in master['registry']),
   'effect_fact_counts':dict(facts),'effect_condition_counts':dict(conditions),'effect_condition_current_counts':dict(current_conditions),'effect_mechanic_rule_counts':dict(mechanic_rules),'standalone_mechanic_rule_counts':dict(standalone_rules),'scaling_counts':dict(scaling),
   'effect_item_status_counts':new['coverage']['effect_detail_counts'],
-  'changed_items':len(changed),'old_effect_scope_corrections':scope_corrections,'condition_updates':condition_updates,'old_effects_not_preserved':lost,'changed':changed,'wiki_requests':0}
+  'changed_items':len(changed),'old_effect_scope_corrections':scope_corrections,'condition_updates':condition_updates,'source_proven_target_updates':target_updates,'old_effects_not_preserved':lost,'changed':changed,'wiki_requests':0}
  if lost:raise ValueError('Previously derived effect lost; review before publication')
  write(output,report)
- return {k:v for k,v in report.items() if k not in {'changed','old_effect_scope_corrections','condition_updates'}}
+ return {k:v for k,v in report.items() if k not in {'changed','old_effect_scope_corrections','condition_updates','source_proven_target_updates'}}
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('master');p.add_argument('site');p.add_argument('output');p.add_argument('--baseline-version');a=p.parse_args()
  print(json.dumps(audit(a.master,a.site,a.output,baseline_version=a.baseline_version),ensure_ascii=False,indent=2))
