@@ -1,6 +1,45 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 最新状態（2026-10-11：UI21の共有対象補正を公開検証・保存）
+
+元の要件/後続変更を保持。全体完成ではない。47個別ページと実在新規基礎カード本番追加は指定保留。Pステージ/適正・Sファイト対象外、CSV画面導線非表示。UI番号は表示/操作変更時のみ更新。新しいユーザー確認待ちはない。
+
+### 正常版と今回の変更
+公開 https://vignoles.github.io/shiny-index/ 、UI v21のまま、基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754a、詳細原本r20/1419(P548/S871)/24025、公開詳細d1-c848c4e505d2a840。
+実装78e21404881ceafcde0cd7535340961b885c017c、公開e8236e2c67e66c045584ff65b1dd27a63dca3269。Pages38136675388 success、コードCI38136479849/公開CI38136675480はWindows3.13.16/Linux3.12.14ともsuccess。検証保存タグdata-shared-target-verified-20261011。旧UI21/a95cの保存タグui-v21-order-verified-20261011も保持。
+P【新装備・バブルバスター！】小宮果穂、P【メイドインナツハ】有栖川夏葉の通常/＋4項目で「注目度&メンタルダメージ50%UP[1ターン]」の共有対象を補完。従来のメンタルダメージのみから2対象へ変更し、値・期間・本体scopeを同じ1効果に保持。2カード/4既存効果の対象のみ変更、総19850効果は不変。
+src/skill_effects.py、scripts/audit_effect_structure.py、Python/JS/新ブラウザ試験、docs/data-shared-target-20261011.mdを変更。監査はtargets以外の完全一致と、同じ原文slot/scopeの値・方向・期間の一致を必須にする。任意の対象拡大は拒否。Web処理の変更なし、UI v21を維持。
+
+### 原本・固定ID・取得状態
+private/master.xlsx SHA1340b6a3319861e74885f1ae74f3ebb140c249e9a98454622e1f81b47ea17611、canonical private/details/master-r20-visual-authoritative-20261011.json SHAb74c3e922cab5cbd541516d5071a22b6cea38ba85682b3fb32fcb24e4a240315。全24025 ID/8手修正/非効果項目/coverage不変。今回原本/Google書込0、Wiki通信0。
+native r20/15タブの採用履歴ccdbと派生公開c848は効果構造だけが異なる正常な組。接続のnative履歴を派生公開版へ上書きしない。
+acquisition stateはcomplete/revision4098/active_attempt=null、SHA434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e。中断した取得/原本更新・実行中処理はない。
+
+### 検証
+Python297/JS61成功、両OSのコード/公開CI成功。保存2HTML/8セル位置/4フィールドが完全一致。XLSX/canonical JSONと再変換全cards/coverage/内容ID一致。既存4効果は対象以外完全一致、他の19846効果も保持。
+ローカル/匿名公開1280/390/320で共有対象の正例4・否定8、同じ効果の値/継続/強調/再読込/横溢れが成功。ローカルではUI21順序回帰6+7も同3幅成功。UI21初版の基本/詳細/受け手/順序試験の合格は直下履歴を参照。公開320pxの共有対象表示を視認。
+公開94/94匿名HTTP200・ローカル全バイト一致、94 Git blobも一致。新バンドルを残すa95c切戻し候補の全版検査/順序回帰3幅成功後、正常c848へ全バイト復元。隔離4障害→94サイトファイル/原本/接続の全復旧成功。ZIP96ファイルを実展開し全SHA/native-public関連を照合。本番全面障害注入・本番切戻しは未実施。
+初回ブラウザ試験のLinkキーワード期待は既存仕様へ修正。「Link」はスキル所持mechanicにも一致し、「Link：」は効果scope表示に一致する。表示/検索処理の意味は変更していない。保存補助のpointerキー照合も修正済み。本番データ破損/未解決中断処理はない。
+
+### 保存と整理
+証拠private/audits/shared-target-checkpoint-20261011.json、shared-target-structure/source-proof/delta-proof/xlsx-replay、shared-target-public-files/public-git-bytes、shared-target-code-ci-jobs/release-ci-jobs/pages-jobs、shared-target-archive-restore-proof、shared-target-cleanup-proof。
+C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-shared-target-recovery-20261011/shared-target-ui21-r20-verified-snapshot.zip、96ファイル/69215861bytes、SHA40aa1992ba4f496015adecd40247e7cb4cc5bed15dd02a1d04263f1596c151f0。対応表private/shared-target-recovery-archive.json。旧UI21/UI20以前のZIPは保持。
+今回の重複3フォルダーだけをZIPと削除直前も全SHA照合して整理。論理1537392575bytes、D空き8364670976→9902391296bytes。raw/site/原本/接続/canonical/監査/Git/旧バックアップは保持。
+復元（新しいprivate出力先へ）：
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/shared-target-20261011/restored private/restored-shared-target-next --manifest private/shared-target-recovery-archive.json
+切戻しはprivate/shared-target-before-publication-20261011またはprivate/shared-target-rollback-pointers-20261011のindex.html/details/latest.jsonを新しい候補へ適用し、新旧バンドルを保持して検査。現行siteを直接書き換えない。操作手順operations.md末尾を参照。
+
+### 未完了と具体的な次の操作
+1. Git、原本SHA、site/details/latest.json、接続を実照合する。現行はUI21/c848/r20。a95cは切戻し用、ccdbはnative履歴であり、古い記録でlatestを上書きしない。
+2. 保存1419カード原文の複合効果を継続監査。今回の共有対象4件は解消済み。次は最大値/ランダム効果/発動回数等の未構造化部分を、原文slot/区間と既存typed factsを対応付けて棚卸しする。単語件数やpartial項目数を未取得件数とみなさない。保存入力で変換/検証し、データのみならUI21を維持する。
+3. Google実画面はCua起動前のwindows sandbox failed: helper_unknown_error: setup refresh had errors（kernel exit1）で未接続。private/audits/ui21-google-screen-attempt-20261011.json。影響は実画面確認のみ、原本/API/実export照合は合格済み。操作環境復旧後に再試行。
+4. 全複合効果、S90最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧が残る。47個別ページ/実在新規基礎カード本番追加は保留。
+5. 通常の続行区切りで、追加停止指示ではない。最新チェックポイントと実ファイルを照合して続行できる。
+<!-- /current-state -->
+
+## UI21共有対象補正前の履歴（当時の記録）
+
 ## 続行中：UI21の共有対象データ補正（公開はa95cのまま）
 
 候補private/site-shared-target-candidate-20261011、詳細d1-c848c4e505d2a840。2カード/4項目/4既存効果のtargetsだけを補完、計19850効果は不変。Python297/JS61、保存2HTML/8位置/4フィールド、XLSX全cards/coverage一致。原本/Google書込・Wiki通信0。初回ブラウザ試験のLinkキーワード期待を既存仕様（スキル所持mechanicにも一致）へ修正し、Link：で効果scopeを検査する。private/audits/shared-target-checkpoint-20261011.jsonを実状態と照合。公開/復旧/保存は続行中。以下のa95cは検証済み正常版。
@@ -40,7 +79,6 @@ UI20切戻しは同manifestのprivate/site-ui21-ui20-rollback-20261011を復元�
 3. Google原本の実画面を開こうとしたが、Cua起動前にwindows sandbox failed: helper_unknown_error: setup refresh had errors、kernel exit1で失敗。Sheets未接続・書込なし。証拠private/audits/ui21-google-screen-attempt-20261011.json。影響は実画面確認のみで、API/実export/全XLSX照合の既存合格を否定しない。環境が復旧すれば実画面確認を再試行。
 4. 全複合効果、S90最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧は未完了。47個別ページ/実在新規基礎カード本番追加は保留。
 5. acquisition stateはcomplete/revision4098/active_attempt=null、SHA434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e。取得/原本更新なし。未解決の中断編集・実行中取得なし。通常の続行区切りで停止指示ではない。
-<!-- /current-state -->
 
 ## UI21前の履歴（当時の記録）
 

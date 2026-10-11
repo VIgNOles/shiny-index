@@ -675,3 +675,18 @@ UI20へ切り戻す場合は、タグui-v20-recipients-verified-20261011とd1-a3
 ~~~
 
 UI21の原本/接続付き正常コピーは同manifestのprivate/recovery/ui21-action-order-20261011/restored。復元後は全SHAとcheck_pairでnative採用履歴/派生公開版を照合する。検証済み切戻し候補とZIPの実展開は隔離試験であり、本番UI切戻しや本番全面障害注入は未実施。
+
+
+## 2026-10-11 UI21を維持した共有対象のデータ更新・復旧
+
+詳細d1-c848c4e505d2a840、原本r20/1419/24025/8手修正、UI21。表示/操作を変えず既存4効果のtargetsを補完した。仕様docs/data-shared-target-20261011.md、最終検証docs/verification.md。
+新しいprivate候補へsiteをコピーしてscripts/export_detail_sheet.pyで保存XLSXから再変換し、scripts/audit_effect_structure.pyで既存項目/coverage/効果の保護を確認する。今回source_proven_target_updates4、old_effects_not_preserved0。Python297/JS61、tests/ui-shared-target-smoke.mjsによる3幅の正例4/否定8が合格。
+キーワードLinkはスキルの所持mechanicにも一致する。Link効果のscope表示を確認する試験にはLink：を使う。値・対象・期間を別の効果から借りない。
+
+復元は未作成のprivate出力先へ：
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/shared-target-20261011/restored private/restored-shared-target-next --manifest private/shared-target-recovery-archive.json
+~~~
+このZIPは96ファイル（site94/原本/接続）。実展開・全SHA/check_pair一致を確認済み。復元後はcheck_siteと対応ブラウザ試験を通す。本番へ自動採用しない。
+a95cへ戻す場合は新しい復旧候補のsiteへprivate/shared-target-before-publication-20261011（またはprivate/shared-target-rollback-pointers-20261011）のindex.html/details/latest.jsonだけをコピーする。UI21と原本r20を維持し、新c848を含む全不変バンドルを残す。全版検査と順序回帰3幅を通してから公開する。正常c848への復帰は新ZIPの2ファイルを使う。
+本番全面障害注入と本番UI切戻しは未実施。既存UI21/UI20以前のZIP・タグを削除しない。
