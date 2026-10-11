@@ -1,4 +1,4 @@
-import {mechanicRuleText,mechanicRuleMatches,effectNames,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
+import {mechanicRuleText,mechanicRuleMatches,recipientNames,effectNames,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -100,8 +100,11 @@ try{
   const filter=new URLSearchParams({effect_type:value});
   if(availableEffects.some(e=>effectMatches(e,filter)))$('effect-type').add(new Option(label,value));
  }
+ for(const [value,label] of Object.entries(recipientNames)){
+  if(availableEffects.some(e=>effectMatches(e,new URLSearchParams({effect_recipient:value}))))$('effect-recipient').add(new Option(label,value));
+ }
  for(const value of [...new Set(availableEffects.flatMap(e=>e.targets))])$('effect-target').add(new Option(value,value));
- for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns']]){
+ for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns'],['effect-recipient','effect_recipient']]){
   $(id).addEventListener('change',event=>{if(event.target.value)params.set(key,event.target.value);else params.delete(key);commitParams();});
  }
  for(const [value,label] of Object.entries(conditionNames))$('skill-condition').add(new Option(label,value));
@@ -126,7 +129,7 @@ try{
  $('detail-available').addEventListener('change',event=>{
   if(event.target.checked)params.set('detail_status','available');else params.delete('detail_status');commitParams();
  });
- $('skill-filters').open=['skill_q','skill_kind','skill_condition','mechanic','detail_status','effect_type','effect_target','effect_turns'].some(key=>params.has(key));
+ $('skill-filters').open=['skill_q','skill_kind','skill_condition','mechanic','detail_status','effect_type','effect_target','effect_turns','effect_recipient'].some(key=>params.has(key));
 
  const filterOrder={
   card_kind:['P','S'],rarity:['UR','SSR','SR','R','N'],
@@ -443,7 +446,7 @@ try{
   for(const value of params.getAll('skill_kind')){addChip(kindNames[value]??value,'skill_kind',value);count++;}
   for(const value of params.getAll('mechanic')){addChip(mechanicNames[value]??value,'mechanic',value);count++;}
   if(params.get('skill_condition')){addChip('発動条件：'+(conditionNames[params.get('skill_condition')]??params.get('skill_condition')),'skill_condition',null);count++;}
-  for(const [key,label] of [['effect_type','効果'],['effect_target','対象'],['effect_turns','継続']])if(params.get(key)){addChip(label+'：'+(key==='effect_type'?effectNames[params.get(key)]??params.get(key):params.get(key)+(key==='effect_turns'?'ターン以上':'')),key,null);count++;}
+  for(const [key,label] of [['effect_type','効果'],['effect_target','属性・能力'],['effect_recipient','受ける側'],['effect_turns','継続']])if(params.get(key)){addChip(label+'：'+(key==='effect_type'?effectNames[params.get(key)]??params.get(key):key==='effect_recipient'?recipientNames[params.get(key)]??params.get(key):params.get(key)+(key==='effect_turns'?'ターン以上':'')),key,null);count++;}
   if(params.get('detail_status')==='available'){addChip('詳細収録済み','detail_status',null);count++;}
   if(!count)active.textContent='絞り込み条件なし';
   const advancedCount=params.getAll('series_ids').length+
@@ -458,7 +461,7 @@ try{
   }
  };
  const renderControls=()=>{
-  for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns']])$(id).value=params.get(key)??'';
+  for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns'],['effect-recipient','effect_recipient']])$(id).value=params.get(key)??'';
   $('skill-q').value=params.get('skill_q')??'';
   $('skill-kind').value=params.get('skill_kind')??'';
   $('skill-condition').value=params.get('skill_condition')??'';
