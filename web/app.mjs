@@ -1,4 +1,4 @@
-import {mechanicRuleText,mechanicRuleMatches,recipientNames,effectNames,effectTargets,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
+import {searchEffects,detailMatches,matchDetailItem,hasSkillConditions,mechanicRuleText,mechanicRuleMatches,recipientNames,effectNames,effectTargets,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -95,7 +95,7 @@ try{
   render();
  };
 
- const availableEffects=[...(detailMap.values())].flatMap(c=>c.items.flatMap(i=>i.effect_details?.effects??[]));
+ const availableEffects=[...(detailMap.values())].flatMap(c=>c.items.flatMap(i=>searchEffects(i)));
  for(const [value,label] of Object.entries(effectNames)){
   const filter=new URLSearchParams({effect_type:value});
   if(availableEffects.some(e=>effectMatches(e,filter)))$('effect-type').add(new Option(label,value));
@@ -503,12 +503,13 @@ try{
   add(section,'p','効果は参考数値の一部を表示しています。パッシブの発動条件は対応分を表示します。未対応の条件・複合効果はWikiで確認してください。','detail-note');
   for(const [kind,label] of Object.entries(kindNames)){
    const items=card.items.filter(item=>item.kind===kind);if(!items.length)continue;
-   const matchedIds=new Set((hasEffectFilters(params)||Boolean((params.get('skill_q')??'').trim()))?items.filter(item=>detailSearch([baseCard],params,new Map([[baseCard.card_id,{items:[item]}]])).length).map(i=>i.detail_id):[]);
+   const matches=new Map(detailMatches({items},params).map(m=>[m.item.detail_id,m]));
+   const matchedIds=new Set(matches.keys());
    if(matchedIds.size)items.sort((a,b)=>Number(matchedIds.has(b.detail_id))-Number(matchedIds.has(a.detail_id)));
    const group=add(section,'details','','skill-section');if(matchedIds.size)group.open=true;add(group,'summary',label+'（'+items.length+'件'+(matchedIds.size?' / 一致 '+matchedIds.size+'件':'')+'）');
    const list=add(group,'ul','','skill-list');
    for(const item of items){
-    const row=add(list,'li','','skill-item');add(row,'strong',item.name);
+    const row=add(list,'li','','skill-item');row.dataset.detailId=item.detail_id;add(row,'strong',item.name);
     const attrs=[];
     if(item.sp!=null)attrs.push('SP '+item.sp);
     if(item.unlock_star!=null)attrs.push('特訓 '+item.unlock_star);
@@ -520,7 +521,7 @@ try{
     if(item.energy_cost!=null)attrs.push('気力 '+item.energy_cost);
     attrs.push(...(item.mechanics??[]).map(value=>mechanicNames[value]));
     if(attrs.length)add(row,'p',attrs.join(' · '),'skill-meta');
-    if(item.cap_delta!=null)add(row,'p',item.cap_targets.join(' / ')+' 上限 +'+item.cap_delta);
+    if(item.cap_delta!=null)add(row,'p',item.cap_targets.join(' / ')+' 上限 +'+item.cap_delta,matches.get(item.detail_id)?.effects.some(e=>e.source_field==='cap_delta')?'skill-values matched-effect':'skill-values');
     if(itemActivationCondition(item)){
      const conditionText=activationConditionText(itemActivationCondition(item));
      add(row,'p',conditionText?'発動条件：'+conditionText:'発動条件：未対応（Wikiで確認してください）','skill-values activation-condition');
@@ -536,7 +537,7 @@ try{
      const facts=add(row,'ul','','effect-facts');
      for(const e of item.effect_details.effects){
       const fact=add(facts,'li',effectFactText(e),'skill-values');
-      if(matchedIds.has(item.detail_id)&&effectSearchMatches(item,e,params)){fact.classList.add('matched-effect');group.open=true;}
+      if(matches.get(item.detail_id)?.effects.some(m=>m.source_field==='effect_details'&&m.source_index===item.effect_details.effects.indexOf(e))){fact.classList.add('matched-effect');group.open=true;}
      }
      if(item.kind==='support_skill'){
       const levels=(item.progression??[]).map(p=>p.skill_level).filter(n=>Number.isFinite(n));
@@ -544,7 +545,7 @@ try{
       if(top!=null&&item.effect_details.effects.some(e=>e.formula||e.probability?.formula))add(row,'p','取得表の最大スキルLv '+top+'：'+item.effect_details.effects.map(e=>effectFactText(e,top)).join(' / '),'skill-meta');
      }
     }
-    if(item.numeric_facts.length)add(row,'p','参考数値：'+item.numeric_facts.map(factText).join(' / '),'skill-values');
+    for(const [index,fact] of (item.numeric_facts??[]).entries())add(row,'p','参考数値：'+factText(fact),matches.get(item.detail_id)?.effects.some(e=>e.source_field==='numeric_facts'&&e.source_index===index)?'skill-values matched-effect':'skill-values');
     for(const [slot,label] of [['link','Link追加効果'],['charge','チャージ追加効果']]){
      if(item['memory_'+slot+'_present']){
       const facts=item['memory_'+slot+'_facts']??[];
@@ -558,7 +559,7 @@ try{
   add(section,'p','Wiki取得日 '+card.fetched_at.slice(0,10)+'。Pステージ・適正、Sファイトは今回の収録対象外です。','detail-note');
  };
  const cardNode=cardData=>{
-  const row=add($('cards'),'li','','card');
+  const row=add($('cards'),'li','','card');row.dataset.cardId=cardData.card_id;
   const head=add(row,'div','','card-head');
   add(head,'span',cardData.card_kind+' / '+text(cardData.rarity),'badge');
   add(head,'h3',cardData.card_title,'card-title');
@@ -566,6 +567,11 @@ try{
   const shortLabel=cardData.series_ids.length?cardData.series_ids.map(seriesText).join('・'):
    text(cardData.acquisition_category);
   add(head,'p',shortLabel+' · '+(cardData.first_implemented_on??'日付未確認'),'card-meta');
+  const matching=detailMatches(detailMap.get(cardData.card_id),params);
+  if(matching.length){
+   const first=matching[0],effect=first.effects[0];
+   add(head,'p','一致：'+kindNames[first.item.kind]+' / '+first.item.name+(first.item.unlock_star!=null?'（特訓'+first.item.unlock_star+'）':'')+(first.item.level!=null?'（Lv'+first.item.level+'）':'')+(first.item.sp!=null?'（SP'+first.item.sp+'）':'')+(effect?' · '+effectFactText(effect):'')+(matching.length>1?'（ほか'+(matching.length-1)+'件）':''),'match-reason');
+  }
   const detailId='card-details-'+cardData.card_id;
   const button=add(head,'button',expandedIds.has(cardData.card_id)?'詳細を閉じる':'詳細を見る','detail-toggle');
   button.type='button';button.setAttribute('aria-controls',detailId);

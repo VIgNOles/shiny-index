@@ -1,4 +1,4 @@
-export const kindNames={panel_live:'パネルのライブスキル',mb_live:'MBライブスキル',generated_live:'生成ライブスキル',panel_passive:'パッシブスキル',unique_ability:'固有アビリティ',cap_increase:'上限UP',memory_appeal:'思い出アピール',possessed_live:'所持ライブスキル',support_skill:'サポートスキル',quick_skill:'クイックスキル'};
+export const kindNames={panel_live:'パネルのライブスキル',mb_live:'MBライブスキル',generated_live:'生成ライブスキル',panel_passive:'パッシブスキル',unique_ability:'固有アビリティ',cap_increase:'ステータス上限UP',memory_appeal:'思い出アピール',possessed_live:'所持ライブスキル',support_skill:'サポートスキル',quick_skill:'クイックスキル'};
 export const mechanicNames={link:'Link',plus:'Plus',change:'Change',grow:'Grow / GrowUp',refrain:'Refrain'};
 export const liveKinds=new Set(['panel_live','mb_live','generated_live','possessed_live']);
 const normalized=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('ja');
@@ -75,7 +75,7 @@ export function detailCoverageText(coverage,total){
  return '詳細 '+coverage.detail_card_count+' / '+total+'カード収録。'+(notes.length?notes.join('／')+'。':'')+'数値・条件は一部のみ収録。'+(conditionCounts?'パッシブ発動条件 '+(conditionCounts.structured??0)+' / '+Object.values(conditionCounts).reduce((a,b)=>a+b,0)+'項目対応'+(coverage.activation_condition_current_counts?'（未対応'+(conditionCounts.unsupported??0)+'項目）':'')+'。':'');
 }
 
-export const effectNames={appeal_enhanced:'強化アピール（属性・魅了）',idol_appeal_bonus:'人物別アピール倍率UP',random_grant:'ランダム効果（候補から探す）',appeal:'ライブ・思い出のアピール',support_gain:'能力・SPの獲得',support_recovery:'体力回復',support_cost_down:'体力消費軽減',support_trouble_down:'トラブル率軽減',support_rest_gain:'休む時の回復量増加',support_bond:'初期の絆',support_tension_protection:'テンション低下防止',support_presence_up:'レッスン滞在率UP',support_event_rate:'イベント発生率UP',support_knowhow_rate:'ノウハウ発現率UP',support_location_level:'施設のレベルUP',support_perfect:'パーフェクト発生',support_excellent:'エクセレント強化',support_advice_rate:'アドバイス抽選率UP',appeal_boost:'アピール値UP',memory_gain_boost:'思い出ゲージ増加量UP',base_stat_boost:'基礎能力値UP',rate_up:'継続するUP効果',rate_down:'継続するDOWN効果',rate_cut:'継続するCUT効果',interest:'興味倍率',exchange_count_up:'交換数UP',appeal_perfect:'PERFECT時に倍率が変わるアピール',status_conversion:'自身のステータス効果変換',instant_satisfaction:'低確率で一気に満足させる',mental_overflow:'超過回復を思い出ゲージに変換',flexible:'フレキシブル付与',sparkle_eyes:'瞳の輝き付与',vigor_gain:'気力増加',memory_gauge_loss:'思い出ゲージ減少',mental_recovery:'メンタル回復',mental_cost:'自身のメンタル消費',memory_gauge_gain:'思い出ゲージ増加',relax:'リラックス付与',passive_boost:'パッシブスキル強化',refrain:'リフレイン',resurrection:'リザレクション付与',audience_status_clear:'観客ステータス解除',duet:'デュエット',duet_add:'デュエット追加',interest_minimum:'興味倍率（最小値）',charm:'魅了付与',enthusiasm:'熱狂付与',interest_reverse:'興味反転付与',interest_limit:'興味限定付与',melancholy:'メランコリー付与',appeal_consume:'消去付きアピール',action_order:'アピールの行動順指定',appeal_first:'必ず最初にアピール',appeal_last:'必ず最後にアピール'};
+export const effectNames={passive_up:'パッシブのUP効果',passive_down:'パッシブのDOWN効果',passive_cut:'パッシブのCUT効果',cap_increase:'ステータス上限UP',appeal_enhanced:'強化アピール（属性・魅了）',idol_appeal_bonus:'人物別アピール倍率UP',random_grant:'ランダム効果（候補から探す）',appeal:'ライブ・思い出のアピール',support_gain:'能力・SPの獲得',support_recovery:'体力回復',support_cost_down:'体力消費軽減',support_trouble_down:'トラブル率軽減',support_rest_gain:'休む時の回復量増加',support_bond:'初期の絆',support_tension_protection:'テンション低下防止',support_presence_up:'レッスン滞在率UP',support_event_rate:'イベント発生率UP',support_knowhow_rate:'ノウハウ発現率UP',support_location_level:'施設のレベルUP',support_perfect:'パーフェクト発生',support_excellent:'エクセレント強化',support_advice_rate:'アドバイス抽選率UP',appeal_boost:'アピール値UP',memory_gain_boost:'思い出ゲージ増加量UP',base_stat_boost:'基礎能力値UP',rate_up:'継続するUP効果',rate_down:'継続するDOWN効果',rate_cut:'継続するCUT効果',interest:'興味倍率',exchange_count_up:'交換数UP',appeal_perfect:'PERFECT時に倍率が変わるアピール',status_conversion:'自身のステータス効果変換',instant_satisfaction:'低確率で一気に満足させる',mental_overflow:'超過回復を思い出ゲージに変換',flexible:'フレキシブル付与',sparkle_eyes:'瞳の輝き付与',vigor_gain:'気力増加',memory_gauge_loss:'思い出ゲージ減少',mental_recovery:'メンタル回復',mental_cost:'自身のメンタル消費',memory_gauge_gain:'思い出ゲージ増加',relax:'リラックス付与',passive_boost:'パッシブスキル強化',refrain:'リフレイン',resurrection:'リザレクション付与',audience_status_clear:'観客ステータス解除',duet:'デュエット',duet_add:'デュエット追加',interest_minimum:'興味倍率（最小値）',charm:'魅了付与',enthusiasm:'熱狂付与',interest_reverse:'興味反転付与',interest_limit:'興味限定付与',melancholy:'メランコリー付与',appeal_consume:'消去付きアピール',action_order:'アピールの行動順指定',appeal_first:'必ず最初にアピール',appeal_last:'必ず最後にアピール'};
 export const recipientNames={self:'自身',rivals:'ライバル（自身以外の全ユニット）',all_units:'全ユニット',all_audience:'全観客'};
 export function effectRecipient(e){return e.recipient??(e.audience==='all'?'all_audience':null);}
 export const triggerNames={produce_start:'プロデュース開始時',missed_promise:'約束を守れなかった時',rest:'休むを選択時',lesson_or_work:'レッスン・お仕事選択時',unit_member_present:'行動場所に自分以外のユニットメンバーがいる時',tension_max:'テンション最高で一緒に行動時',audition_first:'オーディション1位',vocal_lesson:'一緒にボーカルレッスン',dance_lesson:'一緒にダンスレッスン',visual_lesson:'一緒にビジュアルレッスン',radio:'一緒にラジオ出演',talk:'一緒にトークショー出演',magazine:'一緒に雑誌撮影',talk_event:'一緒にトークイベント出演',solo_vocal_lesson:'ボーカルレッスン',solo_dance_lesson:'ダンスレッスン',solo_radio:'ラジオ出演',no_trouble:'スキル発動時に一緒に行動し、トラブルなし',excellent:'一緒に行動してエクセレント発生時',knowhow_acquired:'ノウハウブック獲得時',always:'常時',say_halo:'say "Halo"編',appeal_phase_start:'アピールフェイズ開始時',turn_2:'2ターン目',mental_zero:'メンタルが0になった時に回復',reaction_evaded:'観客のリアクションを回避成功時に付与',reaction_damage:'観客のリアクションでダメージを受けた時に付与'};
@@ -249,31 +249,47 @@ export function effectSearchMatches(item,e,params){
  return words.every(word=>normalized([...itemSearchParts(item),effectFactText(e)].join(' ')).includes(word));
 }
 
-export function detailSearch(cards,params,details){
+// Search-only facts retain their source field. The canonical detail object is never changed.
+export function searchEffects(item){
+ const effects=(item.effect_details?.effects??[]).map((e,index)=>({...e,source_field:'effect_details',source_index:index,source_detail_id:item.detail_id}));
+ if(item.kind==='panel_passive')for(const [index,f] of (item.numeric_facts??[]).entries()){
+  const metric={UP:'passive_up',DOWN:'passive_down',CUT:'passive_cut'}[f.direction];
+  const targets=f.targets??(f.target?[f.target]:[]);
+  if(f.metric==='rate'&&metric&&Number.isFinite(f.value)&&targets.length)
+   effects.push({metric,targets:[...targets],value:f.value,unit:'percent',scope:'base',source_field:'numeric_facts',source_index:index,source_detail_id:item.detail_id});
+ }
+ if(item.kind==='cap_increase'&&Number.isFinite(item.cap_delta)&&item.cap_targets?.length)
+  effects.push({metric:'cap_increase',targets:[...item.cap_targets],value:item.cap_delta,unit:'points',scope:'base',source_field:'cap_delta',source_index:0,source_detail_id:item.detail_id});
+ return effects;
+}
+export function hasSkillConditions(params){return ['skill_q','skill_kind','mechanic','skill_condition','effect_type','effect_target','effect_recipient','effect_turns'].some(k=>params.get(k));}
+export function matchDetailItem(item,params){
  const q=normalized(params.get('skill_q')).trim().split(/\s+/).filter(Boolean);
- const kinds=params.getAll('skill_kind'),mechanics=params.getAll('mechanic');
- const condition=params.get('skill_condition')??'';
- const only=params.get('detail_status')==='available';
- const effectFilter=hasEffectFilters(params);
- if(!q.length&&!kinds.length&&!mechanics.length&&!only&&!condition&&!effectFilter)return cards;
- return cards.filter(card=>{
-  const detail=details.get(card.card_id);
-  if(!detail)return false;
-  if(!q.length&&!kinds.length&&!mechanics.length&&!condition&&!effectFilter)return true;
-  return detail.items.some(item=>{
-   if(kinds.length&&!kinds.includes(item.kind))return false;
-   if(condition&&!activationConditionTypes(itemActivationCondition(item)).includes(condition))return false;
-   if(mechanics.length&&(!liveKinds.has(item.kind)||!mechanics.some(value=>(item.mechanics??[]).includes(value))))return false;
-   const common=itemSearchParts(item);
-   const effects=item.effect_details?.effects??[];
-   if(effectFilter)return effects.some(e=>effectSearchMatches(item,e,params));
+ const kinds=params.getAll('skill_kind'),mechanics=params.getAll('mechanic'),condition=params.get('skill_condition');
+ if(kinds.length&&!kinds.includes(item.kind))return null;
+ if(condition&&!activationConditionTypes(itemActivationCondition(item)).includes(condition))return null;
+ if(mechanics.length&&(!liveKinds.has(item.kind)||!mechanics.some(v=>(item.mechanics??[]).includes(v))))return null;
+ const effects=searchEffects(item);
+ if(hasEffectFilters(params)){
+  const matched=effects.filter(e=>effectSearchMatches(item,e,params));
+  return matched.length?{item,effects:matched}:null;
+ }
+ const common=itemSearchParts(item);
    const rules=item.effect_details?.mechanic_conditions??[];
    const baseEffects=effects.filter(e=>!['memory_link','memory_charge'].includes(e.scope)).map(e=>effectFactText(e));
    const views=[[...common,...baseEffects,...rules.filter(r=>r.slot==='effect').map(mechanicRuleText),...(item.numeric_facts??[]).map(factText),...(item.random_effect_options?.length?['ランダム',...item.random_effect_options.map(factText)]:[])]];
    if(item.memory_link_present)views.push([...common,'Link追加効果',...effects.filter(e=>e.scope==='memory_link').map(e=>effectFactText(e)),...rules.filter(r=>r.slot==='link').map(mechanicRuleText),...(item.memory_link_facts??[]).map(factText)]);
    if(item.memory_charge_present)views.push([...common,'チャージ追加効果',...effects.filter(e=>e.scope==='memory_charge').map(e=>effectFactText(e)),...rules.filter(r=>r.slot==='charge').map(mechanicRuleText),...(item.memory_charge_facts??[]).map(factText)]);
-   return views.some(parts=>{const text=normalized(parts.join(' '));return q.every(word=>text.includes(word));});
-  });
+
+ if(!views.some(parts=>{const text=normalized(parts.join(' '));return q.every(word=>text.includes(word));}))return null;
+ return {item,effects:q.length?effects.filter(e=>effectSearchMatches(item,e,params)):[]};
+}
+export function detailMatches(detail,params){return hasSkillConditions(params)?(detail?.items??[]).map(i=>matchDetailItem(i,params)).filter(Boolean):[];}
+export function detailSearch(cards,params,details){
+ if(!hasSkillConditions(params)&&params.get('detail_status')!=='available')return cards;
+ return cards.filter(card=>{
+  const detail=details.get(card.card_id);
+  return !!detail&&(!hasSkillConditions(params)||detailMatches(detail,params).length>0);
  });
 }
 export async function loadDetails(baseVersion,version){

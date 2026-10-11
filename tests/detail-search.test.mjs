@@ -492,3 +492,27 @@ test('owner keywords qualify only their own effect and distinguish user from for
  assert.ok(!effectSearchMatches(item,other,new URLSearchParams({effect_type:'rate_up',skill_q:'リーダーシップ'})));
  assert.ok(!effectSearchMatches(item,e,new URLSearchParams({effect_type:'rate_up',effect_turns:'5',skill_q:'リーダーシップ'})));
 });
+
+
+import {searchEffects,detailMatches} from '../web/details.mjs';
+test('passive adapters search a single numeric fact and never activation probabilities',()=>{
+ const item={detail_id:'passive1',kind:'panel_passive',name:'複合',numeric_facts:[{metric:'rate',target:'Vocal',value:50,direction:'UP'},{metric:'rate',target:'注目度',value:20,direction:'DOWN'},{metric:'activation_probability',value:50}]};
+ const before=JSON.stringify(item),d=new Map([['P1',{items:[item]}]]);
+ assert.equal(searchEffects(item).length,2);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=passive_up&effect_target=Vocal'),d),[cards[0]]);
+ for(const query of ['effect_type=passive_up&effect_target=注目度','effect_type=rate_up','effect_type=passive_up&effect_recipient=self','effect_type=passive_up&effect_turns=1','effect_type=passive_up&skill_q=20%'])assert.deepEqual(detailSearch(cards,new URLSearchParams(query),d),[],query);
+ const matched=detailMatches(d.get('P1'),new URLSearchParams('effect_type=passive_down&effect_target=注目度'));
+ assert.equal(matched[0].effects[0].source_index,1);
+ assert.equal(matched[0].effects[0].source_detail_id,'passive1');
+ assert.equal(JSON.stringify(item),before);
+});
+test('cap adapter keeps node, target and keyword together without borrowing another panel',()=>{
+ const d=new Map([['P1',{items:[{detail_id:'c1',kind:'cap_increase',name:'Vocal上限',cap_targets:['Vocal'],cap_delta:100},{detail_id:'c2',kind:'cap_increase',name:'Dance上限',cap_targets:['Dance'],cap_delta:200}]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=cap_increase&effect_target=Vocal&skill_q=200'),d),[]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=cap_increase&effect_target=Vocal&skill_q=100'),d),[cards[0]]);
+ assert.equal(detailMatches(d.get('P1'),new URLSearchParams('effect_type=cap_increase&effect_target=Vocal'))[0].item.detail_id,'c1');
+});
+test('kind and mechanic only searches expose item reasons while availability alone does not',()=>{
+ assert.equal(detailMatches(details.get('P1'),new URLSearchParams('skill_kind=panel_live&mechanic=link'))[0].item.name,'通常');
+ assert.deepEqual(detailMatches(details.get('P1'),new URLSearchParams('detail_status=available')),[]);
+});
