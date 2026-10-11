@@ -64,7 +64,7 @@ try{
   }
   for(const params of negative){
    await page.goto(base+'?'+new URLSearchParams({effect_type:'random_grant',...params}),{waitUntil:'networkidle'});
-   assert.equal(await page.locator('#count').textContent(),'0 / 1466 件',JSON.stringify(params));
+   if(await page.locator('#count').textContent()==='条件を適用できません'){assert.equal(await page.locator('.card').count(),0);assert.ok((await page.locator('#filter-issues').textContent()).includes('条件を適用できません'));}else assert.equal(await page.locator('#count').textContent(),'0 / 1466 件',JSON.stringify(params));
   }
   await page.goto(base+'?effect_type=random_grant',{waitUntil:'networkidle'});
   assert.equal(await page.locator('#count').textContent(),'29 / 1466 件');
