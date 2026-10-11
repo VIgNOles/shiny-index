@@ -1,6 +1,6 @@
 # UI v24：超過回復・特殊効果の検索
 
-2026-10-12。UI23/95fからの追加。公開候補の検証中であり、公開済みとは扱わない。
+2026-10-12。UI23/95fからの追加。公開検証済み。詳細d1-eb904a754963a0e5、保存タグui-v24-compound-verified-20261012。
 
 保存済み原文だけから46カード(P30/S16)/94項目を補完。24025項目のID・8手修正・原本r20を維持し、旧20025効果を保持、61効果追加で20086。追加取得・Google書込なし。検索/表示が変わるためUI24、データだけの更新ではUI番号を上げない。
 
@@ -17,6 +17,6 @@
 
 任意フィールド追加でdetail_schema=1.0を維持。旧不変バンドルを変更しない。旧UIへの切戻しは旧UI23/95fの組で作成し、新UI専用効果を旧UIで表示しない。現在の原本や新しい不変URLは削除しない。
 
-検証根拠：private/audits/ui24-structure-20261012.json、ui24-source-proof-20261012.json、ui24-xlsx-replay-20261012.json、ui24-compound-progress-20261012.json。46保存HTML/197位置/103フィールド一致。Python347/JS72 PASS。画面/公開/復旧の結果はHANDOFFとdocs/verification.mdへ確定後に追記する。
+検証根拠：private/audits/ui24-structure-20261012.json、ui24-source-proof-20261012.json、ui24-xlsx-replay-20261012.json、ui24-compound-progress-20261012.json。46保存HTML/197位置/103フィールド一致。Python347/JS72 PASS。画面/公開/復旧も合格。結果はHANDOFFとdocs/verification.mdに記録。
 
 機械棚卸しの残りは15/5032(約0.30%)、全liveでも15。意味網羅率や残工数率ではない。原文の属性表記欠落3、期間未記載12はprivate/audits/ui24-source-gaps-20261012.jsonで原HTMLのセルまで確認。明記されていない属性/期間は推測せず、ROOTS3の単位未確認等と併せて追跡する。ライブ全体のpartial表示は維持する。

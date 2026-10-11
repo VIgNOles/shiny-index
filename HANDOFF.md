@@ -1,6 +1,31 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 最新状態（2026-10-12）：UI24の超過回復・特殊効果を公開検証・保存
+
+元の要件/明示変更はTASK.md、今回の原文は末尾。停止待機なし、全体完成ではない。新しいユーザー判断待ちはなし。
+
+公開UI v24、詳細d1-eb904a754963a0e5。46カード(P30/S16)/94項目（パネル69/MB10/思い出13/生成2）を補完。旧20025効果保持、61追加・34既存補足で計20086。超過回復30/フレキシブル20/瞳9/気力13/即時ゲージDOWN3/変換5/PERFECT4/低確率満足7/可変期間魅了1/使用者キーワード2。原本r20/24025 ID/8手修正/原セル/非効果/coverage/4SHA不変、Wiki/Google書込0。
+
+Python347/JS72、46保存HTML/197位置/103フィールド、native XLSX/canonical/cards/coverage/内容ID一致。コードCI38161872540・公開CI38162350717はWindows3.13.16/Linux3.12.14ともsuccess、Pages38162350718 success。公開104/104匿名HTTP200全バイト/Git blob一致、新16正例/18否定と基本/詳細を1280/390/320で確認。旧UI23強化/人物倍率11+12・定期回復6+7のローカル回帰、UI23/95f切戻し候補3幅もPASS。ローカル2/公開2画像を視認。
+
+隔離4障害→104サイト/原本/接続を復旧。正常ZIP106を実展開・全実ファイルSHA/check_site/check_pair一致。C ZIP2本を維持し、照合済み重複4フォルダーのみ整理、論理2415166031bytes、D空き6868488192→9284214784bytes。原入力/原本/canonical/接続/site/Git/監査/旧ZIP保持。本番全面障害注入/切戻しは未実施。
+
+残り15/5032（約0.30%、全live15）は機械棚卸しの候補割合で、意味網羅率/残工数率ではない。保存HTML6ページの原セルを確認し、属性表記Visuaの不備3、期間未記載12を証拠付き保存。ROOTS3の単位、日付不明56、S90最大Lv360空欄、Google実画面、独立公式網羅、全面実機/スクリーンリーダー、私的入力別PC再変換等を保持。47個別ページ/実在新規基礎カード本番追加はユーザー保留、Pステージ/適正・Sファイト対象外、CSV画面非表示、問い合わせ必須ではない。停止待機なし、全体完成ではない。
+
+公開 https://vignoles.github.io/shiny-index/ 。基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754a、詳細原本r20/1419(P548/S871)/24025、公開d1-eb904a754963a0e5。コード4f76c153c6e243afbf359119490ab459e83c936a、公開4fc48f6e349c5e44216e26034eb68dedc6653769、保存タグui-v24-compound-verified-20261012。実Gitで最終保存SHA/タグを照合する。native履歴ccdbと派生版eb904を混同せず接続は変更しない。取得complete/revision4098/active_attempt=null。
+
+変更src/skill_effects.py・special_live_effects.py、web/details.mjs・index.html、tests/test_overflow_named_status.py・detail-search.test.mjs・ui-v24-compound-smoke.mjsと過去2 smokeの版指定互換、docs/ui-v24-spec.md・README/TASK/HANDOFF/operations/verification/compound-progress・ローカルdesign。公開変更index.html/details.mjs/details/latest.jsonとeb904バンドル2、他の全旧版を保持。
+
+証拠private/audits/ui24-*、private/recovery/ui24-compound-20261012/report.json、private/ui24-before-publication-20261012。checkpoint=private/audits/ui24-checkpoint-20261012.json、receipt=private/raw/detail-catalog-20261009/latest-verified-publication.json。新画面Hug？の期待値をGrow：で限定したのは既存Plus魅了との区別で、試験側のみ訂正。補助棚卸しのpublic card_title参照をbase参照へ修正した。中断/原本/公開の不整合はない。
+
+復旧manifest=private/ui24-compound-archive-20261012.json。C側shiny-index-ui24-compound-20261012/ui24-r20-verified-snapshot.zip（106 files/82656910bytes/SHA8164f0ec1ea75dff6667bd38886b67f45a287db3b1238f78556e87827dba3968）、ui23-95f-with-ui24-immutable-bundles.zip（104 files/76837031bytes/SHA0add7ed135c03e0b6db2d2c53b6432e9d8c349e3076c985410a36448f8298b0c）。削除済み4候補フォルダーは意図した重複整理であり破損/中断ではない。operations末尾の未作成先復元手順を使う。本番を自動置換しない。
+
+次の具体操作：Git/タグ・4SHA・site pointer/receipt/stateを実照合。新規取得不要。private/audits/ui24-source-gaps-20261012.jsonの15項目を、ゲーム内/別の明確な資料で確認できた分だけ補正する。属性表記の正規化を行う場合は補正根拠と原文を残し、期間は別効果から借りない。既存5注目度DOWNは量だけの構造化済みだが期間不明であり、期間保証検索へ含めない。解決待ちでも検索フィルターの組合せ/スマホ選択・解除等の独立したUI品質確認を進められる。表示/操作が変わる場合だけUI番号更新。今回の34ケースに加え、用途別シナリオで検索結果の正しさ→操作の分かりやすさを点検する。
+<!-- /current-state -->
+
+## UI24公開前の記録（履歴）
+
 ## 続行中（2026-10-12）：UI24の複合効果候補を検証中
 
 公開正常版はUI23/d1-95f16ffad9c810bf。Git4fa38保存点/4SHA/公開pointer/取得complete・active_attemptなしを実照合、不整合なし。今回ユーザー指示をTASK末尾へ原文保存。停止待機なし、全体完成ではない。
@@ -10,7 +35,7 @@
 ローカル新16正例/18否定の3幅を検証中。Hug？は既存Plus3ターン魅了もあるため、可変期間の検証をGrow：に限定した（試験側の期待値修正、原本/公開の不整合なし）。残り15/5032は原文属性欠落3/期間未記載12、証拠private/audits/ui24-source-gaps-20261012.json。新しいユーザー確認を必須として止めず、明記分の公開検証と既存保留/未確認を追跡。
 
 次：画面/旧検索回帰、隔離復旧とUI23/95f組切戻し、コードCI、候補公開/匿名全ファイル照合、復旧ZIP実復元、Git/記録保存。checkpoint=private/audits/ui24-checkpoint-20261012.json。
-<!-- /current-state -->
+
 
 ## 直前のUI23正常版（履歴）
 

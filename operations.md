@@ -793,3 +793,33 @@ node tests/ui-v23-modifiers-smoke.mjs private/site-phase-recovery-replay-next
 正常ZIP104ファイル(site102/原本/接続)を実展開/全SHA/check_pair検証済み。未作成先へ復元し本番を自動上書きしない。関連検査関数はcheck_pair(site=...,master=...,connection=...)と名付き引数で呼ぶ。
 
 直前UI23/bf8へ切り戻す候補は同manifestのprivate/site-phase-recovery-rollback-20261012を別の未作成先へ復元する。新95fバンドルも保持した全102ファイルで全版/強化・人物倍率3幅確認済み。index.html/details/latest.jsonを一組で戻し、UI23資産/原本/接続/全不変バンドルを保持。旧ui-v23-modifiers-verified-20261012も保持。本番全面障害注入/切戻し未実施。重複4フォルダー整理後もC ZIPから復元可能。
+
+
+## 2026-10-12 UI24の保存入力再変換・復元
+
+仕様docs/ui-v24-spec.md。原本r20/native履歴ccdbを保持し、派生d1-eb904a754963a0e5/計20086。コード4f76c153c6e243afbf359119490ab459e83c936a、公開4fc48f6e349c5e44216e26034eb68dedc6653769、保存タグui-v24-compound-verified-20261012。正確な再現はこのタグのコードを使う。新依存なし。Node24.19.0/Playwright1.62.1、Python3.12.14/3.13.16。NodeがPATHにない環境ではインストール済みNodeの絶対パスを使い、必要なCLIではNODE環境変数を設定する。
+
+原本/旧効果/全版・画面を確認するまで本番siteを置き換えない。取得不要、原本をGoogleへ書き戻さない。
+
+~~~powershell
+if (Test-Path -LiteralPath private/site-ui24-replay-next) { throw '既存の出力先は上書きしません' }
+Copy-Item -LiteralPath site -Destination private/site-ui24-replay-next -Recurse
+.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/site-ui24-replay-next
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx private/site-ui24-replay-next --master-snapshot private/details/ui24-replay-next.json
+.venv/Scripts/python.exe scripts/audit_effect_structure.py private/details/master-r20-visual-authoritative-20261011.json private/site-ui24-replay-next private/audits/ui24-replay-next.json --baseline-version d1-95f16ffad9c810bf
+$env:UI_BROWSER_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+$env:UI_EXPECTED_VERSION='ui-v24'
+node tests/ui-v24-compound-smoke.mjs private/site-ui24-replay-next
+node tests/ui-phase-recovery-smoke.mjs private/site-ui24-replay-next
+node tests/ui-v23-modifiers-smoke.mjs private/site-ui24-replay-next
+~~~
+
+正常ZIP106ファイル(site104/原本/接続)の実展開/全SHA/check_site/check_pairを確認済み。C側の保存先とZIP SHAはprivate/ui24-compound-archive-20261012.json。未作成先へ復元し、本番を自動上書きしない。check_pairは名付き引数で呼ぶ。
+
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui24-compound-20261012/restored private/restored-ui24-next --manifest private/ui24-compound-archive-20261012.json
+~~~
+
+旧UI23/95fへ切り戻す候補は、同manifestのprivate/site-ui24-rollback-20261012を別の未作成先へ復元する。新eb904バンドルを保持した全104ファイルで全版/旧検索3幅合格。旧index.html/details.mjs/details/latest.jsonを一組で戻し、原本/接続/全不変版を保持。data-phase-recovery-verified-20261012も保持。本番全面障害注入/本番切戻しは未実施。重複4フォルダーは各ファイルSHA照合後に整理済みであり、欠落を中断不整合と誤認しない。
+
+残15候補はprivate/audits/ui24-source-gaps-20261012.jsonで原セルを確認済み。属性表記の補正根拠/期間を明確に確認できた場合だけ補完する。ROOTS3単位等の未確認・47件/実在新規基礎カード本番追加の保留は維持。今後のUI品質点検は独立して進められる。
