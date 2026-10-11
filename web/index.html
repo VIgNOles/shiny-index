@@ -91,7 +91,7 @@
               <label for="effect-target">属性・能力<select id="effect-target"><option value="">指定なし</option></select></label>
               <label for="effect-recipient">効果を受ける側（明記分）<select id="effect-recipient"><option value="">指定なし</option></select></label>
               <label for="effect-turns">継続ターン（範囲は最短で判定）<select id="effect-turns"><option value="">指定なし</option><option value="1">1ターン以上</option><option value="2">2ターン以上</option><option value="3">3ターン以上</option><option value="4">4ターン以上</option><option value="5">5ターン以上</option><option value="7">7ターン以上</option><option value="10">10ターン以上</option></select></label>
-              <p class="filter-help">効果の種類・属性や能力・受ける側・継続ターンは、同じ1つの効果に一致するカードを表示します。期間に幅がある効果は最短ターンで判定し、最大ターンのみの記載や即時効果は継続条件に含めません。回避・ダメージ時のUPは付与後の継続ターンで判定します。「回避成功時」などのキーワードで探せます。受ける側は明記された範囲だけで絞ります。記載のない効果を「自身」と推定しません。消去付きアピールはアピール属性で絞り、「DanceUP」「DanceDOWN」などで消すステータスを指定できます。消去は継続ターンに含めません。詳細では一致するスキルを先に表示し、該当効果を強調します。</p>
+              <p class="filter-help">効果の種類・属性や能力・受ける側・継続ターンは、同じ1つの効果に一致するカードを表示します。期間に幅がある効果は最短ターンで判定し、最大ターンのみの記載や即時効果は継続条件に含めません。回避・ダメージ時のUPは付与後の継続ターンで判定します。「回避成功時」などのキーワードで探せます。受ける側は明記された範囲だけで絞ります。記載のない効果を「自身」と推定しません。消去付きアピールはアピール属性で絞り、「DanceUP」「DanceDOWN」などで消すステータスを指定できます。消去と順序指定は継続ターンに含めません。「必ず最初にアピール」「必ず最後にアピール」で行動順を検索できます。行動順はメーター結果によらず指定され、アピール値はメーター結果で計算します。コラボフェスでは順序指定は無効です。詳細では一致するスキルを先に表示し、該当効果を強調します。</p>
             </fieldset>
             <label class="filter-option"><input id="detail-available" type="checkbox">詳細収録済みのカードだけ</label>
             <p class="filter-help">機能はライブスキル、発動条件は対応済みのパッシブが対象です。種類・キーワード・機能・発動条件は同じスキルに一致するカードを表示します。未収録のカードはスキル検索に含まれません。</p>
@@ -130,7 +130,7 @@
       </details>
     </footer>
   </main>
-  <script>window.DATA_VERSION='__VERSION__';window.UI_VERSION='ui-v20';window.DETAIL_VERSION='__DETAIL_VERSION__';</script>
+  <script>window.DATA_VERSION='__VERSION__';window.UI_VERSION='ui-v21';window.DETAIL_VERSION='__DETAIL_VERSION__';</script>
   <script type="module" src="app.mjs"></script>
 </body>
 </html>

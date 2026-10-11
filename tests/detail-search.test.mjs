@@ -346,3 +346,27 @@ test('delayed relax recovery remains distinct from instant mental recovery',()=>
  assert.equal(detailSearch(cards,new URLSearchParams({effect_recipient:'all_units',effect_type:'mental_recovery',skill_q:'翌ターン'}),d).length,0);
  assert.ok(!effectFactText(es[1]).includes('翌ターン'));
 });
+
+
+test('action order search includes numeric and standalone directives without borrowing attributes or turns',()=>{
+ const numeric={metric:'appeal',targets:['Vocal'],unit:'multiplier',scope:'base',value:3,appeal_order:'last',order_excludes:['collaboration_fes'],audience:'all'};
+ const directive={metric:'action_order',targets:['行動順'],unit:'boolean',scope:'base',value:1,appeal_order:'first',order_excludes:['collaboration_fes']};
+ const buff={metric:'rate_up',targets:['メンタルダメージ'],unit:'percent',scope:'base',value:50,turns:1};
+ const link={metric:'appeal',targets:['Visual'],unit:'multiplier',scope:'link',value:4};
+ const d=new Map([['P1',{items:[{name:'順序',kind:'panel_live',effect_details:{effects:[numeric,directive,buff,link]}}]}]]);
+ const count=p=>detailSearch(cards,new URLSearchParams(p),d).length;
+ assert.equal(count({effect_type:'action_order'}),1);
+ assert.equal(count({effect_type:'appeal_first',skill_q:'コラボフェス'}),1);
+ assert.equal(count({effect_type:'appeal_last',effect_target:'Vocal',effect_recipient:'all_audience'}),1);
+ assert.equal(count({effect_type:'appeal_first',effect_target:'メンタルダメージ'}),0);
+ assert.equal(count({effect_type:'appeal_first',effect_turns:'1'}),0);
+ assert.equal(count({effect_type:'appeal_last',effect_target:'Visual'}),0);
+ assert.equal(count({effect_type:'appeal',skill_q:'アピールの行動順指定'}),0);
+ assert.equal(count({effect_type:'appeal_first',skill_q:'必ず最後'}),0);
+ assert.ok(!effectFactText(directive).includes('倍'));assert.ok(!effectFactText(directive).includes('ターン'));
+});
+test('collaboration exception applies to order alone and preserves appeal value and audience',()=>{
+ const e={metric:'appeal',targets:['Dance'],unit:'multiplier',scope:'base',value:4.5,appeal_order:'last',audience:'all',order_excludes:['collaboration_fes']};
+ const label=effectFactText(e);
+ assert.ok(label.includes('4.5倍'));assert.ok(label.includes('全観客'));assert.ok(label.includes('コラボフェスでは順序指定は無効'));assert.ok(!label.includes('アピール無効'));
+});

@@ -16,6 +16,8 @@ SCOPES={'base','link','plus','change','grow','refrain','memory_link','memory_cha
 TARGETS.update({'パッシブスキル発動率','パッシブスキル','リラックス','過去のアピール'})
 METRICS.update({'mental_recovery','mental_cost','memory_gauge_gain','relax','passive_boost','refrain'})
 METRICS.update(SPECIAL_METRICS)
+METRICS.add('action_order')
+TARGETS.add('行動順')
 TARGETS.update(SPECIAL_TARGETS)
 TRIGGERS.add('mental_zero')
 TRIGGERS.update(REACTION_TRIGGERS)
@@ -142,7 +144,8 @@ ATTR=r'(?:Vocal|Dance|Visual|Vo|Da|Vi|ボーカル|ダンス|ビジュアル)'
 RECIPIENT_PREFIX=r'(?P<recipient>全ユニットの|全ユニットに|ライバルの|ライバルに|自身の|自身に)?'
 RECIPIENTS={'全ユニットの':'all_units','全ユニットに':'all_units','ライバルの':'rivals','ライバルに':'rivals','自身の':'self','自身に':'self'}
 RATE=re.compile(RECIPIENT_PREFIX+r'(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|注目度|思い出ゲージ|リアクション回避率|回避率|メンタルダメージ|メンタル|影響力|パッシブスキル発動率)(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)%(?P<direction>UP|DOWN|CUT)(?:\[(?P<turns>\d+)ターン\]|\[(?P<until_damage>ダメージを受けるまで)\])')
-APPEAL=re.compile(r'(?P<order>必ず最初に|必ず最後に)?(?P<audience>全観客に)?(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|Excellent)(?P<maximum>最大)?(?:(?P<minimum>\d+(?:\.\d+)?)[～〜~])?(?P<value>\d+(?:\.\d+)?)倍アピール')
+LONG_ORDER=re.compile(r'(?P<order>必ず最初に|必ず最後に)アピールを行い')
+APPEAL=re.compile(r'(?:(?P<order>必ず最初に|必ず最後に)(?:アピールを行い)?)?(?P<audience>全観客に)?(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|Excellent)(?P<maximum>最大)?(?:(?P<minimum>\d+(?:\.\d+)?)[～〜~])?(?P<value>\d+(?:\.\d+)?)倍アピール')
 INTEREST=re.compile(r'(?P<audience>全観客に|全観客の)?興味(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)倍\[(?P<turns>\d+)ターン\]')
 LIVE_EXTRA=[
  (re.compile(RECIPIENT_PREFIX+r'メンタル(?P<value>\d+(?:\.\d+)?)%回復'),'mental_recovery','メンタル','percent'),
@@ -197,11 +200,14 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
   in_piece=[];condition=effect_condition(part,ctx,current) if idx or current=='memory_link' else None
   rule=mechanic_rule(part,ctx,current) if condition=={'status':'unsupported'} else None
   reaction_spans,reactive=reaction_facts(part,current)
+  # A recognised action prefix opens only its own immediately following effect.
+  orders=[m for m in LONG_ORDER.finditer(part) if (not m.start() or part[m.start()-1] in '/]') and part[:m.start()].count('[')==part[:m.start()].count(']')]
+  order_ends={m.end() for m in orders}
   for pattern,metric in [(RATE,None),(INTEREST,'interest'),(APPEAL,'appeal')]:
    for m in pattern.finditer(part):
     if any(a<=m.start()<b for a,b in reaction_spans):continue
     # Reject a suffix match inside a longer status or '最大' conditional number.
-    if m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]) and part[m.start()-1] not in ']':continue
+    if m.start() not in order_ends and m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]) and part[m.start()-1] not in ']':continue
     if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
     if metric!='appeal' and m.groupdict().get('maximum') and current!='grow':continue
     targets=['興味'] if metric=='interest' else [{'Vo':'Vocal','Da':'Dance','Vi':'Visual','ボーカル':'Vocal','ダンス':'Dance','ビジュアル':'Visual','回避率':'リアクション回避率'}.get(x,x) for x in m['targets'].split('&')]
@@ -210,7 +216,7 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
      if m['minimum'] is not None:e['minimum']=float(m['minimum'])
      if m['maximum']:e['maximum']=True
      if m['audience']:e['audience']='all'
-     if m['order']:e['appeal_order']='first' if m['order']=='必ず最初に' else 'last'
+     if m['order']:e.update(appeal_order='first' if m['order']=='必ず最初に' else 'last',order_excludes=['collaboration_fes'])
      if consumption:=adjacent_consumption(part,m.end()):e['status_consumption']=consumption
     else:
      if m['turns']:e['turns']=int(m['turns'])
@@ -227,7 +233,7 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
   for pattern,metric,target,unit in LIVE_EXTRA:
    for m in pattern.finditer(part):
     if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
-    if m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]):continue
+    if m.start() not in order_ends and m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]):continue
     if m.groupdict().get('maximum') and current!='grow':continue
     e=effect(metric,[target],unit,scope=current,value=float(m['value']),restriction_status='partial')
     if m.groupdict().get('maximum'):e['maximum']=True
@@ -242,6 +248,13 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
   for pos,e in special_facts(part,current,ctx)+reactive:
    if condition:e['activation_condition']=condition
    in_piece.append((pos,e))
+  for m in orders:
+   if any(pos==m.start() and e['metric']=='appeal' for pos,e in in_piece):continue
+   # Keep order separate when the immediate recognised effect is not a numeric appeal.
+   if not any(pos==m.end() and e['metric']!='appeal' for pos,e in in_piece):continue
+   e=effect('action_order',['行動順'],'boolean',scope=current,value=1,appeal_order='first' if m['order']=='必ず最初に' else 'last',order_excludes=['collaboration_fes'],restriction_status='partial')
+   if condition:e['activation_condition']=condition
+   in_piece.append((m.start(),e))
   if rule:
    for _,e in in_piece:e['mechanic_condition']=rule
    if not in_piece and standalone is not None:standalone.append({'slot':slot,'segment':idx//2,'scope':current,'condition':rule})
@@ -284,12 +297,14 @@ def validate_effect_details(doc,known_idols,condition_context=None):
    if key in seen:raise ValueError('Duplicate mechanic segment')
    seen.add(key);validate_rule(r['condition'],condition_context,r['scope'])
  for e in doc['effects']:
-  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses','status_consumption','starts_next_turn'}:raise ValueError('Non-public effect field')
+  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses','status_consumption','starts_next_turn','order_excludes'}:raise ValueError('Non-public effect field')
   if e.get('metric') not in METRICS or not isinstance(e.get('targets'),list) or not e['targets'] or len(e['targets'])!=len(set(e['targets'])) or set(e['targets'])-TARGETS or e.get('unit') not in {'points','percent','multiplier','boolean'} or e.get('scope') not in SCOPES:raise ValueError('Invalid effect fact')
   validate_amount({k:e[k] for k in ('value','formula','amount_unknown') if k in e})
   if 'status_consumption' in e:validate_consumption(e)
   if e['metric']=='refrain' and (e['unit']!='points' or type(e.get('value')) not in (int,float) or e['value']%1 or e['value']<1):raise ValueError('Invalid refrain distance')
-  if 'appeal_order' in e and (e['metric']!='appeal' or e['appeal_order'] not in {'first','last'}):raise ValueError('Invalid appeal order')
+  if 'appeal_order' in e and (e['metric'] not in {'appeal','action_order'} or e['appeal_order'] not in {'first','last'}):raise ValueError('Invalid appeal order')
+  if 'order_excludes' in e and (e.get('appeal_order') not in {'first','last'} or e['order_excludes']!=['collaboration_fes']):raise ValueError('Invalid action order exclusion')
+  if e['metric']=='action_order' and (e['targets']!=['行動順'] or e['unit']!='boolean' or e.get('value')!=1 or e.get('appeal_order') not in {'first','last'} or e.get('order_excludes')!=['collaboration_fes'] or set(e)-{'metric','targets','unit','scope','value','restriction_status','appeal_order','order_excludes','activation_condition','mechanic_condition'}):raise ValueError('Invalid standalone action order')
   if 'activation_condition' in e and e['activation_condition']!={'status':'unsupported'}:
    if condition_context is None:raise ValueError('Missing effect condition context')
    validate_extension(e['activation_condition'],condition_context)
