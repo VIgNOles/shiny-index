@@ -1,6 +1,6 @@
 # 管理者の操作手順
 
-2026-10-11の現行はUI19・詳細原本r20/1419カード・24025項目・8手修正。最新の検証・再開基準はHANDOFF.mdとdocs/verification.md、UI19/r20の復元は本書末尾を参照してください。後続の日時付き工程・旧版の停止/稼働記録は当時の履歴です。
+2026-10-11の現行はUI20・詳細原本r20/1419カード・24025項目・8手修正。最新の検証・再開基準はHANDOFF.mdとdocs/verification.md、UI20/r20の復元は本書末尾を参照してください。後続の日時付き工程・旧版の停止/稼働記録は当時の履歴です。
 
 ## 現在の原本
 
@@ -617,3 +617,31 @@ C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a33
 隔離復旧4ケースと88サイトファイル/原本/接続の全バイト復元はprivate/recovery/ui19-consumption-20261011/report.json。正常な原本・公開サイトへ障害を注入しない。今回の候補・切戻し候補・recovery-restored・ZIP試験展開の4フォルダーはバックアップと削除直前の全SHA照合後に整理した。raw・原本・接続・canonical・正常site・監査・Gitは保持。削除証拠private/audits/ui19-cleanup-proof-20261011.json。
 
 未完了は全複合効果・独立公式網羅・全面実機/Google実画面・本番全面復旧等。47個別ページと実在新規基礎カードの本番追加実証はユーザー指定で保留。今回新しい確認待ちや中断更新はない。
+
+
+## UI v20の対象範囲・回復時点（2026-10-11）
+
+原本r20/8手修正は変更せず、保存原本からの変換だけを更新する。新しい対象範囲は明記分だけで、未記載を自身と推定しない。受ける側と属性・能力は別の条件で、同じ効果へ適用する。Google接続のnative採用履歴はccdb6d01a44d5a37のまま保持する。
+
+変換を再現する場合は、正常siteを新しいprivate候補ディレクトリへコピーして旧不変バンドルを全て保持する。基礎原本のprepareでweb資産を反映した後、原本XLSXから詳細をexportする。既存原本JSONへ出力しない。
+
+~~~powershell
+if (Test-Path -LiteralPath private/site-ui20-replay-next) { throw '既存の出力先は上書きしません' }
+Copy-Item -LiteralPath site -Destination private/site-ui20-replay-next -Recurse
+.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/site-ui20-replay-next
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx private/site-ui20-replay-next --master-snapshot private/details/ui20-replay-next.json
+.venv/Scripts/python.exe scripts/check_site.py private/site-ui20-replay-next
+$env:UI_BROWSER_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+$env:UI_EXPECTED_VERSION='ui-v20'
+node tests/ui-v20-recipients-smoke.mjs private/site-ui20-replay-next
+~~~
+
+候補のHTML/UI版、基礎版、詳細版を照合し、全テスト後に公開する。上記の出力先は未作成の名前に変更する。表示・操作の追加はUI番号を更新し、データ追加だけでは更新しない。
+
+UI v19への切戻しは、旧UIとd1-5004defda130126eの組を使い、新しいd1-a3b293a6ff62c088を含む不変URLを保持する。原本r20やGoogle接続を巻き戻さない。検証した切戻し候補はprivate/ui20-recovery-archive.jsonのprivate/site-ui20-ui19-rollback-20261011から復元する。
+
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui20-ui19-rollback-20261011 private/restored-ui19-next --manifest private/ui20-recovery-archive.json
+~~~
+
+現行UI v20の原本/接続付き正常スナップショットは同manifestのprivate/recovery/ui20-recipients-20261011/restored。復元先は既存ディレクトリを上書きしない新しいprivate名を使う。切戻し候補・ZIP実展開の検証は隔離環境で行い、本番全面障害注入や本番UI切戻し実施とは区別する。復元後はsite/master.xlsx/connection.jsonの全バイトとcheck_pairで原本採用履歴/派生公開版を照合する。

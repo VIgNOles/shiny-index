@@ -1,6 +1,48 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 最新状態（2026-10-11：UI v20・効果を受ける側を公開検証済み）
+
+元の要件・後続変更を保持して続行。プロジェクト全体の完成ではない。47個別ページと実在新規基礎カード本番追加はユーザー指定で保留。Pステージ/適正・Sファイト対象外、CSV画面非表示、低負荷取得。UI番号は表示/操作変更時のみ更新する。新しいユーザー判断待ちはない。
+
+### 現在の正常版
+公開 https://vignoles.github.io/shiny-index/ 、UI v20、基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754a、詳細原本r20/1419(P548/S871)/24025、公開詳細d1-a3b293a6ff62c088。
+実装13eba248d64879df80bc69a4b8faadb36f3b3e26、公開3acae4726f09ff4cc0696a8f32abc5ea6ecc1331。検証済み保存タグui-v20-recipients-verified-20261011。Pages38114280243 success、コードCI38114094240/公開CI38114280263はWindows3.13.16/Linux3.12.14ともsuccess。
+原本private/master.xlsx SHA1340b6a3319861e74885f1ae74f3ebb140c249e9a98454622e1f81b47ea17611、canonical private/details/master-r20-visual-authoritative-20261011.json SHAb74c3e922cab5cbd541516d5071a22b6cea38ba85682b3fb32fcb24e4a240315、8手修正を保持。原本/Google書込0・Wiki通信0。
+Googleはprivate/sheets-connection.jsonに記録した指定所有者のみのnative r20/15タブ。native採用履歴ccdb6d01a44d5a37と派生公開a3b293a6ff62c088は効果構造だけが異なる正常な組。native履歴を派生版に合わせて上書きしない。
+
+### 今回完成したこと
+- 効果の受け手を属性・能力から分離。「自身」「ライバル（自身以外の全ユニット）」「全ユニット」「全観客」を明記分だけで検索する。URL effect_recipient、選択/再読込/チップ解除/強調表示に対応。種類・属性・受け手・継続・キーワードは同じ1効果で判定する。未記載を自身と推定せず、次の効果やLinkへ継承しない。
+- 17効果を追加：全ユニットUP10/即時回復3/リラックス2、ライバルDOWN2。既存自身メンタル消費101の受け手を明示。リラックス106/メランコリー10に翌ターン開始を補完し、リラックスは最大メンタル基準/アピールフェイズ開始時と表示。即時回復に継続ターンを補わない。125カード/215項目の派生構造を変更、総19828効果。既存19811効果の欠落0。ライブpartialは維持する。
+- src/skill_effects.py/special_live_effects.py、web/app.mjs/details.mjs/index.html、関連Python/JS/新UIブラウザ試験、docs/ui-v20-spec.mdを変更。TASK/design/README/operations/検証記録へ理由と手順を反映。原本/全ID/8手修正/非効果フィールド/coverage不変。
+
+### 検証済みの結果
+Python283/JS58成功。Windows/Linuxのコード/公開CIとも成功。保存R01 relax/sub_004/sub_005と125HTML/441セル位置/226原文フィールドが完全一致。全ユニット/ライバルの25原文フィールドを全数構造化。原本XLSXとcanonical JSONが一致し、XLSXからの再変換も公開候補の全cards/coverage/内容IDと一致。パッシブ5890/5890、区間条件688構造化/未対応0、旧fallback57を保持。
+ローカル1280/390/320で基本/詳細/消去回帰/新受け手正例6・否定7、選択/再読込/強調/チップ解除/横溢れ検査が合格。匿名公開も同3幅で基本/詳細/新受け手6+7と操作が合格。公開320/1280の一致表示を視認。公開90/90が匿名HTTP200・ローカル全バイト一致、全90 Git blobも一致。旧不変バンドルの削除・変更なし。
+UI19+5004の切戻し候補は新a3b2バンドルも保持し、全版検査/3幅詳細・消去検索が合格。本番を旧UIへ切り替える試験は未実施。UI20/r20隔離コピーで4障害を検出し90サイトファイル/原本/接続を完全復旧。ZIP92ファイルを実展開して全SHAとnative/public関連を再確認。本番への障害注入ではない。
+
+### 保存と整理
+証拠private/audits/ui20-recipients-checkpoint-20261011.json、ui20-recipients-structure/source-proof/reference-proof/inventory-coverage、ui20-xlsx-replay、ui20-public-files/public-git-bytes、ui20-code-ci-jobs/release-ci-jobs/pages-jobs、ui20-archive-restore-proof。公開receiptの直前版はprivate/ui20-before-publication-20261011へ保存し、現行値を更新。履歴の条件件数は保持する。
+C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-ui20-recovery-20261011/ にui20-r20-verified-snapshot.zip（92ファイル/63,868,443bytes）とui19-coherent-with-ui20-immutable-bundles.zip（90ファイル/58,048,918bytes）。対応表private/ui20-recovery-archive.json、隔離復旧報告private/recovery/ui20-recipients-20261011/report.json。旧UI19以前のZIPを保持する。今回作成した重複4ディレクトリはZIPと削除直前にも全SHA照合して整理済み。論理サイズ1898075740bytes、D空き8104112128→10002722816bytes。証拠ui20-cleanup-proof。候補/切戻し候補/recovery-restored/ZIP実展開の元パスは存在しない。raw/site/原本/接続/canonical/監査/Gitを保持する。
+復元例（未作成のprivate出力先へ）：
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui20-recipients-20261011/restored private/restored-ui20-next --manifest private/ui20-recovery-archive.json
+出力site/master.xlsx/connection.jsonを全SHAとcheck_pairで確認する。UI19切戻しは同manifestのprivate/site-ui20-ui19-rollback-20261011を復元。原本r20と新不変URLを保持する。
+
+### 未完了と具体的な再開地点
+1. Git、原本SHA、site/details/latest.json、接続を実照合する。基準UI20/a3b2/r20。UI19/5004は切戻し、ccdbはnative採用履歴であり、古い記録でlatestを上書きしない。
+2. 保存1419カード原文の未構造化の複合効果を継続監査する。private/audits/ui20-order-inventory-20261011.jsonには「必ず/自身」の47原文フィールドを棚卸し済み（未対応47件という意味ではない）。次は長い「必ず最初/最後にアピールを行い…」の作用を確認する。数値アピールのない後続効果へ架空のアピールを作らず、行動順と後続効果を分けて設計する。変換/検証は保存入力で実施し不要なWiki通信を避ける。画面変更時のみ次UI21、データのみならUI20を維持する。
+3. S90最大Lv360原文空欄、日付不明56、全複合効果/独立公式網羅/全面実機・Google実画面/私的全入力の別PC再変換/本番全面復旧は未完了。47個別ページと実在新規基礎カード本番追加は保留。
+4. acquisition stateはcomplete/revision4098/active_attempt=null、SHA434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e。取得/原本更新はなし。初期補助スクリプトの空白・R01 anchor名・文言照合は修正再実行済みで、本番影響/未解決中断処理/ユーザー判断待ちはない。通常の続行区切りで追加停止指示ではない。
+<!-- /current-state -->
+
+## UI20前の履歴（旧UI19・候補段階の記録）
+
+以下は当時の履歴であり現在の公開状態ではない。
+
+## 2026-10-11 続行中：UI v20候補（公開はまだUI v19）
+
+候補private/site-ui20-recipients-candidate-20261011、d1-a3b293a6ff62c088。17新効果と対象範囲/回復時点の補完で215項目を変更。全既存効果/ID/coverage/8手修正を保持。Python283/JS58成功、保存125HTML/441位置/226フィールド完全一致。原本とGoogleへの書込・Wiki通信なし。ブラウザと全版検査を実行中、公開/切戻し/保存/最終報告は未完了。private/audits/ui20-recipients-checkpoint-20261011.jsonを実状態と照合して続行する。初期補助スクリプトの空白・参照anchor照合は修正済み、本番への影響なし。
+
 ## 最新状態（2026-10-11：UI v19・消去付きアピールを公開検証済み）
 
 元の要件・後続変更を保持して続行。プロジェクト全体の完成ではない。47個別ページと実在新規基礎カードの本番追加実証はユーザー指定で保留。Pステージ/適正・Sファイト対象外、CSV画面非表示、低負荷取得。UI番号は画面/操作変更時のみ更新する。新しいユーザー判断待ちはない。
@@ -38,7 +80,6 @@ private/audits/ui19-consumption-checkpoint-20261011.json、ui19-consumption-stru
 2. 保存した全1419カード原文から未構造化の複合効果を継続監査する。今回「消去」は対象範囲の全数を扱ったが、最大値の条件、ランダム効果の関係、付与対象範囲など全体の意味付けは未完成。原文の単語件数を未対応件数と同一視しない。保存入力から再変換し不要なWiki通信を避ける。画面変更時のみ次UI20。
 3. S90の最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/Google実画面、私的全入力の別PC再変換、本番全面復旧は未完了。47個別ページと実在新規基礎カードの本番追加実証は保留を継続。
 4. acquisition stateはcomplete/revision4098/active_attempt=null、SHA434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e。今回の取得/原本更新はなし。候補試験の初期不備は修正再実行済みで、未解決の中断更新・実行中処理・新ユーザー判断待ちはない。通常の続行区切りで、追加の停止指示ではない。
-<!-- /current-state -->
 
 ## 直前のUI18工程記録（旧状態・2026-10-11）
 
