@@ -30,24 +30,52 @@
         <label class="query" for="q">カード名・アイドル名・シリーズ名で検索</label>
         <input id="q" type="search" placeholder="例：櫻木真乃 トワコレ" autocomplete="off" aria-controls="cards">
         <div id="filters" aria-label="主な絞り込み条件"></div>
-        <div id="series-shortcuts" class="series-shortcuts" role="group" aria-label="シリーズ・入手区分の近道">
-          <span class="series-shortcuts-label">シリーズ・入手から探す</span>
-          <p class="filter-help">複数選択は「いずれかに一致」。その他はイベント報酬・特典など、上記以外です。</p>
-        </div>
-        <details id="advanced-filters">
-          <summary>条件を追加 <span id="advanced-count"></span></summary>
+        <button id="open-filters" type="button" hidden>絞り込み（0）</button>
+        <div id="filter-panel">
           <details id="people-filter" class="filter-group">
             <summary>ユニット・アイドル <span id="people-count"></span></summary>
-            <p id="legacy-people-note" hidden>旧リンクの人物条件です。ここを変更すると新しい選択方式に切り替わります。</p>
+            <p id="legacy-people-note" hidden>リンクの人物条件を下の互換欄で編集中です。解除後、ユニット・アイドルを選べます。</p>
             <div id="people-groups"></div>
           </details>
-          <p class="advanced-help">上の近道は大きな区分です。ここではシリーズ・企画と入手区分を個別に、近道と組み合わせて絞り込めます。</p>
-          <div id="advanced-groups"></div>
+          <section class="filter-group" aria-labelledby="series-heading">
+            <h2 id="series-heading" class="filter-heading">シリーズ・入手</h2>
+            <div id="series-shortcuts" class="series-shortcuts" role="group" aria-label="シリーズ・入手区分の近道">
+              <p class="filter-help">複数選択は「または」。その他は上の7区分以外です。</p>
+            </div>
+            <div id="advanced-groups"></div>
+            <p class="filter-help">区分・企画タグ・詳しい入手方法の間は「すべて満たす」。例：期間限定 ＋ 誕生日。</p>
+          </section>
+          <details id="skill-filters" class="filter-group">
+            <summary>スキル・性能から探す</summary>
+            <fieldset id="skill-controls">
+              <legend class="visually-hidden">スキルの条件</legend>
+              <label for="skill-kind">探す情報<select id="skill-kind"><option value="">指定なし（すべて）</option></select></label>
+              <label for="effect-type">欲しい効果<select id="effect-type"><option value="">指定なし</option></select></label>
+              <label for="effect-target">効果の属性・能力<select id="effect-target"><option value="">指定なし</option></select></label>
+              <label for="skill-q">スキル名・効果・条件のキーワード</label>
+              <input id="skill-q" type="search" placeholder="例：メンタル 回避成功時" autocomplete="off" aria-describedby="skill-query-help">
+              <p id="skill-query-help" class="filter-help">空白区切りは全語に一致。効果条件を指定すると、その同じ効果と共通のスキル情報を検索します。Wiki本文の全文検索ではありません。</p>
+              <details id="performance-advanced">
+                <summary>性能の詳しい条件</summary>
+                <fieldset id="live-origins"><legend>ライブスキルの種類</legend><div id="live-origin-options" class="filter-options"></div><p class="filter-help">未指定は全種類。MB＝メモリーブースト。生成は生成元を詳細に表示します。</p></fieldset>
+                <div id="mechanic-control"><p class="filter-heading">ライブスキルの追加機能</p><div id="skill-mechanics" class="filter-options" role="group" aria-label="ライブスキルの追加機能"></div><p class="filter-help">複数は「または」。その機能を持つライブを探します。一致した効果がLink等の追加部分とは限りません。</p></div>
+                <label id="condition-control" for="skill-condition">発動条件に含まれる要素<select id="skill-condition"><option value="">指定なし</option></select></label>
+                <label id="recipient-control" for="effect-recipient">効果の対象<select id="effect-recipient"><option value="">指定なし</option></select></label>
+                <label id="turns-control" for="effect-turns">継続ターン<select id="effect-turns"><option value="">指定なし</option><option value="1">1ターン以上</option><option value="2">2ターン以上</option><option value="3">3ターン以上</option><option value="4">4ターン以上</option><option value="5">5ターン以上</option><option value="7">7ターン以上</option><option value="10">10ターン以上</option></select></label>
+                <p class="filter-help">効果・属性・対象・継続は同じ1効果で照合。期間に幅があれば最短で判定し、未記載の対象や期間は推定しません。</p>
+              </details>
+              <p id="effect-context" class="filter-help"></p>
+            </fieldset>
+            <details id="effect-coverage"><summary>収録範囲と検索の補足</summary><p id="detail-coverage" class="filter-help">詳細情報を読み込み中…</p><p id="effect-coverage-text" class="filter-help"></p></details>
+          </details>
+          <details id="advanced-filters" class="filter-group">
+            <summary>その他のカード条件 <span id="advanced-count"></span></summary>
           <fieldset class="dates">
+            <div class="date-mode" role="group" aria-label="日付の入力方式"><label class="filter-option"><input type="radio" name="date-mode" value="ymd" checked>年月日から</label><label class="filter-option"><input type="radio" name="date-mode" value="calendar">カレンダー</label></div>
             <legend>初回実装日</legend>
             <div class="date-bound">
               <h3>この日から</h3>
-              <label for="from-native">カレンダーで選ぶ
+              <label class="calendar-input" for="from-native" hidden>カレンダーで選ぶ
                 <input id="from-native" type="date">
               </label>
               <div class="date-selects" role="group" aria-label="実装日の下限を年月日から選ぶ">
@@ -59,7 +87,7 @@
             </div>
             <div class="date-bound">
               <h3>この日まで</h3>
-              <label for="to-native">カレンダーで選ぶ
+              <label class="calendar-input" for="to-native" hidden>カレンダーで選ぶ
                 <input id="to-native" type="date">
               </label>
               <div class="date-selects" role="group" aria-label="実装日の上限を年月日から選ぶ">
@@ -69,54 +97,46 @@
               </div>
               <output id="to-summary">指定なし</output>
             </div>
-            <button id="date-apply" type="button">この期間で絞り込む</button>
             <p id="date-error" role="alert" hidden></p>
             <p id="date-hint" hidden></p>
           </fieldset>
-        </details>
-        <details id="skill-filters" class="filter-group">
-          <summary>スキルから探す</summary>
-          <p id="detail-coverage" class="filter-help">詳細情報を読み込み中…</p>
-          <details id="effect-coverage"><summary>効果検索の対応範囲</summary><p id="effect-coverage-text" class="filter-help"></p></details>
-          <fieldset id="skill-controls">
-            <legend class="visually-hidden">スキルの条件</legend>
-            <label for="skill-q">スキル名・効果・発動／Lv上昇条件で検索</label>
-            <input id="skill-q" type="search" placeholder="例：体力回復 ボーカルレッスン" autocomplete="off" aria-controls="cards">
-            <label for="skill-kind">スキルの種類<select id="skill-kind"><option value="">すべて</option></select></label>
-            <label for="skill-condition">パッシブ発動条件の要素<select id="skill-condition"><option value="">指定なし</option></select></label>
-            <div id="skill-mechanics" class="filter-options" role="group" aria-label="ライブスキルの機能"></div>
-            <fieldset class="effect-filters">
-              <legend>効果を絞り込む</legend>
-              <label for="effect-type">効果の種類<select id="effect-type"><option value="">指定なし</option></select></label>
-              <label for="effect-target">属性・能力<select id="effect-target"><option value="">指定なし</option></select></label>
-              <label for="effect-recipient">効果を受ける側（明記分）<select id="effect-recipient"><option value="">指定なし</option></select></label>
-              <label for="effect-turns">継続ターン（範囲は最短で判定）<select id="effect-turns"><option value="">指定なし</option><option value="1">1ターン以上</option><option value="2">2ターン以上</option><option value="3">3ターン以上</option><option value="4">4ターン以上</option><option value="5">5ターン以上</option><option value="7">7ターン以上</option><option value="10">10ターン以上</option></select></label>
-              <p class="filter-help">効果の種類・属性や能力・受ける側・継続ターンは、同じ1つの効果に一致するカードを表示します。期間に幅がある効果は最短ターンで判定し、最大ターンのみの記載や即時効果は継続条件に含めません。回避・ダメージ時のUPは付与後の継続ターンで判定します。「回避成功時」などのキーワードで探せます。受ける側は明記された範囲だけで絞ります。記載のない効果を「自身」と推定しません。消去付きアピールはアピール属性で絞り、「DanceUP」「DanceDOWN」などで消すステータスを指定できます。消去と順序指定は継続ターンに含めません。「必ず最初にアピール」「必ず最後にアピール」で行動順を検索できます。行動順はメーター結果によらず指定され、アピール値はメーター結果で計算します。コラボフェスでは順序指定は無効です。「ランダム効果（候補から探す）」を選ぶと、同じ候補内で属性・継続・キーワードを判定します。候補の付与は保証されません。通常のUP効果検索には候補を含めません。詳細では一致するスキルを先に表示し、該当効果を強調します。</p>
-            </fieldset>
             <label class="filter-option"><input id="detail-available" type="checkbox">詳細収録済みのカードだけ</label>
-            <p class="filter-help">機能はライブスキル、発動条件は対応済みのパッシブが対象です。種類・キーワード・機能・発動条件は同じスキルに一致するカードを表示します。未収録のカードはスキル検索に含まれません。</p>
-          </fieldset>
-        </details>
-        <div class="selected-row">
-          <div id="active-filters" aria-label="選択中の条件">絞り込み条件なし</div>
-          <button id="reset" type="button">条件をリセット</button>
+          </details>
+          <details id="legacy-filters" class="filter-group" hidden>
+            <summary>リンクの追加条件</summary>
+            <p class="filter-help">元のリンクの条件を保持しています。各欄内は「または」、通常の条件と欄の間は「すべて満たす」です。人物のユニット・アイドル指定も両方満たします。</p>
+            <div id="legacy-groups"></div>
+          </details>
+          <div id="filter-issues" role="alert" hidden></div>
         </div>
       </section>
 
       <section class="results" aria-labelledby="results-heading">
         <div class="toolbar">
           <div class="result-heading">
-            <h2 id="results-heading">検索結果</h2>
+            <h2 id="results-heading" tabindex="-1">検索結果</h2>
             <p id="count" role="status" aria-live="polite" aria-atomic="true">読み込み中…</p>
           </div>
           <div class="result-tools">
             <label for="sort">並べ替え<select id="sort"></select></label>
           </div>
         </div>
+        <div class="selected-row">
+          <div id="active-filters" aria-label="選択中の条件"></div>
+          <button id="reset" type="button">全条件を解除</button>
+        </div>
+        <p class="filter-help combination-help">異なる欄の条件はすべて満たすカードを表示します。同じ多選択欄の中は「または」です。</p>
         <ul id="cards" class="cards-list"></ul>
       </section>
     </div>
 
+    <dialog id="filter-dialog" aria-labelledby="filter-dialog-heading">
+      <header class="dialog-header"><h2 id="filter-dialog-heading" tabindex="-1">絞り込み</h2><button id="cancel-filters" type="button">キャンセル</button></header>
+      <p class="filter-help">このパネルではまとめて適用します。キャンセル・戻る・Escは変更を破棄します。</p>
+      <div id="dialog-filter-body"></div>
+      <footer class="dialog-footer"><p id="draft-count" role="status" aria-live="polite"></p><button id="apply-filters" type="button">件数を確認中…</button></footer>
+    </dialog>
+    <p id="filter-announcement" class="visually-hidden" role="status" aria-live="polite"></p>
     <footer>
       <h2>データと収録範囲</h2>
       <p id="version"></p>
@@ -130,7 +150,7 @@
       </details>
     </footer>
   </main>
-  <script>window.DATA_VERSION='v1-93a6a8b8d40e754a';window.UI_VERSION='ui-v24';window.DETAIL_VERSION='d1-5734710ad392192f';</script>
+  <script>window.DATA_VERSION='v1-93a6a8b8d40e754a';window.UI_VERSION='ui-v25';window.DETAIL_VERSION='d1-5734710ad392192f';</script>
   <script type="module" src="app.mjs"></script>
 </body>
 </html>
