@@ -1,6 +1,71 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 安全停止中（2026-10-11）：UI23候補のローカル検証完了、公開はUI22
+
+最新ユーザー原文：「Token上限が来るので安全に停止して」。元の依頼・全完成条件・後続明示変更はTASK.mdに保持。再開指示まで実装・公開を停止する。プロジェクト全体の完成ではない。
+
+### 停止位置と公開状態
+
+- 公開 https://vignoles.github.io/shiny-index/ はUI v22、基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754a、詳細原本r20/1419(P548/S871)/24025、公開詳細d1-bf612e2cb40aacc5。停止時にindex.htmlとdetails/latest.jsonを匿名HTTP200で読み、正常なlocal siteと全バイト一致を確認。前回の全98ファイル公開検証済み版を維持。
+- UI23候補private/site-ui23-candidate-20261011はd1-bf8bf97512968e30、100サイトファイル/20010構造化効果。84カード(P65/S19)/319項目、強化アピール327と人物別倍率UP69、既存19941効果の欠落0。実装296311709cf0eb9a9b15b5017487f87cdf20fcb5はorigin/mainへpush済み。コードCI38146913895 success、Pages38146914023 skipped。ジョブ単位の詳細は停止時未取得。公開用コミット/公開処理は開始していない。
+- UI変更があるため候補のみv23。公開UI番号はv22。データだけの追加でUI番号を変えない既存規則を維持。
+- private/audits/ui23-checkpoint-20261011.jsonとui23-safe-pause-proof-20261011.jsonが停止時記録。公開receiptは直前正常版のまま。候補を公開済みと扱わない。
+
+### 完了・検証済み
+
+Python325/JS67、候補全版check_site、保存84HTML/854位置/527フィールド一致、保存R01の強化/魅了/人物倍率3節照合、native最終XLSXとcanonicalから全cards/coverage/内容ID一致。全24025 ID/8手修正/非効果項目を保持。
+
+ローカル1280/390/320pxで新検索正例11/否定12、既存最大UP7+8とランダム8+10の回帰に合格。P/S、属性、人物、最大値、期間、Link/Plus/Grow、同じ効果、非継承、再読込、チップ解除、横溢れを確認。320px魅了強化と390pxGrow人物別倍率のスクリーンショットを視認済み。証拠private/audits/ui23-local-*、ui23-mental-regression-*、ui23-random-regression-*。
+
+隔離4障害→100サイトファイルと原本/接続の復旧に合格。新bf8不変バンドルを残したUI22/bf612e切戻し候補はcheck_site/3幅最大UP画面で合格。停止直前のsession62028（切戻し）、26971（ZIP保存/実復元）はどちらもexit0で正常終了。正常ZIP102ファイルの実展開・全SHA/check_pairも合格。private/audits/ui23-archive-restore-proof-20261011.json。本番切戻し/全面障害注入は未実施。
+
+### 原本・取得・プロセスの保護
+
+停止時の4SHA一致：
+- private/master.xlsx：1340b6a3319861e74885f1ae74f3ebb140c249e9a98454622e1f81b47ea17611
+- private/details/master-r20-visual-authoritative-20261011.json：b74c3e922cab5cbd541516d5071a22b6cea38ba85682b3fb32fcb24e4a240315
+- private/sheets-connection.json：4de02ecf1c7f2915595aa361509d8a1c514d7d7372526cb5b3aec245485c2a4c
+- private/raw/detail-catalog-20261009/state.json：434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e
+
+取得state complete/revision4098/active_attempt=null。停止時に該当するPython/Node/Git/Edgeの実行中処理0を確認（ui23-processes-at-pause-20261011.json）。結果不明の取得/原本更新/公開処理なし、強制終了不要。今回Wiki通信/原本・Google書込0。native採用履歴ccdbと派生公開bf612e/候補bf8の区別を保持し、接続履歴を派生版へ書き換えない。
+
+### 保存ファイルと復旧
+
+変更コード/テスト：src/skill_effects.py、web/details.mjs/index.html、tests/test_appeal_modifiers.py/detail-search.test.mjs/ui-v23-modifiers-smoke.mjs/ui-mental-spent-smoke.mjs/ui-v22-random-smoke.mjs。文書：docs/ui-v23-spec.md/compound-progress-20261011.md、TASK.md/HANDOFF.md、ローカルdesign.md。実装コードは上記2963117で保存済み。停止文書は別のローカルコミット、SHAはui23-checkpoint/停止保存証拠に記録する。siteは直前正常版から変更していない。
+
+ZIP対応表private/ui23-recovery-archive.json、C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-ui23-recovery-20261011/に保存：
+- ui23-r20-verified-snapshot.zip：102ファイル、77273973bytes、SHA355361a6c818c90859e392ef6486aa4071490c62d5dd653e825609d500e93af1
+- ui22-bf612e-with-ui23-immutable-bundles.zip：100ファイル、71454424bytes、SHA0a183eee38a101f83d7ef01b34437404b9f7099c037554733cf646061968d2d1
+- ui23-preliminary-not-for-publication.zip：100ファイル、71453413bytes、SHA80906d0334e31f68da0342ab02f0a411485069a63e9961bc3c171929e3e16b15
+
+初期候補a6は人物倍率の適用除外/検索名を最終調整する前の完結した生成物で、private/ui23-candidate-pre-bonus-limits-20261011へ退避済み。最終bf8候補とは区別し、a6を公開/採用しない。停止のため候補/復旧展開/初期候補の重複フォルダーは削除せず保持。D空き停止確認時約6.6GB。原本/raw/接続/canonical/site/監査/Git/旧ZIPも保持。
+
+正常ZIPを復元する場合は、既存フォルダーを上書きせず未作成先へ：
+`.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui23-modifiers-20261011/restored private/restored-ui23-next --manifest private/ui23-recovery-archive.json`
+
+停止文書・design・今回監査・チェックポイント・receiptのC側コピーは同じarchive root下pause-handoff/。copy-proof.jsonでバイト照合する。復旧ZIPと文書コピーは別用途。
+
+### 未完了・未検証・残件
+
+1. UI23の公開コミット/Pages公開、公開100ファイル/Git blob全一致、匿名公開3幅の新UI/基本/詳細確認、公開画面視認、公開版receiptとREADME/verification/operations最終更新が未実施。現在公開されていると誤認しない。
+2. 候補上の複合効果追加確認候補122/5032（約2.4%、残り目安2〜3%）。公開中bf612eでは427/5032（約8.5%）。これは機械棚卸しの候補割合で、意味網羅率/残工数率ではない。全liveのpartialを保持。未解決の例：溢れメンタル→思い出、定期回復、フレキシブル/気力/瞳、状態変換、即死、期間欠落のUP/DOWN、PERFECT、原文Visua誤記等。ui23-compound-progress-20261011.jsonに再現根拠。ROOTSの単位欠落3候補は別枠の未確認表示を維持。
+3. Google実画面はCua環境起動失敗により未確認。API/実XLSX全値検証は合格済み。環境復旧後に確認。S90最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧も未完了。
+4. 47個別Wikiページなしと実在新規基礎カード本番追加実証はユーザー指定保留。Pステージ/適正・Sファイトは対象外、CSV画面非表示。問い合わせを必須としない。新しいユーザー判断待ちはないが、現在は安全停止の指示が有効。
+
+### 再開時の具体的な順序（再開指示があるまで実行しない）
+
+1. TASK/HANDOFF/current checkpoint、Git差分/HEAD/origin、上記4SHA、取得state、公開pointerと候補pointerを実照合。今回停止文書の未pushコミットを保持する。実行結果を引き継ぎ文書だけで判断しない。
+2. 既に合格したローカル検証を不用意に全再実行しない。コードCI38146913895のジョブ結果と候補check_site/監査を確認し、変更がなければ公開へ進む。
+3. 最終候補からsite/index.html、site/details.mjs、site/details/latest.json、site/details/d1-bf8bf97512968e30/{details.json,manifest.json}の5ファイルのみ採用。旧不変バンドル保持・新a6不採用を確認し、git add -fで正確な5ファイルを登録。`publish: `で始まる公開コミットを作りpush、Pages/両OS CIを確認。
+4. `scripts/verify_public_site.py site https://vignoles.github.io/shiny-index/ private/audits/ui23-public-files-20261011.json --expected-detail d1-bf8bf97512968e30 --workers 2`、新tests/ui-v23-modifiers-smoke.mjsと基本/詳細の3幅を公開URLで確認し、全100ファイル/Git blob/画面を照合する。既存ローカル回帰は合格済み。
+5. 公開成功後にreceipt/README/verification/operations/TASK/HANDOFF/checkpointを最終更新し、検証済みタグを作成。C側保存を照合。今回重複5フォルダーの整理はZIP対応表・実復元・各全SHAを削除直前にも確認した場合だけ行う。候補は対応ZIPのsite/配下、復旧展開は102ファイルとして照合する。
+6. 公開保存が完了したら、保存原文の残り122候補を理由別に精査して複合効果対応を続行。指定保留とUI番号規則を維持する。
+<!-- /current-state -->
+
+## UI23停止前の進行記録（当時の状態）
+
+
 ## 続行中：UI23 強化アピール・人物別倍率UP（公開はUI22/bf612e）
 
 保存原文の複合効果を棚卸しし、5032項目中427確認候補（約8.5%、厳密完成率ではない）。原本r20/8手修正不変。新検索/表示を実装し、候補生成・検証・公開・復旧へ進行中。private/audits/ui23-checkpoint-20261011.jsonと実状態を照合。以下は直前正常版。
@@ -49,7 +114,7 @@ C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a33
 3. ROOTS3候補単位は未確認表示を保持。ゲーム内等で確認できた場合だけ根拠付き補正。現在の独立工程を止めるユーザー確認待ちにはしない。
 4. Google実画面はCuaのkernel exit1/windows sandbox failed/helper_unknown_errorで接続前失敗。直前private/audits/ui22-google-screen-attempt-20261011.json、今回再試行なし。影響は画面外観確認のみ、API/全値/実exportは合格済み。環境復旧後に再試行。
 5. S90最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧は未完了。47個別ページ/実在新規基礎カード本番追加は指定保留。通常の続行区切りであり、待機指示やプロジェクト完成ではない。
-<!-- /current-state -->
+
 
 ## 最大UP公開前とUI22初回の履歴（当時の記録）
 
