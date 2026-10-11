@@ -41,7 +41,7 @@ def facts(part,scope,ctx):
     e.update(targets=['興味'],unit='boolean',value=1,turns=int(g['turns']))
    elif metric=='melancholy':
     e.update(targets=['メンタル'],unit='percent',value=float(g['value']),turns=int(g['turns']),
-             recipient={'自身に':'self','ライバルに':'rivals','全ユニットに':'all_units'}[g['recipient']],trigger='appeal_phase_start')
+             recipient={'自身に':'self','ライバルに':'rivals','全ユニットに':'all_units'}[g['recipient']],trigger='appeal_phase_start',starts_next_turn=True)
    elif metric=='interest_minimum':
     if scope!='grow':continue
     e.update(targets=['興味'],unit='multiplier',value=float(g['value']),turns=int(g['turns']))

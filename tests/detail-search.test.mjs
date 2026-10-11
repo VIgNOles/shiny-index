@@ -318,3 +318,31 @@ test('consumption search binds removed statuses to the same appeal and distingui
  assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'appeal',skill_q:'消去対象：DanceDOWN Link'}),d).length,1);
  assert.ok(effectFactText(a).includes('このアピール直後'));assert.ok(effectFactText(a).includes('パッシブは対象外'));
 });
+
+
+test('recipient filters bind to one effect and never infer missing self scope',()=>{
+ const base={unit:'percent',scope:'base',value:10,turns:3};
+ const es=[{...base,metric:'rate_up',targets:['Visual'],recipient:'all_units'},
+  {...base,metric:'rate_up',targets:['Dance']},
+  {...base,metric:'rate_down',targets:['Visual'],recipient:'rivals'},
+  {metric:'mental_cost',targets:['メンタル'],unit:'percent',scope:'base',value:10,recipient:'self'},
+  {metric:'appeal',targets:['Vocal'],unit:'multiplier',scope:'base',value:3,audience:'all'}];
+ const d=new Map([['P1',{items:[{name:'範囲',kind:'panel_live',effect_details:{effects:es}}]}]]);
+ const count=p=>detailSearch(cards,new URLSearchParams(p),d).length;
+ assert.equal(count({effect_recipient:'all_units',effect_target:'Visual',effect_type:'rate_up'}),1);
+ assert.equal(count({effect_recipient:'all_units',effect_target:'Dance'}),0);
+ assert.equal(count({effect_recipient:'rivals',effect_type:'mental_cost'}),0);
+ assert.equal(count({effect_recipient:'self',effect_type:'mental_cost'}),1);
+ assert.equal(count({effect_recipient:'self',effect_type:'rate_up'}),0);
+ assert.equal(count({effect_recipient:'all_audience',effect_type:'appeal'}),1);
+ assert.equal(count({effect_recipient:'all_units',effect_type:'appeal'}),0);
+ assert.equal(count({effect_recipient:'rivals',skill_q:'対象：全ユニット'}),0);
+});
+test('delayed relax recovery remains distinct from instant mental recovery',()=>{
+ const es=[{metric:'relax',targets:['リラックス'],unit:'percent',scope:'base',value:5,turns:3,recipient:'all_units',trigger:'appeal_phase_start',starts_next_turn:true},
+ {metric:'mental_recovery',targets:['メンタル'],unit:'percent',scope:'base',value:10,recipient:'all_units'}];
+ const d=new Map([['P1',{items:[{name:'回復',kind:'panel_live',effect_details:{effects:es}}]}]]);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_recipient:'all_units',effect_type:'relax',skill_q:'翌ターン 最大メンタル アピールフェイズ開始時'}),d).length,1);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_recipient:'all_units',effect_type:'mental_recovery',skill_q:'翌ターン'}),d).length,0);
+ assert.ok(!effectFactText(es[1]).includes('翌ターン'));
+});
