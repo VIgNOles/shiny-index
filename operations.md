@@ -743,3 +743,27 @@ node tests/ui-mental-spent-smoke.mjs private/site-mental-spent-replay-next
 100ファイル（site98/原本/接続）を実展開・全SHA/check_pair照合済み。復元先siteのcheck_siteと原本/接続のcheck_pair、UI22の新/既存ブラウザ試験を通してから採用する。
 
 直前UI22/fc0bへ切り戻す場合は同manifestのprivate/site-mental-spent-rollback-20261011を別の未作成private出力先へ復元する。新bf612e不変バンドルも保持した98ファイルで全版/ランダム3幅確認済み。index.html/details/latest.jsonを一組で扱い、原本/native採用履歴を変更しない。タグui-v22-random-verified-20261011、直前2ファイル/receiptはprivate/mental-spent-before-publication-20261011、さらに旧UI21以前も保持。正常bf612eへの復帰は新ZIPの2ファイルを使う。本番全面障害注入/切戻しは未実施。
+
+
+## 2026-10-12 UI23の再変換・復旧・切戻し
+
+仕様docs/ui-v23-spec.md。正常版UI23/d1-bf8bf97512968e30、原本r20/全ID/8手修正を保持し、派生に強化327/人物別倍率69を追加。取得は不要。正確な版の再現は対応するGitタグui-v23-modifiers-verified-20261012のコードを使用し、今後の変換改良後に同じ内容IDを期待しない。
+
+~~~powershell
+if (Test-Path -LiteralPath private/site-ui23-replay-next) { throw '既存の出力先は上書きしません' }
+Copy-Item -LiteralPath site -Destination private/site-ui23-replay-next -Recurse
+.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/site-ui23-replay-next
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx private/site-ui23-replay-next --master-snapshot private/details/ui23-replay-next.json
+.venv/Scripts/python.exe scripts/audit_effect_structure.py private/details/master-r20-visual-authoritative-20261011.json private/site-ui23-replay-next private/audits/ui23-replay-next.json --baseline-version d1-bf612e2cb40aacc5
+$env:UI_BROWSER_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+$env:UI_EXPECTED_VERSION='ui-v23'
+node tests/ui-v23-modifiers-smoke.mjs private/site-ui23-replay-next
+~~~
+
+正確な保存版の復元（未作成のprivate先へ、既存原本/siteへ自動採用しない）：
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui23-modifiers-20261011/restored private/restored-ui23-next --manifest private/ui23-recovery-archive.json
+~~~
+正常ZIP102ファイル（site100/原本/接続）の実展開・全SHA/check_pairを確認済み。出力のcheck_site/原本関連/対応画面を確認後に採用する。ZIPはC側、対応表とSHAはprivate/ui23-recovery-archive.json。
+
+直前UI22/bf612eへ切り戻す候補は同manifestのprivate/site-ui23-ui22-rollback-20261011を別の未作成先へ復元する。全100ファイルにbf8不変バンドルを保持し全版/最大UP3幅確認済み。index.html/details.mjs/details/latest.jsonをUI22の組で戻し、原本/native採用履歴と全不変バンドルを保持する。旧data-mental-spent-verified-20261011も保持。初期a6候補は非採用履歴で公開しない。本番全面障害注入/本番切戻しは未実施。重複候補を整理した場合もZIPから復元できる。
