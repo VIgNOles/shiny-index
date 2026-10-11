@@ -1,6 +1,6 @@
 # 管理者の操作手順
 
-2026-10-11の現行はUI18・詳細原本r20/1419カード・24025項目・8手修正。最新の検証・再開基準はHANDOFF.mdとdocs/verification.md、UI18/r20の復元は本書末尾を参照してください。後続の日時付き工程・旧版の停止/稼働記録は当時の履歴です。
+2026-10-11の現行はUI19・詳細原本r20/1419カード・24025項目・8手修正。最新の検証・再開基準はHANDOFF.mdとdocs/verification.md、UI19/r20の復元は本書末尾を参照してください。後続の日時付き工程・旧版の停止/稼働記録は当時の履歴です。
 
 ## 現在の原本
 
@@ -583,3 +583,37 @@ Cのshiny-index-ui18-r20-recovery-20261011/ui18-r20-verified-snapshot.zipに86�
     .venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui18-r20-repaired-20261011/restored private/restored-ui18-r20-next --manifest private/ui18-r20-recovery-archive.json
 
 出力のsite/、master.xlsx、connection.jsonを組にし、check_site/check_pairを確認する。現行native r20やprivate/master.xlsxを無条件に上書きしない。今回の候補・切戻し・試験復旧・ZIP実展開の8コピーは照合後に整理済みで、元パスは存在しない。再開時は保存済み監査/原本/正常siteか、検証ZIPから新しいコピーを作る。private/audits/ui18-cleanup-proof-20261011.jsonに削除前の全ファイルSHA、保持先、原本/rawの保護照合を記録した。
+
+## UI19：原本を変えない派生変換と切戻し（2026-10-11）
+
+現行UI19、基礎r7/v1-93a6a8b8d40e754a、詳細原本r20、派生詳細d1-5004defda130126e。消去付き171アピールを108項目へ補完した。native接続のdetail_dataset_version=ccdbはr20原本採用時の履歴なので、派生公開5004に合わせて書き換えない。原本・全ID・8手修正は不変、Wiki通信0。
+
+原本r20が未変更なら、保存したXLSXから取得をせずに同じ構造を再生成できる。将来Sheetsで手編集した場合は従来のfresh export/review/applyを先に済ませる。次の例は毎回新しい出力名を使う。公開済み全不変バンドルを引き継ぐためsiteをコピーしてからprepareする。
+
+~~~powershell
+if (Test-Path -LiteralPath 'private/rebuild-ui19-example') { throw '新しい出力名を選ぶ' }
+Copy-Item -LiteralPath 'site' -Destination 'private/rebuild-ui19-example' -Recurse
+.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/rebuild-ui19-example
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx private/rebuild-ui19-example --master-snapshot private/details/rebuilt-r20-example.json
+.venv/Scripts/python.exe scripts/audit_effect_structure.py private/details/rebuilt-r20-example.json private/rebuild-ui19-example private/audits/rebuilt-ui19-example.json --baseline-version d1-ccdb6d01a44d5a37
+$env:UI_EXPECTED_VERSION='ui-v19'
+$env:UI_BROWSER_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+node tests/ui-v19-consumption-smoke.mjs private/rebuild-ui19-example
+~~~
+
+未変更r20では派生版5004、基礎1466/詳細1419/24025項目/8手修正、UI18比108項目・171消去付きアピール、旧効果欠落0を期待する。件数・非効果項目・原本SHAが予想外に変わったら採用せず原因を調べる。候補内のindex/pointer/JSON/manifestの版一致、Python/JS、基本・詳細検索、必要な3幅試験を済ませてから公開する。UIのみ変更時にUI番号を上げ、データ更新だけでは上げない。
+
+### 保存と復元
+
+C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-ui19-recovery-20261011/ にUI19/r20の完全スナップショットZIP（90ファイル）とUI18+ccdbの切戻しZIP（新5004不変バンドルも保持、88ファイル）。全ZIPエントリー検証・UI19 ZIPの実復元・原本と派生版の関連確認済み。対応表private/ui19-recovery-archive.json。ZIP外へ設計/操作/引継ぎ/試験記録も保存する。旧アーカイブも保持する。
+
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui19-consumption-20261011/restored private/restored-ui19-example --manifest private/ui19-recovery-archive.json
+.venv/Scripts/python.exe scripts/check_site.py private/restored-ui19-example/site
+~~~
+
+切戻し候補は同じmanifestのrelative指定をprivate/site-ui19-ui18-rollback-20261011にして、別の新しいprivate出力先へ復元する。UI18/ccdbの組を1280/390/320で詳細・反応効果検証済み。タグはui-v18-reactions-verified-20261011。旧タグだけのファイル集合でsiteを上書きせず、新しい全版付きURLを保持する。UI19の検索パラメーターappeal_consumeは旧UI18にないため切戻し後は条件を解除して検索し直す。r20原本・8手修正を戻さない。今回本番切替は行っていない。
+
+隔離復旧4ケースと88サイトファイル/原本/接続の全バイト復元はprivate/recovery/ui19-consumption-20261011/report.json。正常な原本・公開サイトへ障害を注入しない。今回の候補・切戻し候補・recovery-restored・ZIP試験展開の4フォルダーはバックアップと削除直前の全SHA照合後に整理した。raw・原本・接続・canonical・正常site・監査・Gitは保持。削除証拠private/audits/ui19-cleanup-proof-20261011.json。
+
+未完了は全複合効果・独立公式網羅・全面実機/Google実画面・本番全面復旧等。47個別ページと実在新規基礎カードの本番追加実証はユーザー指定で保留。今回新しい確認待ちや中断更新はない。

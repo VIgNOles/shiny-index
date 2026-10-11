@@ -1,6 +1,49 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 最新状態（2026-10-11：UI v19・消去付きアピールを公開検証済み）
+
+元の要件・後続変更を保持して続行。プロジェクト全体の完成ではない。47個別ページと実在新規基礎カードの本番追加実証はユーザー指定で保留。Pステージ/適正・Sファイト対象外、CSV画面非表示、低負荷取得。UI番号は画面/操作変更時のみ更新する。新しいユーザー判断待ちはない。
+
+### 現在の正常版
+公開 https://vignoles.github.io/shiny-index/ 、UI v19、基礎r7/1466/v1-93a6a8b8d40e754a、詳細原本r20/1419(P548/S871)/24025、公開詳細d1-5004defda130126e。
+実装2d725c7ec532cc00ac56c8a7264548d4d9d2d7c7、公開90e0b2c261f1b738d1b879c5299c83594876fc9c。検証済み保存タグui-v19-consumption-verified-20261011。Pages38112535846 success。コードCI38112376474・公開コミットCI38112535866はWindows3.13.16/Linux3.12.14ともsuccess。
+原本private/master.xlsx SHA1340b6a3319861e74885f1ae74f3ebb140c249e9a98454622e1f81b47ea17611、canonical private/details/master-r20-visual-authoritative-20261011.json SHAb74c3e922cab5cbd541516d5071a22b6cea38ba85682b3fb32fcb24e4a240315、8手修正を保持。今回原本・Google書込0、Wiki通信0。
+Google接続はprivate/sheets-connection.jsonの指定所有者のみのnative r20（15タブ）。native採用履歴detail_dataset_version=ccdbと、派生公開5004は効果構造だけが異なる正しい組で、native履歴を見かけ上書きしない。旧原本r19/r20・以前の公開版は保存。
+
+### 完成したこと
+- 消去付きアピールを28枚のPカード、108項目（パネル23/思い出85）へ追加。114原文フィールドの171消去括弧を全数構造化（211指定ステータス、UP201/DOWN10、base27/memory_link140/link4）。新しい独立効果を171個追加したのではなく、既存171アピールへ対象・時点・消去範囲を補完した。
+- アピール属性と消去属性を別管理し、本体/Link/思い出Link・複数アピールの対応を保持。合計ステータス数で倍率UP、各アピール直後に残りターンによらず全消去、パッシブ除外を表示する。原文にない下限や数式による個別倍率は生成しない。
+- UI「消去付きアピール」を追加。対象選択はアピール属性、キーワードDanceUP/DanceDOWN等は消去ステータス。通常アピール検索も維持し、付与や継続期間と混同しない。同一効果の検索/強調を共通化し、選択肢の存在判定にも同じ関数を使う。
+- src/consumption_effects.py、src/skill_effects.py、web/app.mjs/details.mjs/index.html、tests/test_consumption_effects.py/detail-search.test.mjs/ui-v19-consumption-smoke.mjsを変更。site/app.mjsの大きい行差分は従来CRLFからLFへの正規化を含み、実処理変更は選択肢の存在判定。原本・既存全ID/別名・手修正・coverage・旧効果を保持。取得原文は公開しない。
+- 設計判断docs/ui-v19-spec.mdとローカルdesign.md、TASK、README、operations、docs/verificationへ反映。
+
+### 検証結果
+Python275/JS56成功。Windows/LinuxのクリーンCIはコード/公開コミットとも成功。保存R01 appeal_008（SHA31fc776620cf8afe25d60f2acc634d2bcdf9721972c4b7143054f026deedb913）と28HTML/301セル位置/193フィールドが一致、171原文消去括弧を全数対応。非効果フィールド/coverage/全ID/8手修正は不変、旧効果の欠落0。パッシブ5890/5890、区間条件688構造化/未対応0、旧UI fallback57を維持。ライブ全項目のpartialは維持。
+ローカル1280/390/320で基本・詳細・従来UI18反応効果・新規正例6/否定4・選択操作/再読込/強調/横溢れの試験が成功。匿名公開でも同3幅で基本・詳細・新規正例6/否定4・選択操作/再読込/強調/横溢れが成功。公開320/1280の一致表示画像を視認。
+公開88/88が匿名HTTP200・ローカル生バイト一致、Git blobも全88一致。旧不変バンドルの削除/変更なし。
+UI18+ccdbの切戻し候補は新5004バンドルも保持して全版検査と3幅詳細/反応効果試験成功。本番を旧UIへ切り替える試験は今回行っていない。
+UI19/r20の隔離コピーで4障害検出→88サイトファイル/原本/接続の全復元成功。ZIP90ファイルを実展開し全バイトとnative/public関連を照合。前回の同一版内容ID修正も保持する。本番全面障害注入ではない。
+
+### 保存と整理
+private/audits/ui19-consumption-checkpoint-20261011.json、ui19-consumption-structure、ui19-consumption-source-proof、ui19-consumption-reference-proof、ui19-consumption-inventory-coverage、ui19-public-files、ui19-public-git-bytes、ui19-release-ci-final、ui19-archive-restore-proofが証拠。原本採用履歴のreceiptはprivate/raw/detail-catalog-20261009/latest-verified-publication.jsonを更新し、直前版をprivate/ui19-before-publication-20261011へ保存。
+復旧報告private/recovery/ui19-consumption-20261011/report.json。C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-ui19-recovery-20261011/ にui19-r20-verified-snapshot.zip（90ファイル/61,195,929bytes）とui18-coherent-with-ui19-immutable-bundles.zip（88ファイル/55,376,539bytes）。対応表private/ui19-recovery-archive.json。旧UI18/r20・UI17/r19アーカイブも保持。
+今回の4重複ディレクトリはZIPと全SHA照合し、削除直前もPowerShellで再照合して整理。論理サイズ1,824,477,444bytes、実際のD空き8,209,936,384→10,035,007,488bytes。候補/切戻し候補/recovery-restored/ZIP実展開の元パスは存在しない。raw/正常site/原本/接続/canonical/監査/Gitを保持した。
+復元例（新しいprivate出力先へ）：
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui19-consumption-20261011/restored private/restored-ui19-next --manifest private/ui19-recovery-archive.json
+出力site/master.xlsx/connection.jsonはcheck_site/check_pairで照合する。切戻しは同manifestのprivate/site-ui19-ui18-rollback-20261011を別の新しい出力先へ復元する。原本r20と全新不変URLを保持する。
+
+### 未完了と次の操作
+1. Git、原本SHA、site/details/latest.json、接続を照合する。基準はUI19/5004/r20。UI18/ccdbはnative採用履歴と切戻し用の既知版であり、公開latestを古い記録で上書きしない。
+2. 保存した全1419カード原文から未構造化の複合効果を継続監査する。今回「消去」は対象範囲の全数を扱ったが、最大値の条件、ランダム効果の関係、付与対象範囲など全体の意味付けは未完成。原文の単語件数を未対応件数と同一視しない。保存入力から再変換し不要なWiki通信を避ける。画面変更時のみ次UI20。
+3. S90の最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/Google実画面、私的全入力の別PC再変換、本番全面復旧は未完了。47個別ページと実在新規基礎カードの本番追加実証は保留を継続。
+4. acquisition stateはcomplete/revision4098/active_attempt=null、SHA434003ff36d09327fdf05b4b5a282cb1fe7234bc246d9b7b19b45e8b0352314e。今回の取得/原本更新はなし。候補試験の初期不備は修正再実行済みで、未解決の中断更新・実行中処理・新ユーザー判断待ちはない。通常の続行区切りで、追加の停止指示ではない。
+<!-- /current-state -->
+
+## 直前のUI18工程記録（旧状態・2026-10-11）
+
+以下はUI19公開前の記録で、進行中表記も当時の履歴です。現在の未完了を示しません。
+
 ## 最新状態（2026-10-11：UI v18・詳細原本r20公開検証済み）
 
 元の要件・後続変更を保持して続行。プロジェクト全体の完成ではない。47個別ページと実在新規基礎カードの本番追加実証はユーザー指定で保留。Pステージ/適正・Sファイト対象外、CSV画面非表示、0円・低負荷取得。UI番号は画面/操作変更時のみ更新する。
@@ -46,7 +89,6 @@ C:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a33
 2. 全1419カードの収集済み原表にある消去等の未構造化部分を棚卸しし、根拠・対象区間を限定して型/表示/検索へ追加する。保存済みrawから変換を再実行し、原本を不要に再取得しない。画面/操作を変える場合だけ次UI19、データのみならUI18を維持。
 3. 47個別ページと実在新規基礎カードの本番追加実証は保留のまま。S90最大Lv空欄/日付不明56/独立公式網羅/全複合効果/全面実機・Google実画面/本番全面復旧は未完了。
 4. 取得runはprivate/raw/detail-catalog-20261009/state.jsonのcomplete/revision4098/active_attempt=null。取得・原本書込・ローカル試験は終了し、未解決の中断更新や新しいユーザー判断待ちはない。通常の続行区切りであり、新たな一時停止指示ではない。
-<!-- /current-state -->
 
 以下は過去の工程記録です。「現在」や旧版の未完了表記は各記録時点の状態で、上の最新状態を優先します。
 
