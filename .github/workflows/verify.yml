@@ -53,3 +53,11 @@ jobs:
       - run: python scripts/run_unit_tests_ci.py
       - run: node --test tests/search.test.mjs tests/detail-search.test.mjs
       - run: python scripts/check_site.py site
+      - if: runner.os == 'Linux'
+        run: npm ci
+      - if: runner.os == 'Linux'
+        run: npx playwright install --with-deps chromium
+      - if: runner.os == 'Linux'
+        run: python scripts/refresh_ui_assets.py site
+      - if: runner.os == 'Linux'
+        run: npm run test:ui

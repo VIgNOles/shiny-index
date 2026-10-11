@@ -68,9 +68,10 @@ try{
   }
   await page.goto(base+'?effect_type=random_grant',{waitUntil:'networkidle'});
   assert.equal(await page.locator('#count').textContent(),'29 / 1466 件');
-  await page.locator('#effect-type').selectOption('rate_up');
+  const mobilePanel=await page.locator('#open-filters').isVisible().catch(()=>false);if(mobilePanel)await page.locator('#open-filters').click();
+  await page.locator('#effect-type').selectOption('rate_up');if(mobilePanel)await page.locator('#apply-filters').click();
   assert.ok(!(await page.locator('#count').textContent()).startsWith('29 /'));
-  await page.locator('#effect-type').selectOption('random_grant');
+  if(mobilePanel)await page.locator('#open-filters').click();await page.locator('#effect-type').selectOption('random_grant');if(mobilePanel)await page.locator('#apply-filters').click();
   assert.equal(await page.locator('#count').textContent(),'29 / 1466 件');
   await page.locator('.filter-chip').filter({hasText:'効果：ランダム効果'}).click();
   assert.equal(await page.locator('#effect-type').inputValue(),'');

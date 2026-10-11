@@ -210,3 +210,5 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 @media(max-width:420px){#filters{grid-template-columns:1fr}.result-heading h2{font-size:22px}.active-group{max-width:100%}.filter-chip{overflow-wrap:anywhere;text-align:left;max-width:100%}}
 
 .matched-skill>strong{color:#174f88;border-bottom:2px solid #b9d3ec}
+
+.dialog-header{position:sticky;top:-16px;background:#f4f7fb;padding:12px 0;z-index:2}

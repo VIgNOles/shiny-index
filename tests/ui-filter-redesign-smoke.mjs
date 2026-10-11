@@ -58,8 +58,10 @@ try{
   }
   if(width<900){
    await page.goto(base,{waitUntil:'networkidle'});
+   if(output)await page.screenshot({path:path.join(output,width+'-initial.png')});
    const initial=page.url(),historyLength=await page.evaluate(()=>history.length);
    await page.locator('#open-filters').click();assert.equal(await page.locator('#filter-dialog').isVisible(),true);assert.equal(await page.evaluate(()=>document.activeElement.id),'filter-dialog-heading');
+   await page.keyboard.press('Shift+Tab');assert.equal(await page.evaluate(()=>document.querySelector('#filter-dialog').contains(document.activeElement)),true);
    await page.locator('#skill-filters').evaluate(e=>e.open=true);
    await page.locator('#skill-kind').selectOption('panel_passive');await page.locator('#effect-type').selectOption('passive_up');await page.locator('#effect-target').selectOption('Vocal');
    const n=detail.cards.filter(c=>c.items.some(i=>i.kind==='panel_passive'&&i.numeric_facts.some(f=>f.metric==='rate'&&f.direction==='UP'&&(f.targets??[f.target]).includes('Vocal')))).length;
@@ -75,6 +77,8 @@ try{
    await page.setViewportSize({width,height:900});assert.equal(await page.locator('#open-filters').isVisible(),true);
    await page.locator('#open-filters').click();if(output)await page.screenshot({path:path.join(output,width+'-filter-panel.png')});await page.keyboard.press('Escape');await page.locator('#filter-dialog').waitFor({state:'hidden'});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.locator('#open-filters').click();await page.locator('#skill-q').fill('no_such_skill_012345');await page.waitForFunction(()=>document.querySelector('#apply-filters').textContent==='0件を表示');assert.equal(await page.locator('#apply-filters').isDisabled(),false);await page.locator('#apply-filters').click();assert.equal(await page.locator('#count').textContent(),'0 / '+basic.cards.length+' 件');
+   await page.locator('#reset').click();assert.equal(await page.locator('#count').textContent(),basic.cards.length+' / '+basic.cards.length+' 件');
    console.log(width+' F19/F20 draft/cancel/apply/back/forward/Escape/resize/focus PASS');
   }
   if(width===1280){
@@ -87,7 +91,16 @@ try{
    await page.locator('#to-native').fill('2026-01-01');await page.locator('#to-native').dispatchEvent('change');assert.equal(await page.locator('#count').textContent(),search(basic.cards,new URLSearchParams('from=2025-02-28&to=2026-01-01')).length+' / '+basic.cards.length+' 件');
    await page.locator('#q').focus();await page.locator('#q').dispatchEvent('compositionstart');await page.locator('#q').fill('真乃');assert.equal(new URL(page.url()).searchParams.has('q'),false);
    await page.locator('#q').dispatchEvent('compositionend');await page.waitForFunction(()=>new URL(location.href).searchParams.get('q')==='真乃');
-   console.log('F17 dates partial/calendar/immediate/invalid recovery and IME PASS');
+   await page.goto(base,{waitUntil:'networkidle'});if(output)await page.screenshot({path:path.join(output,width+'-initial.png')});
+   await page.locator('#people-filter > summary').click();const unit=page.locator('[data-person-unit=unit_1]');await unit.check();assert.equal(await page.locator('#count').textContent(),basic.cards.filter(c=>c.unit_id==='unit_1').length+' / '+basic.cards.length+' 件');
+   const child=page.locator('[data-person-idol=idol_1]');assert.equal(await child.isVisible(),true);await child.uncheck();assert.equal(await unit.evaluate(e=>e.indeterminate),true);assert.equal(await page.locator('#count').textContent(),basic.cards.filter(c=>c.unit_id==='unit_1'&&c.idol_id!=='idol_1').length+' / '+basic.cards.length+' 件');
+   await page.locator('#reset').click();assert.equal(await page.locator('.card').count(),100);await page.locator('.detail-toggle').first().focus();await page.keyboard.press('Enter');assert.equal(await page.locator('.card-detail').first().isVisible(),true);await page.locator('#more').click();assert.equal(await page.locator('.card').count(),200);assert.equal(await page.locator('.card-detail').first().isVisible(),true);
+   assert.equal(await page.locator('#downloads a').count(),5);assert.equal(await page.locator('#downloads a[href$="cards.csv"]').count(),0);assert.equal(await page.locator('#detail-downloads a').count(),2);assert.equal(await page.locator('.card').first().locator('.card-action a').getAttribute('rel'),'noopener noreferrer');
+   const unnamed=await page.locator('input,select,button').evaluateAll(es=>es.filter(e=>e.getClientRects().length&&!e.disabled).filter(e=>!(e.getAttribute('aria-label')||[...(e.labels||[])].map(x=>x.textContent).join(' ')||(e.matches('button')?e.textContent:'')).trim()).map(e=>e.id));assert.deepEqual(unnamed,[]);
+   const smallTargets=await page.locator('button,select,.filter-option,summary').evaluateAll(es=>es.filter(e=>e.getClientRects().length).filter(e=>e.getBoundingClientRect().height<43.5).map(e=>e.id||e.tagName));assert.deepEqual(smallTargets,[]);
+   await page.route('**/details.json',route=>route.fulfill({status:503,body:'unavailable'}));await page.goto(base+'?skill_kind=panel_passive',{waitUntil:'networkidle'});assert.equal(await page.locator('#count').textContent(),'条件を適用できません');assert.equal(await page.locator('#skill-kind').isDisabled(),true);await page.locator('#reset').click();assert.equal(await page.locator('#count').textContent(),basic.cards.length+' / '+basic.cards.length+' 件');await page.unroute('**/details.json');
+   console.log('F02/F17/F18/F22 people, dates, IME, keyboard, targets, downloads, more, detail failure PASS');
+
   }
   assert.deepEqual(errors,[]);await page.close();console.log(width+' passive/cap real source sets, reasons, highlights, no overflow PASS');
  }

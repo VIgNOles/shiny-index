@@ -508,6 +508,7 @@ try{
   const row=add(list,'div','','detail-row');
   add(row,'dt',term);add(row,'dd',value);
  };
+ const displayEffect=(item,e)=>(['panel_live','mb_live','generated_live','possessed_live','memory_appeal'].includes(item.kind)&&e.scope==='base'?'通常：':'')+effectFactText(e);
  const performanceNode=(parent,baseCard)=>{
   const section=add(parent,'section','','performance');
   add(section,'h4','スキル・詳細情報');
@@ -557,7 +558,7 @@ try{
     if(item.effect_details?.effects.length){
      const facts=add(row,'ul','','effect-facts');
      for(const e of item.effect_details.effects){
-      const fact=add(facts,'li',effectFactText(e),'skill-values');
+      const fact=add(facts,'li',displayEffect(item,e),'skill-values');
       if(matches.get(item.detail_id)?.effects.some(m=>m.source_field==='effect_details'&&m.source_index===item.effect_details.effects.indexOf(e))){fact.classList.add('matched-effect');group.open=true;}
      }
      if(item.kind==='support_skill'){
@@ -591,7 +592,7 @@ try{
   const matching=detailMatches(detailMap.get(cardData.card_id),params);
   if(matching.length){
    const first=matching[0],effect=first.effects[0];
-   add(head,'p','一致：'+kindNames[first.item.kind]+' / '+first.item.name+(first.item.unlock_star!=null?'（特訓'+first.item.unlock_star+'）':'')+(first.item.level!=null?'（Lv'+first.item.level+'）':'')+(first.item.sp!=null?'（SP'+first.item.sp+'）':'')+(effect?' · '+effectFactText(effect):'')+(matching.length>1?'（ほか'+(matching.length-1)+'件）':''),'match-reason');
+   add(head,'p','一致：'+kindNames[first.item.kind]+' / '+first.item.name+(first.item.unlock_star!=null?'（特訓'+first.item.unlock_star+'）':'')+(first.item.level!=null?'（Lv'+first.item.level+'）':'')+(first.item.sp!=null?'（SP'+first.item.sp+'）':'')+(effect?' · '+displayEffect(first.item,effect):'')+(matching.length>1?'（ほか'+(matching.length-1)+'件）':''),'match-reason');
   }
   const detailId='card-details-'+cardData.card_id;
   const button=add(head,'button',expandedIds.has(cardData.card_id)?'詳細を閉じる':'詳細を見る','detail-toggle');
@@ -716,6 +717,13 @@ try{
  };
  $('cancel-filters').onclick=()=>cancelPanel();
  dialog.addEventListener('cancel',event=>{event.preventDefault();cancelPanel();});
+ dialog.addEventListener('keydown',event=>{
+  if(event.key!=='Tab')return;
+  const controls=[...dialog.querySelectorAll('button,input,select,summary,a[href],[tabindex]')].filter(e=>e.getClientRects().length&&!e.disabled&&e.tabIndex>=0);
+  const first=controls[0],last=controls.at(-1),active=document.activeElement;
+  if(!controls.includes(active)||event.shiftKey&&active===first||!event.shiftKey&&active===last){event.preventDefault();(event.shiftKey?last:first)?.focus();}
+ });
+
  $('apply-filters').onclick=()=>{
   flushPending();if(issuesFor().length){renderPreview();return;}
   history.replaceState(null,'',urlForParams());closePanel();render();$('results-heading').focus();$('results-heading').scrollIntoView({block:'start'});

@@ -62,7 +62,7 @@ try{
   for(let ix=0;ix<cases.length;ix++){
    const {items,text,...params}=cases[ix];
    await page.goto(base+'?'+new URLSearchParams(params),{waitUntil:'networkidle'});
-   assert.equal(await page.evaluate(()=>window.UI_VERSION),'ui-v24');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
+   assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v24');assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
    assert.equal(await page.locator('#count').textContent(),'1 / 1466 件',JSON.stringify(params));
    assert.equal(await page.locator('#effect-type').inputValue(),params.effect_type);
    await page.locator('.detail-toggle').first().click();
@@ -75,7 +75,7 @@ try{
   }
   for(const params of negatives){
    await page.goto(base+'?'+new URLSearchParams(params),{waitUntil:'networkidle'});
-   assert.equal(await page.locator('#count').textContent(),'0 / 1466 件',JSON.stringify(params));
+   if(await page.locator('#count').textContent()==='条件を適用できません'){assert.equal(await page.locator('.card').count(),0);assert.ok((await page.locator('#filter-issues').textContent()).includes('条件を適用できません'));}else assert.equal(await page.locator('#count').textContent(),'0 / 1466 件',JSON.stringify(params));
   }
   await page.goto(base+'?effect_type=mental_overflow',{waitUntil:'networkidle'});
   await page.locator('.filter-chip').filter({hasText:'効果：超過回復'}).click();assert.equal(await page.locator('#effect-type').inputValue(),'');
