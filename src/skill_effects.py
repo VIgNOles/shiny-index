@@ -5,6 +5,7 @@ recognised effect, with its mechanic scope; it is never copied to other effects.
 import math,re,unicodedata
 from src.skill_conditions_v2 import parse as parse_condition, validate_extension, join, idol_name
 from src.live_conditions import mechanic_rule, validate_rule
+from src.reaction_effects import parse as reaction_facts, REACTION_TRIGGERS
 from src.special_live_effects import facts as special_facts, SPECIAL_METRICS, SPECIAL_TARGETS
 LIVE={'panel_live','mb_live','generated_live','possessed_live','memory_appeal','quick_skill'}
 TARGETS={'Vocal','Dance','Visual','メンタル','SP','体力','絆','テンション','トラブル率','注目度','思い出ゲージ','リアクション回避率','メンタルダメージ','興味','影響力','アピール値','基礎能力値','施設Lv','パーフェクト','エクセレント','イベント発生率','ノウハウ発現率','アドバイス抽選率','交換数','Excellent'}
@@ -16,6 +17,7 @@ METRICS.update({'mental_recovery','mental_cost','memory_gauge_gain','relax','pas
 METRICS.update(SPECIAL_METRICS)
 TARGETS.update(SPECIAL_TARGETS)
 TRIGGERS.add('mental_zero')
+TRIGGERS.update(REACTION_TRIGGERS)
 SCALING={
  'メンタルが多いほど効果UP':'mental','メンタルが少ないほど効果UP':'mental_descending',
  'メンタルが低いほど効果UP':'mental_descending','Meが少ない程効果UP':'mental_descending',
@@ -191,8 +193,10 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
    current=scope if scope in {'memory_link','memory_charge'} else {'growup':'grow','reflain':'refrain'}.get(part.lower(),part.lower());continue
   in_piece=[];condition=effect_condition(part,ctx,current) if idx or current=='memory_link' else None
   rule=mechanic_rule(part,ctx,current) if condition=={'status':'unsupported'} else None
+  reaction_spans,reactive=reaction_facts(part,current)
   for pattern,metric in [(RATE,None),(INTEREST,'interest'),(APPEAL,'appeal')]:
    for m in pattern.finditer(part):
+    if any(a<=m.start()<b for a,b in reaction_spans):continue
     # Reject a suffix match inside a longer status or '最大' conditional number.
     if m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]) and part[m.start()-1] not in ']':continue
     if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
@@ -227,7 +231,7 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
     if r:e['restrictions']=r
     if condition:e['activation_condition']=condition
     in_piece.append((m.start(),e))
-  for pos,e in special_facts(part,current,ctx):
+  for pos,e in special_facts(part,current,ctx)+reactive:
    if condition:e['activation_condition']=condition
    in_piece.append((pos,e))
   if rule:
@@ -272,7 +276,7 @@ def validate_effect_details(doc,known_idols,condition_context=None):
    if key in seen:raise ValueError('Duplicate mechanic segment')
    seen.add(key);validate_rule(r['condition'],condition_context,r['scope'])
  for e in doc['effects']:
-  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum'}:raise ValueError('Non-public effect field')
+  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses'}:raise ValueError('Non-public effect field')
   if e.get('metric') not in METRICS or not isinstance(e.get('targets'),list) or not e['targets'] or len(e['targets'])!=len(set(e['targets'])) or set(e['targets'])-TARGETS or e.get('unit') not in {'points','percent','multiplier','boolean'} or e.get('scope') not in SCOPES:raise ValueError('Invalid effect fact')
   validate_amount({k:e[k] for k in ('value','formula','amount_unknown') if k in e})
   if e['metric']=='refrain' and (e['unit']!='points' or type(e.get('value')) not in (int,float) or e['value']%1 or e['value']<1):raise ValueError('Invalid refrain distance')
@@ -284,11 +288,13 @@ def validate_effect_details(doc,known_idols,condition_context=None):
    if condition_context is None or e.get('activation_condition')!={'status':'unsupported'}:raise ValueError('Invalid mechanic condition fallback')
    validate_rule(e['mechanic_condition'],condition_context,e['scope'])
   if 'minimum' in e and (e['metric']!='appeal' or type(e['minimum']) not in (int,float) or not math.isfinite(e['minimum']) or not 0<=e['minimum']<=e['value']):raise ValueError('Invalid effect range')
-  if 'audience' in e and (e['metric'] not in {'appeal','interest','interest_minimum','audience_status_clear','charm','enthusiasm'} or e['audience']!='all'):raise ValueError('Invalid appeal audience')
+  if 'audience' in e and (e['metric'] not in {'appeal','interest','interest_minimum','audience_status_clear','charm','enthusiasm','interest_reverse','interest_limit'} or e['audience']!='all'):raise ValueError('Invalid appeal audience')
   if e['metric'] in SPECIAL_METRICS:
    metric=e['metric']
-   expected={'resurrection':(['メンタル'],'percent'),'audience_status_clear':(['観客ステータス'],'boolean'),'duet':(['アピール履歴'],'boolean'),'duet_add':(['アピール履歴'],'boolean'),'interest_minimum':(['興味'],'multiplier'),'charm':(['魅了'],'boolean'),'enthusiasm':(['熱狂'],'boolean')}
+   expected={'resurrection':(['メンタル'],'percent'),'audience_status_clear':(['観客ステータス'],'boolean'),'duet':(['アピール履歴'],'boolean'),'duet_add':(['アピール履歴'],'boolean'),'interest_minimum':(['興味'],'multiplier'),'charm':(['魅了'],'boolean'),'enthusiasm':(['熱狂'],'boolean'),'interest_reverse':(['興味'],'boolean'),'interest_limit':(['興味'],'boolean'),'melancholy':(['メンタル'],'percent')}
    if (e['targets'],e['unit'])!=expected[metric] or 'value' not in e or ('boolean'==e['unit'] and e['value']!=1):raise ValueError('Invalid special effect')
+   if metric in {'interest_reverse','interest_limit','melancholy'} and 'turns' not in e:raise ValueError('Missing interest or melancholy duration')
+   if metric=='melancholy' and (e.get('recipient') not in {'self','rivals','all_units'} or e.get('trigger')!='appeal_phase_start'):raise ValueError('Invalid melancholy recipient or timing')
    if metric=='resurrection' and (e.get('trigger')!='mental_zero' or 'turns' not in e or 'uses' not in e):raise ValueError('Invalid resurrection bounds')
    if metric=='interest_minimum' and (e['scope']!='grow' or 'turns' not in e):raise ValueError('Invalid minimum interest')
    if metric=='audience_status_clear' and (e.get('audience')!='all' or e.get('excludes')!=['興味変動無効']):raise ValueError('Invalid status exclusion')
@@ -310,6 +316,11 @@ def validate_effect_details(doc,known_idols,condition_context=None):
    if e['metric']!='enthusiasm' or not isinstance(r,dict) or set(r)!={'minimum','maximum'} or any(type(r[k]) is not int for k in r) or not 1<=r['minimum']<=r['maximum']<=100 or 'turns' in e or 'turns_maximum' in e:raise ValueError('Invalid variable duration')
   if 'turns_maximum' in e and (e['metric']!='enthusiasm' or type(e['turns_maximum']) is not int or not 1<=e['turns_maximum']<=100 or 'turns' in e):raise ValueError('Invalid maximum duration')
   if 'grant_count_maximum' in e and (e['metric']!='enthusiasm' or type(e['grant_count_maximum']) is not int or not 1<=e['grant_count_maximum']<=100):raise ValueError('Invalid maximum grant count')
+  if 'recipient' in e and (e['metric']!='melancholy' or e['recipient'] not in {'self','rivals','all_units'}):raise ValueError('Invalid effect recipient')
+  if e.get('trigger') in REACTION_TRIGGERS:
+   if e['metric']!='rate_up' or set(e['targets'])-{'Vocal','Dance','Visual'} or e['unit']!='percent' or not {'turns','trigger_turns','uses'}<=set(e) or type(e['uses']) is not int or not 1<=e['uses']<=100:raise ValueError('Invalid reaction grant')
+  if 'trigger_turns' in e and (e.get('trigger') not in REACTION_TRIGGERS or type(e['trigger_turns']) is not int or not 1<=e['trigger_turns']<=100):raise ValueError('Invalid reaction watch window')
+  if 'shared_uses' in e and (e.get('trigger') not in REACTION_TRIGGERS or e['shared_uses'] is not True):raise ValueError('Invalid shared reaction limit')
   if 'probability' in e:validate_amount(e['probability'],True)
   if 'source_notation' in e and e['source_notation']!='extra_particle_de':raise ValueError('Invalid source notation')
   if 'advice' in e and e['advice'] not in {'ベスト','メンタル','ビジュアル','お仕事','ダンス','限界突破','ひらめき'}:raise ValueError('Invalid advice fact')
@@ -330,3 +341,9 @@ def validate_effect_details(doc,known_idols,condition_context=None):
     if k in r and (type(r[k]) is not int or r[k]<1):raise ValueError('Invalid effect threshold')
    if 'until_damage' in r and r['until_damage'] is not True:raise ValueError('Invalid effect until')
    if 'ignore_interest' in r and r['ignore_interest'] is not True:raise ValueError('Invalid effect interest flag')
+
+ for e in doc['effects']:
+  if e.get('shared_uses'):
+   keys=('scope','trigger','trigger_turns','uses','activation_condition')
+   partners=[p for p in doc['effects'] if p.get('shared_uses') and all(p.get(k)==e.get(k) for k in keys)]
+   if len(partners)<2:raise ValueError('Missing shared reaction grant')

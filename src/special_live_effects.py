@@ -2,9 +2,12 @@
 import re
 from src.skill_conditions_v2 import unit_name
 
-SPECIAL_METRICS={'resurrection','audience_status_clear','duet','duet_add','interest_minimum','charm','enthusiasm'}
+SPECIAL_METRICS={'resurrection','audience_status_clear','duet','duet_add','interest_minimum','charm','enthusiasm','interest_reverse','interest_limit','melancholy'}
 SPECIAL_TARGETS={'観客ステータス','アピール履歴','魅了','熱狂'}
 PATTERNS=[
+ ('interest_reverse',re.compile(r'(?P<audience>全観客に|全観客の)?興味反転\[(?P<turns>\d+)ターン\]')),
+ ('interest_limit',re.compile(r'(?P<audience>全観客に|全観客の)?興味限定\[(?P<turns>\d+)ターン\]')),
+ ('melancholy',re.compile(r'(?P<recipient>自身に|ライバルに|全ユニットに)メランコリー効果(?P<value>\d+(?:\.\d+)?)%付与\[(?P<turns>\d+)ターン\]')),
  ('resurrection',re.compile(r'リザレクション効果(?P<value>\d+(?:\.\d+)?)%付与\[(?P<turns>\d+)ターン\]\[(?P<uses>\d+)回\]')),
  ('audience_status_clear',re.compile(r'全観客の興味変動無効以外のステータス効果を解除(?=\[コスト:\d+\]|$|/)')),
  ('duet_add',re.compile(r'このターンのアピールにデュエット\[(?P<target>[^\[\]]+)\]を追加(?=\[コスト:\d+\]|$|/)')),
@@ -34,6 +37,11 @@ def facts(part,scope,ctx):
     else:continue
     e.update(targets=['アピール履歴'],unit='boolean',value=1,duet_target=target)
     if metric=='duet_add':e['timing']='current_turn'
+   elif metric in {'interest_reverse','interest_limit'}:
+    e.update(targets=['興味'],unit='boolean',value=1,turns=int(g['turns']))
+   elif metric=='melancholy':
+    e.update(targets=['メンタル'],unit='percent',value=float(g['value']),turns=int(g['turns']),
+             recipient={'自身に':'self','ライバルに':'rivals','全ユニットに':'all_units'}[g['recipient']],trigger='appeal_phase_start')
    elif metric=='interest_minimum':
     if scope!='grow':continue
     e.update(targets=['興味'],unit='multiplier',value=float(g['value']),turns=int(g['turns']))

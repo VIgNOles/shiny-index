@@ -276,3 +276,31 @@ test('duration ranges use the lower bound and maximum-only duration gives no min
  const min=effectFactText({metric:'interest_minimum',targets:['興味'],unit:'multiplier',scope:'grow',value:0.1,turns:2});
  assert.ok(min.includes('最小値'));assert.ok(!min.includes('0.1～'));
 });
+
+
+test('reaction search separates the watch window from the granted duration and same-effect scope',()=>{
+ const e={metric:'rate_up',targets:['Visual'],unit:'percent',value:100,scope:'plus',trigger:'reaction_evaded',trigger_turns:2,turns:4,uses:3};
+ const other={metric:'rate_up',targets:['Dance'],unit:'percent',value:50,scope:'base',turns:5};
+ const d=new Map([['P1',{items:[{name:'反応',kind:'panel_live',effect_details:{effects:[e,other]}}]}]]);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'rate_up',effect_target:'Visual',effect_turns:'4',skill_q:'反応待ち期間：2ターン 回避成功時 付与後4ターン'}),d).length,1);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'rate_up',effect_target:'Dance',skill_q:'回避成功時'}),d).length,0);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'rate_up',effect_target:'Visual',effect_turns:'5'}),d).length,0);
+ assert.ok(effectFactText(e).includes('付与回数上限：3回'));
+});
+test('melancholy distinguishes self rivals and all units from mental costs',()=>{
+ const es=['self','rivals','all_units'].map(recipient=>({metric:'melancholy',targets:['メンタル'],unit:'percent',value:10,scope:'base',turns:3,recipient,trigger:'appeal_phase_start'}));
+ const d=new Map([['P1',{items:[{name:'減少',kind:'panel_live',effect_details:{effects:es}}]}]]);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'melancholy',skill_q:'対象：ライバル 翌ターン'}),d).length,1);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'mental_cost',skill_q:'メランコリー'}),d).length,0);
+ for(const e of es)assert.ok(!effectFactText(e).includes('undefined'));
+});
+test('interest reversal and restriction remain separate from numeric interest and compound limits stay shared',()=>{
+ const reverse={metric:'interest_reverse',targets:['興味'],unit:'boolean',value:1,scope:'base',turns:2};
+ const limit={...reverse,metric:'interest_limit',turns:1,audience:'all'};
+ assert.ok(effectFactText(reverse).includes('興味反転付与'));assert.ok(!effectFactText(reverse).includes('1倍'));
+ assert.ok(effectFactText(limit).includes('全観客'));
+ const d=new Map([['P1',{items:[{name:'興味',kind:'panel_live',effect_details:{effects:[reverse,limit]}}]}]]);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'interest',skill_q:'反転'}),d).length,0);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'interest_limit',effect_turns:'2'}),d).length,0);
+ assert.ok(effectFactText({metric:'rate_up',targets:['Dance'],unit:'percent',value:60,scope:'base',trigger:'reaction_damage',trigger_turns:3,turns:3,uses:6,shared_uses:true}).includes('共有'));
+});

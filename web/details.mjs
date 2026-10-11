@@ -75,8 +75,8 @@ export function detailCoverageText(coverage,total){
  return '詳細 '+coverage.detail_card_count+' / '+total+'カード収録。'+(notes.length?notes.join('／')+'。':'')+'数値・条件は一部のみ収録。'+(conditionCounts?'パッシブ発動条件 '+(conditionCounts.structured??0)+' / '+Object.values(conditionCounts).reduce((a,b)=>a+b,0)+'項目対応'+(coverage.activation_condition_current_counts?'（未対応'+(conditionCounts.unsupported??0)+'項目）':'')+'。':'');
 }
 
-export const effectNames={appeal:'ライブ・思い出のアピール',support_gain:'能力・SPの獲得',support_recovery:'体力回復',support_cost_down:'体力消費軽減',support_trouble_down:'トラブル率軽減',support_rest_gain:'休む時の回復量増加',support_bond:'初期の絆',support_tension_protection:'テンション低下防止',support_presence_up:'レッスン滞在率UP',support_event_rate:'イベント発生率UP',support_knowhow_rate:'ノウハウ発現率UP',support_location_level:'施設のレベルUP',support_perfect:'パーフェクト発生',support_excellent:'エクセレント強化',support_advice_rate:'アドバイス抽選率UP',appeal_boost:'アピール値UP',memory_gain_boost:'思い出ゲージ増加量UP',base_stat_boost:'基礎能力値UP',rate_up:'継続するUP効果',rate_down:'継続するDOWN効果',rate_cut:'継続するCUT効果',interest:'興味倍率',exchange_count_up:'交換数UP',mental_recovery:'メンタル回復',mental_cost:'自身のメンタル消費',memory_gauge_gain:'思い出ゲージ増加',relax:'リラックス付与',passive_boost:'パッシブスキル強化',refrain:'リフレイン',resurrection:'リザレクション付与',audience_status_clear:'観客ステータス解除',duet:'デュエット',duet_add:'デュエット追加',interest_minimum:'興味倍率（最小値）',charm:'魅了付与',enthusiasm:'熱狂付与'};
-export const triggerNames={produce_start:'プロデュース開始時',missed_promise:'約束を守れなかった時',rest:'休むを選択時',lesson_or_work:'レッスン・お仕事選択時',unit_member_present:'行動場所に自分以外のユニットメンバーがいる時',tension_max:'テンション最高で一緒に行動時',audition_first:'オーディション1位',vocal_lesson:'一緒にボーカルレッスン',dance_lesson:'一緒にダンスレッスン',visual_lesson:'一緒にビジュアルレッスン',radio:'一緒にラジオ出演',talk:'一緒にトークショー出演',magazine:'一緒に雑誌撮影',talk_event:'一緒にトークイベント出演',solo_vocal_lesson:'ボーカルレッスン',solo_dance_lesson:'ダンスレッスン',solo_radio:'ラジオ出演',no_trouble:'スキル発動時に一緒に行動し、トラブルなし',excellent:'一緒に行動してエクセレント発生時',knowhow_acquired:'ノウハウブック獲得時',always:'常時',say_halo:'say "Halo"編',appeal_phase_start:'アピールフェイズ開始時',turn_2:'2ターン目',mental_zero:'メンタルが0になった時に回復'};
+export const effectNames={appeal:'ライブ・思い出のアピール',support_gain:'能力・SPの獲得',support_recovery:'体力回復',support_cost_down:'体力消費軽減',support_trouble_down:'トラブル率軽減',support_rest_gain:'休む時の回復量増加',support_bond:'初期の絆',support_tension_protection:'テンション低下防止',support_presence_up:'レッスン滞在率UP',support_event_rate:'イベント発生率UP',support_knowhow_rate:'ノウハウ発現率UP',support_location_level:'施設のレベルUP',support_perfect:'パーフェクト発生',support_excellent:'エクセレント強化',support_advice_rate:'アドバイス抽選率UP',appeal_boost:'アピール値UP',memory_gain_boost:'思い出ゲージ増加量UP',base_stat_boost:'基礎能力値UP',rate_up:'継続するUP効果',rate_down:'継続するDOWN効果',rate_cut:'継続するCUT効果',interest:'興味倍率',exchange_count_up:'交換数UP',mental_recovery:'メンタル回復',mental_cost:'自身のメンタル消費',memory_gauge_gain:'思い出ゲージ増加',relax:'リラックス付与',passive_boost:'パッシブスキル強化',refrain:'リフレイン',resurrection:'リザレクション付与',audience_status_clear:'観客ステータス解除',duet:'デュエット',duet_add:'デュエット追加',interest_minimum:'興味倍率（最小値）',charm:'魅了付与',enthusiasm:'熱狂付与',interest_reverse:'興味反転付与',interest_limit:'興味限定付与',melancholy:'メランコリー付与'};
+export const triggerNames={produce_start:'プロデュース開始時',missed_promise:'約束を守れなかった時',rest:'休むを選択時',lesson_or_work:'レッスン・お仕事選択時',unit_member_present:'行動場所に自分以外のユニットメンバーがいる時',tension_max:'テンション最高で一緒に行動時',audition_first:'オーディション1位',vocal_lesson:'一緒にボーカルレッスン',dance_lesson:'一緒にダンスレッスン',visual_lesson:'一緒にビジュアルレッスン',radio:'一緒にラジオ出演',talk:'一緒にトークショー出演',magazine:'一緒に雑誌撮影',talk_event:'一緒にトークイベント出演',solo_vocal_lesson:'ボーカルレッスン',solo_dance_lesson:'ダンスレッスン',solo_radio:'ラジオ出演',no_trouble:'スキル発動時に一緒に行動し、トラブルなし',excellent:'一緒に行動してエクセレント発生時',knowhow_acquired:'ノウハウブック獲得時',always:'常時',say_halo:'say "Halo"編',appeal_phase_start:'アピールフェイズ開始時',turn_2:'2ターン目',mental_zero:'メンタルが0になった時に回復',reaction_evaded:'観客のリアクションを回避成功時に付与',reaction_damage:'観客のリアクションでダメージを受けた時に付与'};
 const scopeNames={base:'',link:'Link',plus:'Plus',change:'Change',grow:'Grow',refrain:'Refrain',memory_link:'思い出Link',memory_charge:'思い出チャージ'};
 export function effectAmount(a,level){
  if(a.amount_unknown||a.unknown)return '量未記載';
@@ -118,7 +118,7 @@ export function effectFactText(e,level){
  if(e.unit!=='boolean')result+=' '+(e.maximum?'最大':'')+(e.minimum!=null?e.minimum+'～':'')+effectAmount(e,level)+(e.amount_unknown?'':unit);
  if(e.appeal_order)result+=' / 必ず'+(e.appeal_order==='first'?'最初':'最後')+'にアピール';
  if(e.audience==='all')result+=' / 全観客';
- if(e.turns)result+=' ['+e.turns+'ターン]';
+ if(e.turns)result+=e.trigger_turns?' / 付与後'+e.turns+'ターン':' ['+e.turns+'ターン]';
  if(e.turn_range)result+=' ['+e.turn_range.minimum+'～'+e.turn_range.maximum+'ターン]';
  if(e.turns_maximum)result+=' [最大'+e.turns_maximum+'ターン]';
  if(e.grant_count_maximum)result+=' / 最大'+e.grant_count_maximum+'つ付与';
@@ -130,12 +130,15 @@ export function effectFactText(e,level){
  }
  if(e.timing==='current_turn')result+=' / このターンのアピールに追加';
 
+ if(e.recipient)result+=' / 対象：'+{self:'自身',rivals:'ライバル',all_units:'全ユニット'}[e.recipient];
+ if(e.metric==='melancholy')result+=' / 付与の翌ターンから現在メンタルに対する減少';
+ if(e.trigger_turns)result+=' / 反応待ち期間：'+e.trigger_turns+'ターン';
  if(e.trigger)result+=' / '+triggerNames[e.trigger];
  if(e.probability)result+=' / '+(e.probability.unknown?'発動確率未記載':effectAmount(e.probability,level)+'%の確率');
  if(e.per_member)result+=' / 1人につき';
  if(e.advice)result+=' / '+e.advice+'アドバイス（'+(e.degree==='large'?'大きく':'少し')+'増加、スキルLv依存）';
  if(e.source_notation)result+=' / 原文の助詞表記に誤記あり（取得原文は保持）';
- if(e.uses)result+=' / '+e.uses+'回';
+ if(e.uses)result+=' / '+(e.trigger_turns?'付与回数上限：':'')+e.uses+'回'+(e.shared_uses?'（同じ反応効果の付与で共有）':'');
  const r=e.restrictions??{};
  if(r.group)result+=' / グループ：'+r.group;
  if(r.idols)result+=' / 対象アイドル：'+r.idols.join('・');

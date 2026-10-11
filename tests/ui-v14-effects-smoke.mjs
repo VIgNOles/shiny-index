@@ -25,7 +25,7 @@ try{
   assert.ok(await page.locator('#effect-type').isVisible());
   assert.equal(await page.locator('#effect-type').getAttribute('id'),'effect-type');
   const cases=[['support_recovery','体力',''],['support_cost_down','体力',''],['rate_up','Dance','5'],['appeal_boost','アピール値',''],['appeal','Vocal','']];
-  if(['ui-v15','ui-v16','ui-v17'].includes(process.env.UI_EXPECTED_VERSION))cases.push(['mental_recovery','メンタル',''],['memory_gauge_gain','思い出ゲージ',''],['rate_up','パッシブスキル発動率','3'],['passive_boost','パッシブスキル','3'],['refrain','過去のアピール',''],['exchange_count_up','交換数','']);
+  if(['ui-v15','ui-v16','ui-v17','ui-v18'].includes(process.env.UI_EXPECTED_VERSION))cases.push(['mental_recovery','メンタル',''],['memory_gauge_gain','思い出ゲージ',''],['rate_up','パッシブスキル発動率','3'],['passive_boost','パッシブスキル','3'],['refrain','過去のアピール',''],['exchange_count_up','交換数','']);
   for(const [metric,target,turns] of cases){
    await page.locator('#reset').click();
    if(!await page.locator('#skill-filters').evaluate(n=>n.open))await page.locator('#skill-filters > summary').click();
@@ -46,7 +46,7 @@ try{
   await page.locator('#effect-type').selectOption('support_bond');await page.locator('#effect-target').selectOption('絆');await page.locator('#skill-q').fill('プロデュース開始時 スキルLv×5');
   assert.ok(Number((await page.locator('#count').textContent()).split(' / ')[0])>0);
   await page.locator('.detail-toggle').first().click();assert.ok((await page.locator('.performance').first().textContent()).includes('取得表の最大スキルLv'));
-  if(['ui-v15','ui-v16','ui-v17'].includes(process.env.UI_EXPECTED_VERSION)){
+  if(['ui-v15','ui-v16','ui-v17','ui-v18'].includes(process.env.UI_EXPECTED_VERSION)){
    await page.locator('#reset').click();await page.locator('#effect-type').selectOption('rate_up');await page.locator('#effect-target').selectOption('Dance');await page.locator('#skill-q').fill('2ターン以前');
    assert.ok(Number((await page.locator('#count').textContent()).split(' / ')[0])>0);
    await page.locator('.detail-toggle').first().click();const m=page.locator('.matched-effect').first();await m.scrollIntoViewIfNeeded();
