@@ -1,6 +1,28 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 最新状態（2026-10-12）：ユーザー確認補正r21を公開検証・保存
+
+公開UI v24維持、基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754a、詳細原本r21/1419(P548/S871)/24025、詳細d1-5734710ad392192f。ユーザー回答を採用し5原文誤記を手修正へ登録、既存8件と合わせ13件。11スキル/6カード(P3/S3)に10効果追加、旧20086保持・計20096。ROOTS3候補は0.2倍/4ターンとして構造化、期間10項目は未記載のまま数量だけ検索。今回の15確認項目は5補正・10期間スキップ、ROOTS3も回答済み。追加回答待ち0は意味網羅100%を意味しない。
+
+指定アカウントの同じnative URLを維持し、変更前r20の全コピーを保存。15タブ709549セル/予定21セルの差分、基礎/原取得列/全固定ID/既存8手修正を保持。原本13手修正は全件再適用後も保持。Googleによる根拠URL5セルの自動リンク付加以外の書式/検証規則は維持。Google実画面の目視は未検証。Wiki通信0。
+
+Python352/JS72、ローカル/匿名公開1280/390/320で10正例/10否定、ランダム旧回帰8+10も3幅合格。local2/public2画像視認。106ファイル匿名HTTP200、変更4ファイルGET全バイト一致、未変更102はHEADと直前全バイト検証/現Gitバイト一致を組合せた確認（今回102の本文は再取得していない）。全106 Git blob一致。コードbaf1eb365920e319eb680c909c724efa29665505/公開0a668f7f5401bab7f335767f13a01f4955609770、CI38165996086と38166254611はWindows/Linuxともsuccess、Pages38166254617 success。
+
+4障害の隔離検出・復旧、ZIP108の実展開/全実SHA/check_site/check_pairが合格。本番へ障害注入/切戻しは行っていない。旧UI24/eb904/r20のタグとC ZIPを保持。現行はdata-user-confirmations-verified-20261012、UIロールバック用番号は更新しない。
+
+未完了：全複合効果/発動制限の意味網羅、Google原本実画面、独立公式網羅、全面実機/スクリーンリーダー、私的全入力の別PC再変換、本番全面復旧実証。S90カードの最大Lv360原文セル空欄と日付不明56を保持。47個別Wikiページ/実在新規基礎カードの本番追加はユーザー保留、Pステージ/適正・Sファイト対象外、CSV画面非表示。問い合わせは必須ではない。全体完成ではない。
+
+証拠private/details/user-confirmations-20261012/、台帳docs/source-review-decisions-20261012.json。source-gap原記録15と元HTMLは変更しない。checkpoint=同ディレクトリ/checkpoint.json、取得はcomplete/revision4098/active_attempt=null。停止待機なし。中間e1e8022f6ebeab35は非公開で、最終5734へ混同しない。補助検証の表示文言/スキル種別指定・JSON受渡しを直して再実行したもので、原本/公開の意図しない差分や中断不整合はない。
+
+復旧private/user-confirmations-archive-20261012.json、C shiny-index-user-confirmations-20261012/ui24-r21-verified-snapshot.zip（108 files/85351145bytes/SHAa391c1a075a20817f98d826430a0d7b5e6f3f7b878518fea1d6fabb7076d6273）。論理snapshot private/snapshots/user-confirmations-r21-20261012を未作成private出力へrestore_archived_site.pyで復元し、本番を自動置換しない。D上の候補/隔離復旧は保持、削除なし。
+
+次の操作：Git/データ保存タグ・原本/接続SHA・site pointer/receipt・取得stateを実照合。今回15項目とROOTS3を再度の回答待ちへ戻さない。期間10は未記載を維持。次の独立工程は用途別の検索フィルター組合せ/選択解除/実機・アクセシビリティの点検。実在新規基礎カードの追加実証は保留解除まで実行しない。画面操作を変更する場合だけUI番号更新。
+<!-- /current-state -->
+
+## 補正前の正常版（履歴）
+
+
 ## 最新状態（2026-10-12）：UI24の超過回復・特殊効果を公開検証・保存
 
 元の要件/明示変更はTASK.md、今回の原文は末尾。停止待機なし、全体完成ではない。新しいユーザー判断待ちはなし。
@@ -22,7 +44,7 @@ Python347/JS72、46保存HTML/197位置/103フィールド、native XLSX/canonic
 復旧manifest=private/ui24-compound-archive-20261012.json。C側shiny-index-ui24-compound-20261012/ui24-r20-verified-snapshot.zip（106 files/82656910bytes/SHA8164f0ec1ea75dff6667bd38886b67f45a287db3b1238f78556e87827dba3968）、ui23-95f-with-ui24-immutable-bundles.zip（104 files/76837031bytes/SHA0add7ed135c03e0b6db2d2c53b6432e9d8c349e3076c985410a36448f8298b0c）。削除済み4候補フォルダーは意図した重複整理であり破損/中断ではない。operations末尾の未作成先復元手順を使う。本番を自動置換しない。
 
 次の具体操作：Git/タグ・4SHA・site pointer/receipt/stateを実照合。新規取得不要。private/audits/ui24-source-gaps-20261012.jsonの15項目を、ゲーム内/別の明確な資料で確認できた分だけ補正する。属性表記の正規化を行う場合は補正根拠と原文を残し、期間は別効果から借りない。既存5注目度DOWNは量だけの構造化済みだが期間不明であり、期間保証検索へ含めない。解決待ちでも検索フィルターの組合せ/スマホ選択・解除等の独立したUI品質確認を進められる。表示/操作が変わる場合だけUI番号更新。今回の34ケースに加え、用途別シナリオで検索結果の正しさ→操作の分かりやすさを点検する。
-<!-- /current-state -->
+
 
 ## UI24公開前の記録（履歴）
 

@@ -823,3 +823,36 @@ node tests/ui-v23-modifiers-smoke.mjs private/site-ui24-replay-next
 旧UI23/95fへ切り戻す候補は、同manifestのprivate/site-ui24-rollback-20261012を別の未作成先へ復元する。新eb904バンドルを保持した全104ファイルで全版/旧検索3幅合格。旧index.html/details.mjs/details/latest.jsonを一組で戻し、原本/接続/全不変版を保持。data-phase-recovery-verified-20261012も保持。本番全面障害注入/本番切戻しは未実施。重複4フォルダーは各ファイルSHA照合後に整理済みであり、欠落を中断不整合と誤認しない。
 
 残15候補はprivate/audits/ui24-source-gaps-20261012.jsonで原セルを確認済み。属性表記の補正根拠/期間を明確に確認できた場合だけ補完する。ROOTS3単位等の未確認・47件/実在新規基礎カード本番追加の保留は維持。今後のUI品質点検は独立して進められる。
+
+
+## 2026-10-12 原本r21とユーザー確認補正（UI24維持）
+
+仕様はdocs/data-user-confirmations-20261012.md、確認済み/期間スキップの固定ID台帳はdocs/source-review-decisions-20261012.json。指定アカウントの元のnative URLを維持して5行の手修正を追加し、既存8件を含め13手修正。新規取得不要。Googleの変更前r20全コピー、native前後XLSX、原本/接続の切替前コピー、21セル全差分はprivate/details/user-confirmations-20261012。Gitには個人原本/接続/取得HTMLを含めない。
+
+原本採用後の公開詳細はd1-5734710ad392192f、UI番号はui-v24。再現は今回のデータ保存タグのコードと保存native XLSXを用い、毎回新しいprivate出力先を選ぶ。PowerShellのNodeがPATHにない場合は下記の絶対パスを使う。
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+$env:XLSX_BACKEND='stdlib'
+Copy-Item -LiteralPath site -Destination private/site-user-r21-replay-next -Recurse
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/sheets-exports/master-r21-user-corrections-20261012.xlsx private/site-user-r21-replay-next --master-snapshot private/details/rebuilt-user-r21-next.json
+.venv/Scripts/python.exe scripts/check_site.py private/site-user-r21-replay-next
+$env:UI_BROWSER_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+& 'C:/Users/VIgNOles/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe' tests/ui-user-confirmations-smoke.mjs private/site-user-r21-replay-next
+$env:UI_EXPECTED_VERSION='ui-v24'
+$env:ROOTS_CONFIRMED='1'
+& 'C:/Users/VIgNOles/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe' tests/ui-v22-random-smoke.mjs private/site-user-r21-replay-next
+```
+
+期待値は基礎1466/詳細1419/24025 ID/13手修正/20096効果。補正前UI24/eb904との差は11項目（原本5訂正・数量のみ追加5・ROOTS候補表1）だけ。原取得列、固定ID、既存8手修正、基礎/収録範囲、UI資産を維持する。ROOTSの候補は3種類、付与個数2であり、3種類全ての同時付与や均等確率を保証しない。期間未記載10項目は未記載を保ち、数量検索だけに利用して継続下限を指定すると除外する。
+
+今後nativeで新しい手修正を行ったらfresh export→import_sheet_export.py review/apply→候補生成を従来どおり行う。取得結果を再採用しても13手修正と固定IDが保たれることを今回の全件再適用で確認した。根拠URL/理由/日時を必ず併記する。回答済み台帳を未確認へ戻さず、元HTMLの欠落とユーザーによる補正を区別する。
+
+今回の復旧対応表はprivate/user-confirmations-archive-20261012.json。次の未作成先へsite/・master.xlsx・connection.jsonの組を復元する。
+
+```powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/snapshots/user-confirmations-r21-20261012 private/restored-user-r21-next --manifest private/user-confirmations-archive-20261012.json
+.venv/Scripts/python.exe scripts/check_site.py private/restored-user-r21-next/site
+```
+
+上記snapshot名はsiteと原本/接続を組にした論理名で、通常D上に同名のフルコピーを作る必要はない。全108ファイルのZIP/SHAは対応表で確認する。復元は隔離先だけへ行い、本番/Google原本へ自動上書きしない。補正前UI24/eb904/r20はui-v24-compound-verified-20261012と旧C ZIP106に保持。旧版への切戻しではその版の原本/接続も組で隔離検証し、r21原本を捨てず新5734の不変URLも保持する。UI自体のロールバック用タグは変更していない。
