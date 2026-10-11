@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.check_site import check
 from src.detail_master import from_workbook
+from src.indexer import digest
 
 
 def sha(path):
@@ -49,6 +50,13 @@ def check_pair(site, master, connection):
     for key in ('base_dataset_version','source_base_dataset_version'):
         if native['meta'][key]!=current['meta'][key]:
             raise ValueError('Original/public base version mismatch')
+    # The native and active pointer may reference the same file. Comparing
+    # them alone is then tautological; authenticate each content-addressed body.
+    for version,doc in zip((native_version,public_version),docs):
+        expected='d1-'+digest({'base_dataset_version':doc['meta']['base_dataset_version'],
+                              'cards':doc['cards'],'coverage':doc['coverage']})[:16]
+        if expected!=version:
+            raise ValueError('Original/public detail content hash mismatch')
     def canonical_fields(doc):
         return {'cards':[{**{k:v for k,v in card.items() if k!='items'},
                          'items':[{k:v for k,v in item.items() if k!='effect_details'} for item in card['items']]}
