@@ -1,5 +1,7 @@
 # 管理者の操作手順
 
+2026-10-11の現行はUI18・詳細原本r20/1419カード・24025項目・8手修正。最新の検証・再開基準はHANDOFF.mdとdocs/verification.md、UI18/r20の復元は本書末尾を参照してください。後続の日時付き工程・旧版の停止/稼働記録は当時の履歴です。
+
 ## 現在の原本
 
 編集原本は、指定されたGoogleアカウントが所有する非公開Google Sheets「enza P/S card master」です。SheetのURLとIDはGit対象外の `private/sheets-connection.json` に記録しています。所有者だけがアクセスできること、既存9タブ・1,466件と追加6詳細タブ・固定ID・取得値・手修正の往復一致、タイムゾーン Asia/Tokyo を確認しました。
@@ -536,3 +538,48 @@ Cのshiny-index-ui15-recovery-20261011/ui14-with-final-ui15-data.zipと対応表
 クリーンCI .github/workflows/verify.ymlはLinux Python3.12.14/Windows Python3.13.16、Node24.19.0、固定requirements、XLSX_BACKEND=stdlibでテストと全公開成果物を検査する。actions/python-versionsはWindows3.12.14を提供しないため通常Windowsで同じpatchの配布を仮定しない。取得/原本書込/デプロイを行わず、私的原本・生応答もアップロードしない。環境を入れ替えた実行結果をdocs/verificationへ記録する。
 
 最終検証は[Windows/LinuxクリーンCI38089807084](https://github.com/VIgNOles/shiny-index/actions/runs/38089807084)、両OSでPython255/JS52・全公開バンドル検査が合格。Windowsの短縮TEMP名と正式名が混ざる場合があるため、取得CLIは公開API境界でrootをresolveしてから相対パスを計算する。private/raw限定検査や取得間隔/停止条件は変更しない。既存完了runの通常root/等価rootで状態・入力SHA一致を確認済み。再開時もstatusで完了/worker/active_attemptを確認し、完了runを無条件に再取得しない。診断用scripts/run_unit_tests_ci.pyはunittestの失敗をGitHub annotationへ出す。ローカル通常テストと同じsuiteを使用し、証拠取得のために認証情報を探索する必要はない。
+
+## UI v18の更新・切戻し（2026-10-11）
+
+仕様はdocs/ui-v18-spec.md。興味反転/限定は通常興味倍率と別型、メランコリーは自身/ライバル/全ユニットを区別する。回避/ダメージ時UPは反応待ち期間と付与後期間を分ける。継続フィルターは付与後のターン数に適用。派生変換だけなら新しい取得・Google書戻し・追加依存は不要。確認結果を手修正へ採用するときは、以下の原本更新手順を使う。
+
+取得済み原本から再生成する場合は、正常なsiteの全不変バンドルを新しいprivate候補へコピーしてから、現在のコードで基礎/画面と詳細を生成する。以下の出力先は例で、存在しない別名を選ぶ。siteへ直接生成しない。
+
+~~~powershell
+Copy-Item -LiteralPath site -Destination private/site-next-effects -Recurse
+.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/site-next-effects
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx private/site-next-effects
+.venv/Scripts/python.exe scripts/check_site.py private/site-next-effects
+~~~
+
+原本を最新nativeから取り出した場合は従来どおりfresh exportのreview/applyと差分・手修正照合が先。派生ロジックだけの変更では現在の正常な原本をそのまま使う。候補に旧全不変バンドルが残ること、旧非effect_details値/coverage/ID/手修正を維持することをaudit_effect_structure.pyで検査する。原本の手修正を採用した場合は同検査が意図的な差分を拒否するため、変更ID・許容フィールド・期待値を明示して比較する。今回のr20では2項目のeffect_details/numeric_facts/manual_source_refのみを許容し、他24,023項目とcoverageの一致を確認した。既存search.mjsに改行形式だけの差分が出る場合も、黙って別ロジックと扱わずLF正規化後の同一性を記録する。
+
+UI17は新reaction triggerの日本語ラベルを持たないため、UI17へ戻すときは対応する既知派生版d1-a0e7716b08316259と組にする。この組は補正前のr19の公開状態である。r20原本を破棄せず保管し、r19の完全な原本/接続が必要なら検証ZIPから隔離復元する。基礎r7は変えない。build_ui_rollback.pyの現行データ保持出力をそのまま公開せず、詳細ポインターとHTMLのDETAIL_VERSIONを既知版へ合わせて検査する。新しいUI18の版付きファイルも残し、旧タグのファイル集合だけで上書きして新URLを消さない。
+
+検証済みの組はprivate/ui18-recovery-archive.jsonから復元できる：
+
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/site-ui18-ui17-rollback-20261011 private/restored-ui17-coherent --manifest private/ui18-recovery-archive.json
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui18-reactions-20261011/restored private/restored-ui18-r19 --manifest private/ui18-recovery-archive.json
+~~~
+
+後者はsite/・master.xlsx・connection.jsonを含む。ZIP SHA/全entryを検証してから展開し、check_site/check_pairと3幅画面試験後に明示publishする。接続のnative履歴版を派生公開版へ上書きしない。
+
+P【ダイヤモンド・クラリティ】樋口円香の通常100%/＋120%は、2026-10-11のユーザー回答に基づきVisualUPとしてr20へ採用済み。詳細項目の取得列は変更せず、I19399/I19405（手修正_効果）と各行K〜M（理由/根拠/更新日時）、_detail_meta!B4のみ変更した。元のr19 nativeを残し、所有者のみの新コピーで9セルと全15タブを読戻し、全件再適用で8手修正の維持を確認してから接続を切替えた。UI番号はv18を維持する。
+
+
+### r20原本と同一版の復旧検査
+原本の反映版と公開派生版が同じ番号の場合、同じJSONを二度比較するだけでは改変を検出できない。check_pairは両版についてcards/coverage/基礎版から内容IDを再計算し、ポインターのd1-IDと照合する。復旧は新しいprivate出力で実行し、本番へ破損を注入しない。
+
+    .venv/Scripts/python.exe scripts/recovery_drill.py --site site --master private/master.xlsx --connection private/sheets-connection.json --output private/recovery/next-unique-name
+
+同一版の名称改変と、native/派生を同じように改変した場合を回帰試験へ追加した。中断した試験コピーも正常な保存版へ戻してから整理する。旧版公開を復元する場合は、復元先にない新しい不変バンドルを現行siteから追加で保持し、古いファイル集合をそのまま全置換公開しない。
+
+
+### 検証済みr20バックアップと整理後の再開
+
+Cのshiny-index-ui18-r20-recovery-20261011/ui18-r20-verified-snapshot.zipに86サイトファイル・原本・接続を保存し、全88ファイルを実展開して照合済み。対応表はprivate/ui18-r20-recovery-archive.json。fresh private出力へ復元する。
+
+    .venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/ui18-r20-repaired-20261011/restored private/restored-ui18-r20-next --manifest private/ui18-r20-recovery-archive.json
+
+出力のsite/、master.xlsx、connection.jsonを組にし、check_site/check_pairを確認する。現行native r20やprivate/master.xlsxを無条件に上書きしない。今回の候補・切戻し・試験復旧・ZIP実展開の8コピーは照合後に整理済みで、元パスは存在しない。再開時は保存済み監査/原本/正常siteか、検証ZIPから新しいコピーを作る。private/audits/ui18-cleanup-proof-20261011.jsonに削除前の全ファイルSHA、保持先、原本/rawの保護照合を記録した。
