@@ -20,7 +20,7 @@ const base=process.env.UI_BASE_URL??'http://127.0.0.1:'+server.address().port+'/
 const output=process.env.UI_SCREENSHOT_DIR;if(output)await mkdir(output,{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:process.env.UI_BROWSER_PATH});
 try{
- for(const width of [1280,390,320]){
+ for(const width of [1280,900,899,768,390,320]){
   const page=await browser.newPage({viewport:{width,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   for(const [kind,type,target] of [['panel_passive','passive_up','Vocal'],['cap_increase','cap_increase','Visual']]){
    const expected=detail.cards.filter(c=>c.items.some(i=>i.kind===kind&&(kind==='panel_passive'?i.numeric_facts.some(f=>f.metric==='rate'&&f.direction==='UP'&&(f.targets??[f.target]).includes(target)):i.cap_targets.includes(target)))).map(c=>c.card_id);
@@ -55,6 +55,39 @@ try{
    await go('skill_kind=panel_live&skill_kind=possessed_live');assert.equal(await page.locator('#skill-kind').inputValue(),'live');assert.equal(await page.locator('[name=live_origin]:checked').count(),2);
    await page.locator('#skill-kind').selectOption('panel_passive');assert.equal(new URL(page.url()).searchParams.get('skill_kind'),'panel_passive');
    console.log('F01/F03-F05/F09/F10/F12/F18: grouping, legacy AND/OR, editable conditions, reset sort, invalid vs zero PASS');
+  }
+  if(width<900){
+   await page.goto(base,{waitUntil:'networkidle'});
+   const initial=page.url(),historyLength=await page.evaluate(()=>history.length);
+   await page.locator('#open-filters').click();assert.equal(await page.locator('#filter-dialog').isVisible(),true);assert.equal(await page.evaluate(()=>document.activeElement.id),'filter-dialog-heading');
+   await page.locator('#skill-filters').evaluate(e=>e.open=true);
+   await page.locator('#skill-kind').selectOption('panel_passive');await page.locator('#effect-type').selectOption('passive_up');await page.locator('#effect-target').selectOption('Vocal');
+   const n=detail.cards.filter(c=>c.items.some(i=>i.kind==='panel_passive'&&i.numeric_facts.some(f=>f.metric==='rate'&&f.direction==='UP'&&(f.targets??[f.target]).includes('Vocal')))).length;
+   assert.equal(await page.locator('#apply-filters').textContent(),n+'件を表示');assert.equal(page.url(),initial);assert.equal(await page.locator('#count').textContent(),basic.cards.length+' / '+basic.cards.length+' 件');
+   await page.locator('#cancel-filters').click();await page.locator('#filter-dialog').waitFor({state:'hidden'});assert.equal(page.url(),initial);assert.equal(await page.evaluate(()=>document.activeElement.id),'open-filters');
+   await page.locator('#open-filters').click();await page.locator('#skill-kind').selectOption('panel_passive');await page.locator('#effect-type').selectOption('passive_up');await page.locator('#effect-target').selectOption('Vocal');
+   await page.locator('#apply-filters').click();assert.equal(await page.locator('#filter-dialog').isVisible(),false);assert.equal(await page.locator('#count').textContent(),n+' / '+basic.cards.length+' 件');assert.equal(await page.evaluate(()=>history.length),historyLength+1);assert.equal(await page.evaluate(()=>document.activeElement.id),'results-heading');
+   await page.goBack();assert.equal(await page.locator('#count').textContent(),basic.cards.length+' / '+basic.cards.length+' 件');await page.goForward();assert.equal(await page.locator('#count').textContent(),n+' / '+basic.cards.length+' 件');
+   await page.locator('#open-filters').click();await page.locator('#skill-kind').selectOption('live');await page.locator('#effect-type').selectOption('rate_up');await page.locator('#performance-advanced').evaluate(e=>e.open=true);await page.locator('#effect-turns').selectOption('1');await page.locator('#skill-kind').selectOption('panel_passive');assert.equal(await page.locator('#apply-filters').isDisabled(),true);assert.equal(await page.locator('#count').textContent(),n+' / '+basic.cards.length+' 件');
+   await page.keyboard.press('Escape');await page.locator('#filter-dialog').waitFor({state:'hidden'});assert.equal(new URL(page.url()).searchParams.has('effect_turns'),false);
+   await page.locator('#open-filters').click();await page.locator('#effect-target').selectOption('Dance');await page.goBack();assert.equal(await page.locator('#filter-dialog').isVisible(),false);assert.equal(new URL(page.url()).searchParams.get('effect_target'),'Vocal');
+   await page.locator('#open-filters').click();await page.locator('#effect-target').selectOption('Dance');await page.setViewportSize({width:1280,height:900});await page.locator('#filter-dialog').waitFor({state:'hidden'});assert.equal(new URL(page.url()).searchParams.get('effect_target'),'Vocal');assert.equal(await page.locator('#filter-panel').evaluate(e=>e.parentElement.className),'controls');
+   await page.setViewportSize({width,height:900});assert.equal(await page.locator('#open-filters').isVisible(),true);
+   await page.locator('#open-filters').click();if(output)await page.screenshot({path:path.join(output,width+'-filter-panel.png')});await page.keyboard.press('Escape');await page.locator('#filter-dialog').waitFor({state:'hidden'});
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   console.log(width+' F19/F20 draft/cancel/apply/back/forward/Escape/resize/focus PASS');
+  }
+  if(width===1280){
+   await page.goto(base,{waitUntil:'networkidle'});await page.locator('#advanced-filters').evaluate(e=>e.open=true);
+   await page.locator('#from-year').selectOption('2025');assert.equal(new URL(page.url()).searchParams.get('from'),'2025');
+   await page.locator('#from-month').selectOption('02');assert.equal(new URL(page.url()).searchParams.get('from'),'2025-02');
+   await page.locator('#from-day').selectOption('28');assert.equal(new URL(page.url()).searchParams.get('from'),'2025-02-28');
+   await page.locator('[name=date-mode][value=calendar]').check();assert.equal(await page.locator('#from-native').inputValue(),'2025-02-28');
+   await page.locator('#to-native').fill('2024-01-01');await page.locator('#to-native').dispatchEvent('change');assert.equal(await page.locator('#count').textContent(),'条件を適用できません');
+   await page.locator('#to-native').fill('2026-01-01');await page.locator('#to-native').dispatchEvent('change');assert.equal(await page.locator('#count').textContent(),search(basic.cards,new URLSearchParams('from=2025-02-28&to=2026-01-01')).length+' / '+basic.cards.length+' 件');
+   await page.locator('#q').focus();await page.locator('#q').dispatchEvent('compositionstart');await page.locator('#q').fill('真乃');assert.equal(new URL(page.url()).searchParams.has('q'),false);
+   await page.locator('#q').dispatchEvent('compositionend');await page.waitForFunction(()=>new URL(location.href).searchParams.get('q')==='真乃');
+   console.log('F17 dates partial/calendar/immediate/invalid recovery and IME PASS');
   }
   assert.deepEqual(errors,[]);await page.close();console.log(width+' passive/cap real source sets, reasons, highlights, no overflow PASS');
  }

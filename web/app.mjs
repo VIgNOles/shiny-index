@@ -71,11 +71,16 @@ try{
   sourceUrls.get(source.card_id).set(source.source_ref,url);
  }
  let params=new URLSearchParams(location.search);
+ let editing=false,appliedParams=null,panelClosing=false,cancelMessage='';
+ const pendingSearch=new Map();
+ const cancelPending=()=>{for(const pending of pendingSearch.values())clearTimeout(pending.timer);pendingSearch.clear();};
+ const flushPending=()=>{const tasks=[...pendingSearch.values()];cancelPending();for(const task of tasks)task.apply();};
  let shown=[];
  let expandedIds=new Set();
  if(params.has('missing')){params.delete('missing');history.replaceState(null,'',location.pathname+(params.size?'?'+params:'')+location.hash);}
  const urlForParams=()=>location.pathname+(params.size?'?'+params.toString():'')+location.hash;
  const commitParams=(mode='push')=>{
+  if(editing){renderControls();renderPreview();return;}
   const next=urlForParams();
   if(next!==location.pathname+location.search+location.hash)
    history[mode==='replace'?'replaceState':'pushState'](null,'',next);
@@ -96,9 +101,16 @@ try{
   const input=document.createElement('input');input.type='checkbox';input.value=value;input.name='mechanic';
   wrapper.append(input,document.createTextNode(label));
  }
- $('skill-q').addEventListener('input',event=>{
-  if(event.target.value)params.set('skill_q',event.target.value);else params.delete('skill_q');commitParams('replace');
- });
+ const bindSearch=(id,key)=>{
+  let composing=false;const input=$(id);
+  const cancel=()=>{if(pendingSearch.has(id)){clearTimeout(pendingSearch.get(id).timer);pendingSearch.delete(id);}};
+  const apply=()=>{if(input.value)params.set(key,input.value);else params.delete(key);commitParams('replace');};
+  const schedule=()=>{cancel();const timer=setTimeout(()=>{pendingSearch.delete(id);apply();},180);pendingSearch.set(id,{timer,apply});};
+  input.addEventListener('compositionstart',()=>{composing=true;cancel();});
+  input.addEventListener('compositionend',()=>{composing=false;schedule();});
+  input.addEventListener('input',event=>{if(!composing&&!event.isComposing)schedule();});
+ };
+ bindSearch('skill-q','skill_q');
  $('skill-kind').addEventListener('change',event=>{
   if(event.target.value==='__mixed__')return;params.delete('skill_kind');if(event.target.value==='live')for(const v of liveKinds)params.append('skill_kind',v);else if(event.target.value)params.set('skill_kind',event.target.value);commitParams();
  });
@@ -250,6 +262,7 @@ try{
   const legacy=params.has('unit_name')||params.has('idol_name');
   for(const input of $('people-groups').querySelectorAll('input'))input.disabled=legacy;
   $('legacy-people-note').hidden=!legacy;
+  $('legacy-people-note').textContent=params.has('person')?'この旧リンクには両方式の人物条件があります。元の評価どおり、新方式の人物選択を優先しています。旧指定は互換欄から解除できます。':'リンクの人物条件を下の互換欄で編集中です。解除後、ユニット・アイドルを選べます。';
   for(const group of peopleGroups){
    const control=peopleControls.get(group.id);
    const allSelected=tokens.has('unit:'+group.id)||
@@ -333,42 +346,35 @@ try{
    const d=m?$(kind+'-day').value:'';
    dateDraft[kind]=y+(m?'-'+m:'')+(d?'-'+d:'');
    renderDateBound(kind);
-   $('date-error').hidden=true;
+   $('date-error').hidden=true;applyDates();
   };
   for(const id of ['year','month','day'])$(kind+'-'+id).addEventListener('change',onSelect);
   $(kind+'-native').addEventListener('change',event=>{
+   if(event.target.validity.badInput||event.target.validity.typeMismatch){showDateError('日付を最後まで入力してください。');return;}
    dateDraft[kind]=event.target.value;
    renderDateBound(kind);
-   $('date-error').hidden=true;
+   $('date-error').hidden=true;applyDates();
   });
   renderDateBound(kind);
  }
  const showDateError=message=>{
   $('date-error').textContent=message;$('date-error').hidden=false;
  };
- $('date-apply').addEventListener('click',()=>{
-  const from=dateDraft.from?parseDatePart(dateDraft.from):null;
-  const to=dateDraft.to?parseDatePart(dateDraft.to):null;
-  if(dateDraft.from&&!from||dateDraft.to&&!to){
-   showDateError('実在する年月日を選んでください。');return;
-  }
-  if(from&&to&&from.start>to.end){
-   showDateError('開始日を終了日以前にしてください。');return;
-  }
-  $('date-error').hidden=true;
-  for(const kind of ['from','to']){
-   if(dateDraft[kind])params.set(kind,dateDraft[kind]);
-   else params.delete(kind);
-  }
-  commitParams();
+ const applyDates=()=>{
+  for(const kind of ['from','to']){if(dateDraft[kind])params.set(kind,dateDraft[kind]);else params.delete(kind);}commitParams();
+ };
+ document.querySelector('.date-mode').addEventListener('change',event=>{
+  const calendar=event.target.value==='calendar';
+  for(const el of document.querySelectorAll('.calendar-input'))el.hidden=!calendar;
+  for(const el of document.querySelectorAll('.date-selects'))el.hidden=calendar;
  });
 
  const active=$('active-filters');
  const conditionGroups=[['カード',['q','card_kind','rarity','person','unit_name','idol_name','from','to','collab_work','review_status','detail_status']],['シリーズ・入手',['browse','series_ids','acquisition_category']],['スキル・性能',['skill_kind','effect_type','effect_target','skill_q']],['詳しい条件',['mechanic','skill_condition','effect_recipient','effect_turns']]];
- const clearFields=fields=>{for(const field of fields)params.delete(field);dateDraft={from:params.get('from')??'',to:params.get('to')??''};for(const k of ['from','to'])renderDateBound(k);commitParams();$('results-heading').focus({preventScroll:true});};
+ const clearFields=fields=>{for(const field of fields)params.delete(field);dateDraft={from:params.get('from')??'',to:params.get('to')??''};for(const k of ['from','to'])renderDateBound(k);commitParams();$(editing?'filter-dialog-heading':'results-heading').focus({preventScroll:true});};
  const addChip=(parent,label,field,value)=>{
   const button=add(parent,'button',label+' ×','filter-chip');button.type='button';button.setAttribute('aria-label',label+'を解除');
-  button.onclick=()=>{if(value===null)params.delete(field);else{const rest=params.getAll(field).filter(v=>v!==value);params.delete(field);for(const v of rest)params.append(field,v);}dateDraft={from:params.get('from')??'',to:params.get('to')??''};for(const k of ['from','to'])renderDateBound(k);commitParams();$('results-heading').focus({preventScroll:true});};
+  button.onclick=()=>{if(value===null)params.delete(field);else{const rest=params.getAll(field).filter(v=>v!==value);params.delete(field);for(const v of rest)params.append(field,v);}dateDraft={from:params.get('from')??'',to:params.get('to')??''};for(const k of ['from','to'])renderDateBound(k);commitParams();$(editing?'filter-dialog-heading':'results-heading').focus({preventScroll:true});};
  };
  const personName=token=>{
   const [type,id]=token.split(':');
@@ -413,7 +419,7 @@ try{
   for(const field of ['series_ids','acquisition_category']){const n=params.getAll(field).length;filterGroups.get(field).querySelector('.selection-count').textContent=n?'（'+n+'件選択）':'';}
   $('open-filters').textContent='絞り込み（'+conditionCount()+'）';
  };
- const retainOption=(select,value)=>{if(value&&![...select.options].some(o=>o.value===value))select.add(new Option('選択中：'+(effectNames[value]??recipientNames[value]??value),value));};
+ const retainOption=(select,value)=>{if(value&&![...select.options].some(o=>o.value===value))select.add(new Option('選択中：'+(effectNames[value]??recipientNames[value]??(select.id==='effect-turns'?value+'ターン以上':value)),value));};
  const populateEffects=()=>{
   const items=applicableItems(params,catalog),effects=items.flatMap(i=>i.effects),type=params.get('effect_type');
   const names={appeal:'アピール・ライブの機能',status:'能力・ステータスの変化',recovery_gauge:'回復・ゲージ',audience:'観客への効果',produce:'育成サポート',random:'ランダム候補',passive:'パッシブの効果',cap:'ステータス上限'};
@@ -457,6 +463,7 @@ try{
   }
   for(const [field,group] of legacyControls){group.hidden=!params.has(field);visible||=params.has(field);for(const input of group.querySelectorAll('input'))input.checked=params.getAll(field).includes(input.value);}
   $('legacy-filters').hidden=!visible;if(visible)$('legacy-filters').open=true;
+  $('legacy-filters').querySelector('.filter-help').textContent='元のリンクの式を保持しています。同じ欄は「または」、異なる欄は「すべて満たす」です。'+(params.has('person')&&(params.has('unit_name')||params.has('idol_name'))?'このリンクの人物は新方式が優先され、旧ユニット・アイドル指定は評価されません。':'旧ユニット・アイドル指定は両方満たします。');
  };
  const issuesFor=()=>{
   const issues=performanceIssues(params,catalog,!!detailDoc);
@@ -470,12 +477,12 @@ try{
  };
  const renderIssues=issues=>{
   $('filter-issues').hidden=!issues.length;$('filter-issues').replaceChildren();
-  if(issues.length){add($('filter-issues'),'strong','条件を適用できません');for(const issue of issues){add($('filter-issues'),'p',issue.message);const b=add($('filter-issues'),'button','この条件を解除');b.type='button';b.onclick=()=>clearFields(issue.key==='performance'?conditionGroups.slice(2).flatMap(([,keys])=>keys):[issue.key]);}}
+  if(issues.length){add($('filter-issues'),'strong','条件を適用できません');for(const issue of issues){add($('filter-issues'),'p',issue.message);const b=add($('filter-issues'),'button','この条件を解除');b.type='button';b.onclick=()=>clearFields(issue.key==='performance'?['detail_status',...conditionGroups.slice(2).flatMap(([,keys])=>keys)]:[issue.key]);}}
  };
  const renderControls=()=>{
   populateEffects();renderLegacy();
   for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns'],['effect-recipient','effect_recipient']]){retainOption($(id),params.get(key));$(id).value=params.get(key)??'';}
-  $('skill-q').value=params.get('skill_q')??'';
+  if(!pendingSearch.has('skill-q'))$('skill-q').value=params.get('skill_q')??'';
   const kinds=params.getAll('skill_kind');const parent=kinds.length&&kinds.every(k=>liveKinds.has(k))?'live':kinds.length===1&&[...$('skill-kind').options].some(o=>o.value===kinds[0])?kinds[0]:kinds.length?'__mixed__':'';retainOption($('skill-kind'),parent);if(parent==='__mixed__')$('skill-kind').querySelector('option[value="__mixed__"]').textContent='リンクの情報条件（複数指定）';$('skill-kind').value=parent;
   retainOption($('skill-condition'),params.get('skill_condition'));$('skill-condition').value=params.get('skill_condition')??'';
   $('detail-available').checked=params.get('detail_status')==='available';
@@ -487,8 +494,8 @@ try{
   }
   for(const button of $('series-shortcuts').querySelectorAll('button'))
    button.setAttribute('aria-pressed',String(params.getAll('browse').includes(button.dataset.browseShortcut)));
-  renderPeople();renderActive();
-  if($('q').value!==(params.get('q')??''))$('q').value=params.get('q')??'';
+  renderPeople();if(!editing)renderActive();
+  if(!pendingSearch.has('q')&&$('q').value!==(params.get('q')??''))$('q').value=params.get('q')??'';
   $('sort').value=sortFromParams();
   $('date-hint').hidden=!(params.has('from')||params.has('to'));
   $('date-hint').textContent='実装日未確認の'+(coverage.missing?.first_implemented_on??0)+'件は期間指定の結果に含まれません。';
@@ -514,7 +521,8 @@ try{
    detailLine(list,'最大Lv '+stats.level,['Vo','Da','Vi','Me'].map((label,i)=>label+' '+(stats[['vocal','dance','visual','mental'][i]]??'未記載')).join(' / '));
   }
   add(section,'p','効果は参考数値の一部を表示しています。パッシブの発動条件は対応分を表示します。未対応の条件・複合効果はWikiで確認してください。','detail-note');
-  for(const [kind,label] of Object.entries(kindNames)){
+  const matchingKinds=new Set(detailMatches(card,params).map(m=>m.item.kind));
+  for(const [kind,label] of Object.entries(kindNames).sort(([a],[b])=>Number(matchingKinds.has(b))-Number(matchingKinds.has(a)))){
    const items=card.items.filter(item=>item.kind===kind);if(!items.length)continue;
    const matches=new Map(detailMatches({items},params).map(m=>[m.item.detail_id,m]));
    const matchedIds=new Set(matches.keys());
@@ -522,7 +530,7 @@ try{
    const group=add(section,'details','','skill-section');if(matchedIds.size)group.open=true;add(group,'summary',label+'（'+items.length+'件'+(matchedIds.size?' / 一致 '+matchedIds.size+'件':'')+'）');
    const list=add(group,'ul','','skill-list');
    for(const item of items){
-    const row=add(list,'li','','skill-item');row.dataset.detailId=item.detail_id;add(row,'strong',item.name);
+    const row=add(list,'li','','skill-item');row.dataset.detailId=item.detail_id;if(matchedIds.has(item.detail_id))row.classList.add('matched-skill');add(row,'strong',item.name);
     const attrs=[];
     if(item.sp!=null)attrs.push('SP '+item.sp);
     if(item.unlock_star!=null)attrs.push('特訓 '+item.unlock_star);
@@ -543,7 +551,7 @@ try{
      const rules=add(row,'ul','','skill-effect-rules');
      for(const rule of item.effect_details.mechanic_conditions){
       const fact=add(rules,'li',mechanicRuleText(rule),'skill-values');
-      if(matchedIds.has(item.detail_id)&&mechanicRuleMatches(item,rule,params)){fact.classList.add('matched-effect');group.open=true;}
+      if(matchedIds.has(item.detail_id)&&(params.get('skill_q')??'').trim()&&mechanicRuleMatches(item,rule,params)){fact.classList.add('matched-effect');group.open=true;}
      }
     }
     if(item.effect_details?.effects.length){
@@ -643,7 +651,7 @@ try{
   $('cards').replaceChildren();
   if(!shown.length){
    const empty=add($('cards'),'li',issues.length?'条件を適用できません。選択中の条件を変更・部分解除してください。':'条件に一致するカードはありません。条件を減らすと見つかる可能性があります。スキル未収録・検索未対応の範囲もあります。','empty-state');
-   if(issues.length)for(const issue of issues){add(empty,'p',issue.message);const b=add(empty,'button','条件を解除：'+issue.key);b.type='button';b.onclick=()=>clearFields(issue.key==='performance'?conditionGroups.slice(2).flatMap(([,keys])=>keys):[issue.key]);}
+   if(issues.length)for(const issue of issues){add(empty,'p',issue.message);const b=add(empty,'button','条件を解除：'+issue.key);b.type='button';b.onclick=()=>clearFields(issue.key==='performance'?['detail_status',...conditionGroups.slice(2).flatMap(([,keys])=>keys)]:[issue.key]);}
    const reset=add(empty,'button','条件をリセット');
    reset.type='button';reset.onclick=()=>$('reset').click();
   }
@@ -656,13 +664,10 @@ try{
    if(firstAdded)firstAdded.focus();
   };
  }
- $('q').addEventListener('input',event=>{
-  if(event.target.value)params.set('q',event.target.value);
-  else params.delete('q');
-  commitParams('replace');
- });
+ bindSearch('q','q');
  $('q').addEventListener('keydown',event=>{
-  if(event.key==='Enter'){
+  if(event.key==='Enter'&&!event.isComposing){
+   flushPending();
    event.preventDefault();$('results-heading').scrollIntoView({block:'start'});
   }
  });
@@ -670,6 +675,7 @@ try{
   params.set('sort',event.target.value);params.delete('direction');commitParams();
  });
  $('reset').addEventListener('click',()=>{
+  cancelPending();
   const kept=new URLSearchParams();for(const key of ['sort','direction'])for(const v of params.getAll(key))kept.append(key,v);params=kept;dateDraft={from:'',to:''};
   for(const kind of ['from','to'])renderDateBound(kind);
   $('date-error').hidden=true;
@@ -687,13 +693,44 @@ try{
   filterGroups.get(field).open=!!params.getAll(field).length;
  $('performance-advanced').open=['mechanic','skill_condition','effect_recipient','effect_turns'].some(k=>params.has(k))||params.getAll('skill_kind').some(k=>liveKinds.has(k))&&params.getAll('skill_kind').length<4;
  render();
- window.addEventListener('popstate',()=>{
-  params=new URLSearchParams(location.search);
-  dateDraft={from:params.get('from')??'',to:params.get('to')??''};
-  for(const kind of ['from','to'])renderDateBound(kind);
-  $('date-error').hidden=true;
-  render();
+ const mobile=matchMedia('(max-width:899px)'),dialog=$('filter-dialog'),panel=$('filter-panel');
+ const movePanel=()=>{
+  const parent=mobile.matches?$('dialog-filter-body'):document.querySelector('.controls');
+  if(panel.parentElement!==parent)parent.append(panel);
+  $('open-filters').hidden=!mobile.matches;
+ };
+ function renderPreview(){
+  const issues=issuesFor();renderIssues(issues);const n=issues.length?0:detailSearch(search(cards,params),params,detailMap).length;
+  $('draft-count').textContent=issues.length?'条件を変更・部分解除してください。':n===0?'0件です。条件を減らすと見つかる可能性があります。':n+'件のカードが候補になります。';
+  $('apply-filters').textContent=issues.length?'条件を適用できません':n+'件を表示';$('apply-filters').disabled=!!issues.length;
+ }
+ const closePanel=()=>{
+  dialog.close();document.body.classList.remove('filter-dialog-open');editing=false;appliedParams=null;panelClosing=false;movePanel();
+ };
+ $('open-filters').onclick=()=>{
+  flushPending();appliedParams=new URLSearchParams(params);params=new URLSearchParams(params);editing=true;
+  history.pushState({filterPanel:true},'',location.href);dialog.showModal();document.body.classList.add('filter-dialog-open');renderControls();renderPreview();$('filter-dialog-heading').focus();
+ };
+ const cancelPanel=(message='')=>{
+  if(!editing||panelClosing)return;panelClosing=true;cancelMessage=message;cancelPending();history.back();
+ };
+ $('cancel-filters').onclick=()=>cancelPanel();
+ dialog.addEventListener('cancel',event=>{event.preventDefault();cancelPanel();});
+ $('apply-filters').onclick=()=>{
+  flushPending();if(issuesFor().length){renderPreview();return;}
+  history.replaceState(null,'',urlForParams());closePanel();render();$('results-heading').focus();$('results-heading').scrollIntoView({block:'start'});
+ };
+ mobile.addEventListener('change',()=>{
+  if(editing){cancelPanel('画面幅が変わったため、未適用の編集を取り消しました。');return;}movePanel();
  });
+ window.addEventListener('popstate',()=>{
+  cancelPending();
+  if(editing){params=new URLSearchParams(location.search);closePanel();dateDraft={from:params.get('from')??'',to:params.get('to')??''};for(const kind of ['from','to'])renderDateBound(kind);render();if(mobile.matches)$('open-filters').focus();else $('results-heading').focus();$('filter-announcement').textContent=cancelMessage;cancelMessage='';return;}
+  if(history.state?.filterPanel)history.replaceState(null,'',location.href);
+  params=new URLSearchParams(location.search);dateDraft={from:params.get('from')??'',to:params.get('to')??''};
+  for(const kind of ['from','to'])renderDateBound(kind);$('date-error').hidden=true;render();
+ });
+ movePanel();
 
  $('coverage-summary').textContent=cards.length+'件収録（P '+(coverage.by_kind?.P??'—')+
   '件 / S '+(coverage.by_kind?.S??'—')+'件） · '+(coverage.target_to??'確認日不明')+

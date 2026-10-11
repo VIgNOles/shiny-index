@@ -527,3 +527,7 @@ test('applicability is independent of text, rarity and selected people; incompat
  assert.ok(performanceIssues(new URLSearchParams('effect_type=passive_up'),catalog,false).length);
  assert.deepEqual(performanceIssues(new URLSearchParams('q=basic'),catalog,false),[]);
 });
+
+test('structured effects remain the unique source and do not duplicate numeric references',()=>{
+ const item={kind:'panel_live',effect_details:{effects:[{metric:'rate_up',targets:['Vocal'],value:50,unit:'percent'}]},numeric_facts:[{metric:'rate',target:'Vocal',value:50,direction:'UP'}]};assert.equal(searchEffects(item).length,1);assert.equal(searchEffects(item)[0].source_field,'effect_details');
+});

@@ -252,6 +252,7 @@ export function effectSearchMatches(item,e,params){
 // Search-only facts retain their source field. The canonical detail object is never changed.
 export function searchEffects(item){
  const effects=(item.effect_details?.effects??[]).map((e,index)=>({...e,source_field:'effect_details',source_index:index,source_detail_id:item.detail_id}));
+ if(effects.length)return effects;
  if(item.kind==='panel_passive')for(const [index,f] of (item.numeric_facts??[]).entries()){
   const metric={UP:'passive_up',DOWN:'passive_down',CUT:'passive_cut'}[f.direction];
   const targets=f.targets??(f.target?[f.target]:[]);

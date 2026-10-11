@@ -71,10 +71,11 @@
           <details id="advanced-filters" class="filter-group">
             <summary>その他のカード条件 <span id="advanced-count"></span></summary>
           <fieldset class="dates">
+            <div class="date-mode" role="group" aria-label="日付の入力方式"><label class="filter-option"><input type="radio" name="date-mode" value="ymd" checked>年月日から</label><label class="filter-option"><input type="radio" name="date-mode" value="calendar">カレンダー</label></div>
             <legend>初回実装日</legend>
             <div class="date-bound">
               <h3>この日から</h3>
-              <label for="from-native">カレンダーで選ぶ
+              <label class="calendar-input" for="from-native" hidden>カレンダーで選ぶ
                 <input id="from-native" type="date">
               </label>
               <div class="date-selects" role="group" aria-label="実装日の下限を年月日から選ぶ">
@@ -86,7 +87,7 @@
             </div>
             <div class="date-bound">
               <h3>この日まで</h3>
-              <label for="to-native">カレンダーで選ぶ
+              <label class="calendar-input" for="to-native" hidden>カレンダーで選ぶ
                 <input id="to-native" type="date">
               </label>
               <div class="date-selects" role="group" aria-label="実装日の上限を年月日から選ぶ">
@@ -96,7 +97,6 @@
               </div>
               <output id="to-summary">指定なし</output>
             </div>
-            <button id="date-apply" type="button">この期間で絞り込む</button>
             <p id="date-error" role="alert" hidden></p>
             <p id="date-hint" hidden></p>
           </fieldset>
@@ -130,6 +130,13 @@
       </section>
     </div>
 
+    <dialog id="filter-dialog" aria-labelledby="filter-dialog-heading">
+      <header class="dialog-header"><h2 id="filter-dialog-heading" tabindex="-1">絞り込み</h2><button id="cancel-filters" type="button">キャンセル</button></header>
+      <p class="filter-help">このパネルではまとめて適用します。キャンセル・戻る・Escは変更を破棄します。</p>
+      <div id="dialog-filter-body"></div>
+      <footer class="dialog-footer"><p id="draft-count" role="status" aria-live="polite"></p><button id="apply-filters" type="button">件数を確認中…</button></footer>
+    </dialog>
+    <p id="filter-announcement" class="visually-hidden" role="status" aria-live="polite"></p>
     <footer>
       <h2>データと収録範囲</h2>
       <p id="version"></p>
