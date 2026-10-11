@@ -516,3 +516,14 @@ test('kind and mechanic only searches expose item reasons while availability alo
  assert.equal(detailMatches(details.get('P1'),new URLSearchParams('skill_kind=panel_live&mechanic=link'))[0].item.name,'通常');
  assert.deepEqual(detailMatches(details.get('P1'),new URLSearchParams('detail_status=available')),[]);
 });
+
+import {performanceIssues,filterCatalog} from '../web/details.mjs';
+test('applicability is independent of text, rarity and selected people; incompatible conditions stay explicit',()=>{
+ const base=[{card_id:'P1',card_kind:'P'},{card_id:'S1',card_kind:'S'}];
+ const d=new Map([['P1',{card_id:'P1',items:[{kind:'memory_appeal',numeric_facts:[],mechanics:['link']},{kind:'panel_passive',numeric_facts:[{metric:'rate',target:'Vocal',value:50,direction:'UP'}]}]}],['S1',{card_id:'S1',items:[{kind:'support_skill',effect_details:{effects:[{metric:'support_gain',targets:['SP'],value:5,unit:'points'}]}}]}]]);
+ const catalog=filterCatalog(base,d);
+ assert.deepEqual(performanceIssues(new URLSearchParams('q=missing&rarity=N&person=idol:missing&skill_kind=panel_passive&effect_type=passive_up'),catalog),[]);
+ for(const query of ['skill_kind=memory_appeal&mechanic=link','skill_kind=panel_passive&effect_turns=1','card_kind=P&skill_kind=support_skill','skill_kind=memory_appeal&effect_type=passive_up','skill_kind=panel_passive&effect_type=passive_up&effect_target=Dance'])assert.ok(performanceIssues(new URLSearchParams(query),catalog).length,query);
+ assert.ok(performanceIssues(new URLSearchParams('effect_type=passive_up'),catalog,false).length);
+ assert.deepEqual(performanceIssues(new URLSearchParams('q=basic'),catalog,false),[]);
+});

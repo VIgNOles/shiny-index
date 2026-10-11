@@ -308,3 +308,34 @@ export async function loadDetails(baseVersion,version){
  if(doc.meta.detail_schema!=='1.0'||doc.meta.detail_version!==version||doc.meta.base_dataset_version!==baseVersion)throw Error('詳細データの版不一致');
  return doc;
 }
+
+export const effectGroups={"appeal": ["appeal", "appeal_enhanced", "idol_appeal_bonus", "appeal_boost", "appeal_perfect", "appeal_consume", "action_order", "appeal_first", "appeal_last", "refrain", "duet", "duet_add"], "status": ["base_stat_boost", "rate_up", "rate_down", "rate_cut", "exchange_count_up", "status_conversion", "passive_boost", "flexible", "sparkle_eyes"], "recovery_gauge": ["mental_recovery", "mental_cost", "memory_gauge_gain", "memory_gauge_loss", "memory_gain_boost", "mental_overflow", "relax", "resurrection", "vigor_gain"], "audience": ["interest", "interest_minimum", "interest_reverse", "interest_limit", "charm", "enthusiasm", "melancholy", "audience_status_clear", "instant_satisfaction"], "produce": ["support_gain", "support_recovery", "support_cost_down", "support_trouble_down", "support_rest_gain", "support_bond", "support_tension_protection", "support_presence_up", "support_event_rate", "support_knowhow_rate", "support_location_level", "support_perfect", "support_excellent", "support_advice_rate"], "random": ["random_grant"], "passive": ["passive_up", "passive_down", "passive_cut"], "cap": ["cap_increase"]};
+export function filterCatalog(cards,details){
+ const cardById=new Map(cards.map(c=>[c.card_id,c]));
+ return [...details.values()].flatMap(c=>(c.items??[]).map(item=>({kind:item.kind,card_kind:cardById.get(c.card_id)?.card_kind,mechanics:item.mechanics??[],conditions:activationConditionTypes(itemActivationCondition(item)),effects:searchEffects(item)})));
+}
+export function applicableItems(params,catalog){
+ const kinds=params.getAll('skill_kind'),cardKinds=params.getAll('card_kind');
+ return catalog.filter(i=>(!kinds.length||kinds.includes(i.kind))&&(!cardKinds.length||cardKinds.includes(i.card_kind)));
+}
+export function performanceIssues(params,catalog,loaded=true){
+ if(!loaded&&(hasSkillConditions(params)||params.has('detail_status')))return [{key:'performance',message:'詳細情報を読み込めないため、性能条件を適用できません。基本条件だけの検索は利用できます。'}];
+ const issues=[],add=(key,message)=>issues.push({key,message});
+ for(const kind of params.getAll('skill_kind'))if(!kindNames[kind])add('skill_kind','不明な「探す情報」が残っています：'+kind);
+ for(const m of params.getAll('mechanic'))if(!mechanicNames[m])add('mechanic','不明なライブ機能が残っています：'+m);
+ if(params.get('skill_condition')&&!conditionNames[params.get('skill_condition')])add('skill_condition','不明な発動条件が残っています。');
+ if(params.get('effect_type')&&!effectNames[params.get('effect_type')])add('effect_type','不明な効果が残っています。');
+ if(params.get('detail_status')&&!['available'].includes(params.get('detail_status')))add('detail_status','不明な詳細収録条件が残っています。');
+ const items=applicableItems(params,catalog),effects=items.flatMap(i=>i.effects);
+ if(params.getAll('skill_kind').length&&!items.length)add('skill_kind','選択したP／Sに、この「探す情報」は収録されていません。');
+ if(params.getAll('mechanic').length&&!items.some(i=>liveKinds.has(i.kind)))add('mechanic','ライブの追加機能はライブスキル専用です。思い出Linkは効果・キーワードから探してください。');
+ if(params.get('skill_condition')&&!items.some(i=>i.kind==='panel_passive'))add('skill_condition','発動条件の要素はパッシブスキル専用です。');
+ const type=params.get('effect_type'),typed=type?effects.filter(e=>effectMatches(e,new URLSearchParams({effect_type:type}))):effects;
+ if(type&&effectNames[type]&&!typed.length)add('effect_type','この「探す情報」には、選択した効果が収録されていません。');
+ if(params.get('effect_target')&&!typed.some(e=>effectTargets(e).includes(params.get('effect_target'))))add('effect_target','この効果の属性・能力には対応していません。');
+ if(params.get('effect_recipient')&&!typed.some(e=>effectRecipient(e)===params.get('effect_recipient')))add('effect_recipient','この効果には選択した対象の明記がありません。');
+ const turns=params.get('effect_turns');
+ if(turns&&(!/^\d+$/.test(turns)||Number(turns)<1))add('effect_turns','継続ターンは1以上の整数で指定してください。');
+ else if(turns&&!typed.some(e=>e.turns||e.turn_range?.minimum||e.metric==='random_grant'&&e.random_pool?.options?.some(o=>o.turns)))add('effect_turns','この情報・効果には検索できる継続期間がありません。パッシブ・上限や即時効果に期間は推定しません。');
+ return issues;
+}

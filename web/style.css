@@ -191,3 +191,13 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 .effect-filters{margin:1rem 0;padding:.75rem;border:1px solid var(--border,#d3d9e3);border-radius:.5rem;display:grid;gap:.65rem}.effect-filters label{min-width:0}.effect-filters select{width:100%;max-width:100%}.effect-facts{padding-left:1.2rem}.effect-facts li{margin:.5rem 0;overflow-wrap:anywhere}.matched-effect{background:#eef5ff;border-left:3px solid #315fa5;padding:.4rem .55rem}.effect-filters .filter-help{margin:0}
 
 .match-reason{grid-column:1/-1;margin:7px 0 0;font-size:13px;color:#174f88;overflow-wrap:anywhere}
+
+#filter-panel{display:grid;gap:12px} .filter-heading{font-size:14px;font-weight:700;margin:4px 0 8px}
+#skill-controls label,#performance-advanced>label{display:grid;gap:5px;min-width:0} #skill-controls select{width:100%;min-width:0;max-width:100%}
+#performance-advanced{border-top:1px solid #d5dfeb} #performance-advanced>*{margin-bottom:12px} #live-origins{min-width:0;margin:8px 0;border:1px solid #d5dfeb;padding:8px}
+#people-filter{margin-top:0} #advanced-filters{border:1px solid #d5dfeb;padding:10px 12px}
+#legacy-groups{display:grid;gap:12px}.legacy-group{min-width:0;border:1px solid #d5dfeb}.legacy-group .filter-option{margin:3px}
+.selected-row{margin:0 0 12px;flex-wrap:wrap}#active-filters{display:grid;flex:1;gap:10px}.active-group{border-left:3px solid #b9d3ec;padding-left:9px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.active-group>strong{margin-right:auto}.active-field{display:flex;gap:6px;flex-wrap:wrap;width:100%;align-items:center}.group-clear{font-size:12px;padding:6px 9px}.or-label{font-size:12px;color:#40546d}.combination-help{margin:0 0 14px}
+#filter-issues{border:1px solid #b65f3b;background:#fff5ed;padding:12px;border-radius:8px;font-size:13px}#filter-issues p{margin:8px 0}#filter-issues button{margin-bottom:8px}
+.match-reason{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
