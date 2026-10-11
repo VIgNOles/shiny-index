@@ -22,7 +22,7 @@ try{
    for(const target of ['注目度','メンタルダメージ']){
     const p=new URLSearchParams({q:title,skill_kind:'panel_live',effect_type:'rate_up',effect_target:target,effect_turns:'1'});
     await page.goto(base+'?'+p,{waitUntil:'networkidle'});
-    assert.equal(await page.evaluate(()=>window.UI_VERSION),'ui-v21');
+    assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v21');
     assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),pointer.detail_version);
     assert.equal(await page.locator('#count').textContent(),'1 / 1466 件');
     await page.locator('.detail-toggle').first().click();

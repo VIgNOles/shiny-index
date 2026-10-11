@@ -75,7 +75,7 @@ export function detailCoverageText(coverage,total){
  return '詳細 '+coverage.detail_card_count+' / '+total+'カード収録。'+(notes.length?notes.join('／')+'。':'')+'数値・条件は一部のみ収録。'+(conditionCounts?'パッシブ発動条件 '+(conditionCounts.structured??0)+' / '+Object.values(conditionCounts).reduce((a,b)=>a+b,0)+'項目対応'+(coverage.activation_condition_current_counts?'（未対応'+(conditionCounts.unsupported??0)+'項目）':'')+'。':'');
 }
 
-export const effectNames={appeal:'ライブ・思い出のアピール',support_gain:'能力・SPの獲得',support_recovery:'体力回復',support_cost_down:'体力消費軽減',support_trouble_down:'トラブル率軽減',support_rest_gain:'休む時の回復量増加',support_bond:'初期の絆',support_tension_protection:'テンション低下防止',support_presence_up:'レッスン滞在率UP',support_event_rate:'イベント発生率UP',support_knowhow_rate:'ノウハウ発現率UP',support_location_level:'施設のレベルUP',support_perfect:'パーフェクト発生',support_excellent:'エクセレント強化',support_advice_rate:'アドバイス抽選率UP',appeal_boost:'アピール値UP',memory_gain_boost:'思い出ゲージ増加量UP',base_stat_boost:'基礎能力値UP',rate_up:'継続するUP効果',rate_down:'継続するDOWN効果',rate_cut:'継続するCUT効果',interest:'興味倍率',exchange_count_up:'交換数UP',mental_recovery:'メンタル回復',mental_cost:'自身のメンタル消費',memory_gauge_gain:'思い出ゲージ増加',relax:'リラックス付与',passive_boost:'パッシブスキル強化',refrain:'リフレイン',resurrection:'リザレクション付与',audience_status_clear:'観客ステータス解除',duet:'デュエット',duet_add:'デュエット追加',interest_minimum:'興味倍率（最小値）',charm:'魅了付与',enthusiasm:'熱狂付与',interest_reverse:'興味反転付与',interest_limit:'興味限定付与',melancholy:'メランコリー付与',appeal_consume:'消去付きアピール',action_order:'アピールの行動順指定',appeal_first:'必ず最初にアピール',appeal_last:'必ず最後にアピール'};
+export const effectNames={random_grant:'ランダム効果（候補から探す）',appeal:'ライブ・思い出のアピール',support_gain:'能力・SPの獲得',support_recovery:'体力回復',support_cost_down:'体力消費軽減',support_trouble_down:'トラブル率軽減',support_rest_gain:'休む時の回復量増加',support_bond:'初期の絆',support_tension_protection:'テンション低下防止',support_presence_up:'レッスン滞在率UP',support_event_rate:'イベント発生率UP',support_knowhow_rate:'ノウハウ発現率UP',support_location_level:'施設のレベルUP',support_perfect:'パーフェクト発生',support_excellent:'エクセレント強化',support_advice_rate:'アドバイス抽選率UP',appeal_boost:'アピール値UP',memory_gain_boost:'思い出ゲージ増加量UP',base_stat_boost:'基礎能力値UP',rate_up:'継続するUP効果',rate_down:'継続するDOWN効果',rate_cut:'継続するCUT効果',interest:'興味倍率',exchange_count_up:'交換数UP',mental_recovery:'メンタル回復',mental_cost:'自身のメンタル消費',memory_gauge_gain:'思い出ゲージ増加',relax:'リラックス付与',passive_boost:'パッシブスキル強化',refrain:'リフレイン',resurrection:'リザレクション付与',audience_status_clear:'観客ステータス解除',duet:'デュエット',duet_add:'デュエット追加',interest_minimum:'興味倍率（最小値）',charm:'魅了付与',enthusiasm:'熱狂付与',interest_reverse:'興味反転付与',interest_limit:'興味限定付与',melancholy:'メランコリー付与',appeal_consume:'消去付きアピール',action_order:'アピールの行動順指定',appeal_first:'必ず最初にアピール',appeal_last:'必ず最後にアピール'};
 export const recipientNames={self:'自身',rivals:'ライバル（自身以外の全ユニット）',all_units:'全ユニット',all_audience:'全観客'};
 export function effectRecipient(e){return e.recipient??(e.audience==='all'?'all_audience':null);}
 export const triggerNames={produce_start:'プロデュース開始時',missed_promise:'約束を守れなかった時',rest:'休むを選択時',lesson_or_work:'レッスン・お仕事選択時',unit_member_present:'行動場所に自分以外のユニットメンバーがいる時',tension_max:'テンション最高で一緒に行動時',audition_first:'オーディション1位',vocal_lesson:'一緒にボーカルレッスン',dance_lesson:'一緒にダンスレッスン',visual_lesson:'一緒にビジュアルレッスン',radio:'一緒にラジオ出演',talk:'一緒にトークショー出演',magazine:'一緒に雑誌撮影',talk_event:'一緒にトークイベント出演',solo_vocal_lesson:'ボーカルレッスン',solo_dance_lesson:'ダンスレッスン',solo_radio:'ラジオ出演',no_trouble:'スキル発動時に一緒に行動し、トラブルなし',excellent:'一緒に行動してエクセレント発生時',knowhow_acquired:'ノウハウブック獲得時',always:'常時',say_halo:'say "Halo"編',appeal_phase_start:'アピールフェイズ開始時',turn_2:'2ターン目',mental_zero:'メンタルが0になった時に回復',reaction_evaded:'観客のリアクションを回避成功時に付与',reaction_damage:'観客のリアクションでダメージを受けた時に付与'};
@@ -114,10 +114,20 @@ export function mechanicRuleMatches(item,rule,params){
  return words.every(word=>normalized([...itemSearchParts(item),mechanicRuleText(rule)].join(' ')).includes(word));
 }
 
-export function effectFactText(e,level){
- const target=e.targets.join(' / '),unit=e.metric==='refrain'?'ターン前':{points:'',percent:'%',multiplier:'倍',boolean:''}[e.unit];
- let result=(scopeNames[e.scope]?scopeNames[e.scope]+'：':'')+(effectNames[e.metric]??e.metric)+' · '+target+(e.cap?'上限':'');
+export function effectFactText(e,level,includeCandidates=true){
+ const target=e.metric==='random_grant'?'':e.targets.join(' / '),unit=e.metric==='refrain'?'ターン前':{points:'',percent:'%',multiplier:'倍',boolean:''}[e.unit];
+ let result=(scopeNames[e.scope]?scopeNames[e.scope]+'：':'')+(e.metric==='random_grant'?'ランダム効果':effectNames[e.metric]??e.metric)+' · '+target+(e.cap?'上限':'');
  if(e.unit!=='boolean')result+=' '+(e.maximum?'最大':'')+(e.minimum!=null?e.minimum+'～':'')+effectAmount(e,level)+(e.amount_unknown?'':unit);
+ if(e.metric==='random_grant'){
+  result+='個付与';
+  if(includeCandidates){
+   const pool=e.random_pool??{};
+   if(pool.options?.length)result+=' / 候補：'+pool.options.map(randomOptionText).join(' または ');
+   if(pool.unstructured_count)result+=' / 原文の単位等が不明な候補 '+pool.unstructured_count+'件（検索対象外）';
+   if(pool.status==='unavailable')result+=' / 候補未収録';
+   result+=' / 同じ候補の重複付与あり・選択確率不明（候補の付与は保証されません）';
+  }
+ }
  if(e.status_consumption){
   const c=e.status_consumption;
   result+=' / 消去対象：'+c.statuses.map(s=>s.target+s.direction).join('・');
@@ -165,6 +175,32 @@ export function effectFactText(e,level){
  if(e.restriction_status==='partial')result+=' / 追加条件はWikiで確認';
  return result;
 }
+export function randomOptionText(o){
+ const target=o.targets.join(' / ');
+ let text;
+ if(o.kind==='idol_appeal_bonus')text=o.idols.join('・')+'のアピール倍率に+'+o.value+'倍';
+ else if(o.kind==='exchange_count_up')text='交換数UP '+o.value+'回';
+ else if(o.kind==='flexible')text='フレキシブル';
+ else if(o.kind==='resurrection')text='リザレクション '+o.value+'%回復（メンタル0時・'+o.uses+'回）';
+ else text=target+' '+o.value+'%'+(o.kind==='passive_boost'?'強化':'UP');
+ return text+(o.turns?' ['+o.turns+'ターン]':'');
+}
+export function effectTargets(e){return e.metric==='random_grant'?(e.random_pool?.options??[]).flatMap(o=>o.targets):e.targets;}
+function randomWordMatches(text,word){
+ if(!/^\d/.test(word))return text.includes(word);
+ let start=text.indexOf(word);
+ while(start>=0){
+  const before=text[start-1]??'',after=text[start+word.length]??'';
+  if(!/[\d.]/.test(before)&&(!/\d$/.test(word)||!/[\d.]/.test(after)))return true;
+  start=text.indexOf(word,start+1);
+ }
+ return false;
+}
+function randomOptionMatches(o,params){
+ const target=params.get('effect_target');if(target&&!o.targets.includes(target))return false;
+ const turns=params.get('effect_turns');if(turns){const n=Number(turns);if(!Number.isInteger(n)||n<1||!o.turns||o.turns<n)return false;}
+ return true;
+}
 export function hasEffectFilters(params){return ['effect_type','effect_target','effect_turns','effect_recipient'].some(k=>params.has(k)&&params.get(k));}
 export function effectMatches(e,params){
  const recipient=params.get('effect_recipient');if(recipient&&effectRecipient(e)!==recipient)return false;
@@ -173,6 +209,11 @@ export function effectMatches(e,params){
  else if(type==='appeal_first'||type==='appeal_last'){if(e.appeal_order!==(type==='appeal_first'?'first':'last'))return false;}
  else if(type==='appeal_consume'){if(e.metric!=='appeal'||!e.status_consumption)return false;}
  else if(type&&e.metric!==type)return false;
+ if(e.metric==='random_grant'){
+  // Chance candidates participate only when explicitly requested.
+  if(type!=='random_grant')return false;
+  return !(params.get('effect_target')||params.get('effect_turns'))||(e.random_pool?.options??[]).some(o=>randomOptionMatches(o,params));
+ }
  if(params.get('effect_target')&&!e.targets.includes(params.get('effect_target')))return false;
  if(params.get('effect_turns')){const n=Number(params.get('effect_turns'));const guaranteed=e.turns??e.turn_range?.minimum;if(!Number.isInteger(n)||n<1||!guaranteed||guaranteed<n)return false;}
  return true;
@@ -181,7 +222,15 @@ export function effectMatches(e,params){
 const itemSearchParts=item=>[item.name,kindNames[item.kind],activationConditionText(itemActivationCondition(item)),...(item.mechanics??[]).map(m=>mechanicNames[m]),...(item.cap_targets??[]),...(item.kind==='generated_live'?[generationParentText(item)]:[])];
 export function effectSearchMatches(item,e,params){
  const words=normalized(params.get('skill_q')).trim().split(/\s+/).filter(Boolean);
- return effectMatches(e,params)&&words.every(word=>normalized([...itemSearchParts(item),effectFactText(e)].join(' ')).includes(word));
+ if(!effectMatches(e,params))return false;
+ if(e.metric==='random_grant'){
+  const common=[...itemSearchParts(item),effectFactText(e,undefined,false)];
+  const options=e.random_pool?.options??[];
+  // No mixing one candidate's attribute with another candidate's duration/text.
+  if(!options.length)return !params.get('effect_target')&&!params.get('effect_turns')&&words.every(w=>randomWordMatches(normalized(common.join(' ')),w));
+  return options.some(o=>randomOptionMatches(o,params)&&words.every(w=>randomWordMatches(normalized([...common,randomOptionText(o)].join(' ')),w)));
+ }
+ return words.every(word=>normalized([...itemSearchParts(item),effectFactText(e)].join(' ')).includes(word));
 }
 
 export function detailSearch(cards,params,details){

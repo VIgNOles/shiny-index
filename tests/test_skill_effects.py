@@ -95,7 +95,7 @@ class SavedLiveFactGapTests(unittest.TestCase):
   self.assertEqual(self.parse('注目度5%DOWN'),[])
  def test_random_candidates_remain_alternatives_while_fixed_main_effects_survive(self):
   es=self.parse('Vocal4倍アピール/ランダム効果3個付与(Plus)[未知]交換数UP[1回]',random_effect_options=[{'target':'Dance','value':20}])
-  self.assertEqual([e['metric'] for e in es],['appeal','exchange_count_up'])
+  self.assertEqual([e['metric'] for e in es],['appeal','random_grant','exchange_count_up'])
   self.assertTrue(all(e['targets']!=['Dance'] for e in es))
   self.assertEqual(self.parse('Vocal20%UP[3ターン]/Dance20%UP[3ターン]',random_effect_options=[{'target':'Dance'}]),[])
  def test_grow_maximum_interest_and_passive_strengthening_keep_upper_bounds(self):

@@ -383,3 +383,34 @@ test('shared named targets search the same value and duration without borrowing 
  assert.equal(count({effect_type:'rate_up',effect_target:'Vocal',skill_q:'50%'}),0);
  assert.ok(effectFactText(shared).includes('注目度 / メンタルダメージ'));
 });
+
+test('random grant keeps matching inside one explicit chance candidate',()=>{
+ const options=[{kind:'rate_up',targets:['Vocal'],value:40,unit:'percent',turns:4},{kind:'passive_boost',targets:['パッシブスキル'],value:10,unit:'percent',turns:3},{kind:'exchange_count_up',targets:['交換数'],value:1,unit:'points'}];
+ const e={metric:'random_grant',targets:['ランダム効果'],unit:'points',value:2,scope:'base',random_pool:{status:'structured',options,unstructured_count:0}};
+ const i={name:'試験',kind:'panel_live'};
+ const matches=p=>effectSearchMatches(i,e,new URLSearchParams({effect_type:'random_grant',...p}));
+ assert.ok(matches({effect_target:'Vocal',effect_turns:'4',skill_q:'40%UP 2個付与'}));
+ assert.ok(!matches({effect_target:'Vocal',effect_turns:'4',skill_q:'10%強化'}));
+ assert.ok(!matches({effect_target:'パッシブスキル',effect_turns:'4'}));
+ assert.ok(!matches({effect_target:'交換数',effect_turns:'1'}));
+ assert.ok(!matches({effect_target:'Vocal',effect_recipient:'self'}));
+ assert.ok(!effectSearchMatches(i,e,new URLSearchParams({effect_type:'rate_up',effect_target:'Vocal'})));
+ assert.ok(!effectSearchMatches(i,e,new URLSearchParams({effect_target:'Vocal'})));
+ const text=effectFactText(e);
+ assert.ok(text.includes('2個付与'));assert.ok(text.includes('または'));assert.ok(text.includes('選択確率不明'));assert.ok(text.includes('保証されません'));
+});
+test('random unknown candidates stay searchable by grant only and do not invent units',()=>{
+ const e={metric:'random_grant',targets:['ランダム効果'],unit:'points',value:1,scope:'base',random_pool:{status:'partial',options:[],unstructured_count:3}};
+ assert.ok(effectSearchMatches({kind:'panel_live'},e,new URLSearchParams('effect_type=random_grant')));
+ assert.ok(!effectSearchMatches({kind:'panel_live'},e,new URLSearchParams('effect_type=random_grant&effect_target=Vocal')));
+ assert.ok(effectFactText(e).includes('単位等が不明な候補 3件'));
+ assert.ok(!effectFactText(e).includes('0.2倍'));
+});
+
+
+test('random numeric words do not match a suffix of a larger amount',()=>{
+ const e={metric:'random_grant',targets:['ランダム効果'],unit:'points',value:3,scope:'base',random_pool:{status:'structured',options:[{kind:'rate_up',targets:['Vocal'],value:140,unit:'percent',turns:4}],unstructured_count:0}};
+ const i={name:'試験',kind:'mb_live'};
+ const m=q=>effectSearchMatches(i,e,new URLSearchParams({effect_type:'random_grant',skill_q:q}));
+ assert.ok(m('140%UP'));assert.ok(!m('40%UP'));assert.ok(!m('1'));assert.ok(m('3個付与'));
+});

@@ -2,7 +2,8 @@
 Support rules match whole cells. Live duration is attached only to the adjacent
 recognised effect, with its mechanic scope; it is never copied to other effects.
 """
-import math,re,unicodedata
+import math,re,unicodedata,copy
+from src.random_effects import unavailable_pool, validate_pool
 from src.skill_conditions_v2 import parse as parse_condition, validate_extension, join, idol_name
 from src.live_conditions import mechanic_rule, validate_rule
 from src.reaction_effects import parse as reaction_facts, REACTION_TRIGGERS
@@ -16,7 +17,8 @@ SCOPES={'base','link','plus','change','grow','refrain','memory_link','memory_cha
 TARGETS.update({'パッシブスキル発動率','パッシブスキル','リラックス','過去のアピール'})
 METRICS.update({'mental_recovery','mental_cost','memory_gauge_gain','relax','passive_boost','refrain'})
 METRICS.update(SPECIAL_METRICS)
-METRICS.add('action_order')
+METRICS.update({'action_order','random_grant'})
+TARGETS.add('ランダム効果')
 TARGETS.add('行動順')
 TARGETS.update(SPECIAL_TARGETS)
 TRIGGERS.add('mental_zero')
@@ -148,6 +150,7 @@ LONG_ORDER=re.compile(r'(?P<order>必ず最初に|必ず最後に)アピール�
 APPEAL=re.compile(r'(?:(?P<order>必ず最初に|必ず最後に)(?:アピールを行い)?)?(?P<audience>全観客に)?(?P<targets>'+ATTR+r'(?:&'+ATTR+r')*|Excellent)(?P<maximum>最大)?(?:(?P<minimum>\d+(?:\.\d+)?)[～〜~])?(?P<value>\d+(?:\.\d+)?)倍アピール')
 INTEREST=re.compile(r'(?P<audience>全観客に|全観客の)?興味(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)倍\[(?P<turns>\d+)ターン\]')
 LIVE_EXTRA=[
+ (re.compile(r'ランダム効果(?P<value>\d+)個付与'),'random_grant','ランダム効果','points'),
  (re.compile(RECIPIENT_PREFIX+r'メンタル(?P<value>\d+(?:\.\d+)?)%回復'),'mental_recovery','メンタル','percent'),
  (re.compile(r'自身のメンタルを(?P<value>\d+(?:\.\d+)?)%減ら(?:す|し)'),'mental_cost','メンタル','percent'),
  (re.compile(r'思い出ゲージ(?P<value>\d+(?:\.\d+)?)%UP(?!\[(?!コスト:\d+\])|\d)'),'memory_gauge_gain','思い出ゲージ','percent'),
@@ -189,7 +192,7 @@ def adjacent_restrictions(part,end):
   end+=m.end()
  return r
 
-def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
+def live(text,scope='base',ctx=None,standalone=None,slot='effect',random_pool=None):
  n=normalized(text);out=[]
  # Only the known mechanic markers change scope. Raw conditions are not distributed.
  pieces=re.split(r'\((Link|Plus|Change|GrowUp|Grow|Refrain|Reflain)\)',n,flags=re.I)
@@ -238,6 +241,7 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
     e=effect(metric,[target],unit,scope=current,value=float(m['value']),restriction_status='partial')
     if m.groupdict().get('maximum'):e['maximum']=True
     if m.groupdict().get('turns'):e['turns']=int(m['turns'])
+    if metric=='random_grant':e.update(value=int(m['value']),random_pool=copy.deepcopy(random_pool) if random_pool is not None else unavailable_pool())
     if metric=='mental_cost':e['recipient']='self'
     if metric=='relax':e.update(trigger='appeal_phase_start',starts_next_turn=True)
     r=adjacent_restrictions(part,m.end())
@@ -260,7 +264,7 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
    if not in_piece and standalone is not None:standalone.append({'slot':slot,'segment':idx//2,'scope':current,'condition':rule})
   out.extend(e for _,e in sorted(in_piece,key=lambda pair:pair[0]))
  return out
-def effect_details(item,known_idols=(),condition_context=None):
+def effect_details(item,known_idols=(),condition_context=None,random_pool=None):
  kind=item['kind']
  if kind=='support_skill':
   effects=support(item.get('effect_private',''),item.get('name',''));return {'status':'structured' if effects else 'unsupported','effects':effects}
@@ -271,7 +275,7 @@ def effect_details(item,known_idols=(),condition_context=None):
   # Candidate-table alternatives are separate. A source cell explicitly saying
   # random effects are granted can still contain independent deterministic effects.
   candidate_only=bool(item.get('random_effect_options')) and not re.search(r'ランダム効果\d+個付与',normalized(text))
-  effects=[] if candidate_only else live(text,ctx=condition_context,standalone=standalone)
+  effects=[] if candidate_only else live(text,ctx=condition_context,standalone=standalone,random_pool=random_pool)
   if kind=='memory_appeal':
    for slot in ('link','charge'):effects+=live(item.get(slot+'_appeal_private',''),'memory_'+slot,condition_context,standalone,slot)
   return {'status':'partial' if effects or standalone else 'unsupported','effects':effects,**({'mechanic_conditions':standalone} if standalone else {})}
@@ -297,11 +301,15 @@ def validate_effect_details(doc,known_idols,condition_context=None):
    if key in seen:raise ValueError('Duplicate mechanic segment')
    seen.add(key);validate_rule(r['condition'],condition_context,r['scope'])
  for e in doc['effects']:
-  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses','status_consumption','starts_next_turn','order_excludes'}:raise ValueError('Non-public effect field')
+  if set(e)-{'random_pool','metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses','status_consumption','starts_next_turn','order_excludes'}:raise ValueError('Non-public effect field')
   if e.get('metric') not in METRICS or not isinstance(e.get('targets'),list) or not e['targets'] or len(e['targets'])!=len(set(e['targets'])) or set(e['targets'])-TARGETS or e.get('unit') not in {'points','percent','multiplier','boolean'} or e.get('scope') not in SCOPES:raise ValueError('Invalid effect fact')
   validate_amount({k:e[k] for k in ('value','formula','amount_unknown') if k in e})
   if 'status_consumption' in e:validate_consumption(e)
   if e['metric']=='refrain' and (e['unit']!='points' or type(e.get('value')) not in (int,float) or e['value']%1 or e['value']<1):raise ValueError('Invalid refrain distance')
+  if e['metric']=='random_grant':
+   if e['targets']!=['ランダム効果'] or e['unit']!='points' or type(e.get('value')) is not int or not 1<=e['value']<=100 or set(e)-{'metric','targets','unit','scope','value','random_pool','restriction_status','activation_condition','mechanic_condition'}:raise ValueError('Invalid random grant')
+   validate_pool(e.get('random_pool'),known_idols)
+  elif 'random_pool' in e:raise ValueError('Unexpected random pool')
   if 'appeal_order' in e and (e['metric'] not in {'appeal','action_order'} or e['appeal_order'] not in {'first','last'}):raise ValueError('Invalid appeal order')
   if 'order_excludes' in e and (e.get('appeal_order') not in {'first','last'} or e['order_excludes']!=['collaboration_fes']):raise ValueError('Invalid action order exclusion')
   if e['metric']=='action_order' and (e['targets']!=['行動順'] or e['unit']!='boolean' or e.get('value')!=1 or e.get('appeal_order') not in {'first','last'} or e.get('order_excludes')!=['collaboration_fes'] or set(e)-{'metric','targets','unit','scope','value','restriction_status','appeal_order','order_excludes','activation_condition','mechanic_condition'}):raise ValueError('Invalid standalone action order')

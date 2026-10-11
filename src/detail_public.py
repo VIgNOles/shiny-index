@@ -7,6 +7,7 @@ from urllib.parse import urlsplit,unquote
 from src.detail_master import resolve,validate,KINDS,validate_generation_parents
 from src.indexer import digest,read,write,now
 from src.skill_effects import effect_details,validate_effect_details
+from src.random_effects import resolve_pools
 from src.skill_conditions import activation_condition,validate_condition
 from src.skill_conditions_v3 import keyword_extension,validate_keyword_condition
 from src.skill_conditions_v2 import context as condition_context,activation_extension,validate_extension
@@ -46,11 +47,12 @@ def public_document(master,base_cards,base_version=None):
         if source['card_kind']=='S':
             card['traits']={key:source['traits'][key] for key in ['idea','inspiration','music_proficiencies']}
             card['max_status']={key:source['max_status'].get(key) for key in ['level','limit_break','vocal','dance','visual','mental','missing_fields']}
+        random_pools=resolve_pools(source,known_idols)
         for item in source['items']:
             public={key:item[key] for key in ITEM_FIELDS if key in item}
             public.update(numeric_facts=numeric_facts(item),effect_structure='partial',conditions_not_structured=True,
                           source_positions=item.get('source_positions',[]))
-            effects=effect_details(item,known_idols,conditions)
+            effects=effect_details(item,known_idols,conditions,random_pools.get(item['detail_id']))
             if effects is not None:public['effect_details']=effects
             condition=activation_condition(item,known_idols)
             if condition is not None:
