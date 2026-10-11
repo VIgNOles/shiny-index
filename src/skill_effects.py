@@ -153,10 +153,11 @@ APPEAL=re.compile(r'(?:(?P<order>必ず最初に|必ず最後に)(?:アピール
 INTEREST=re.compile(r'(?P<audience>全観客に|全観客の)?興味(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)倍\[(?P<turns>\d+)ターン\]')
 LIVE_EXTRA=[
  (re.compile(r'ランダム効果(?P<value>\d+)個付与'),'random_grant','ランダム効果','points'),
+ (re.compile(r'(?P<phase_start>アピールフェイズ開始時(?:に)?)'+RECIPIENT_PREFIX+r'メンタル(?P<value>\d+(?:\.\d+)?)%回復\[(?P<turns>\d+)ターン\]'),'mental_recovery','メンタル','percent'),
  (re.compile(RECIPIENT_PREFIX+r'メンタル(?P<value>\d+(?:\.\d+)?)%回復'),'mental_recovery','メンタル','percent'),
  (re.compile(r'自身のメンタルを(?P<value>\d+(?:\.\d+)?)%減ら(?:す|し)'),'mental_cost','メンタル','percent'),
  (re.compile(r'思い出ゲージ(?P<value>\d+(?:\.\d+)?)%UP(?!\[(?!コスト:\d+\])|\d)'),'memory_gauge_gain','思い出ゲージ','percent'),
- (re.compile(RECIPIENT_PREFIX+r'リラックス効果(?P<value>\d+(?:\.\d+)?)%付与\[(?P<turns>\d+)ターン\]'),'relax','リラックス','percent'),
+ (re.compile(RECIPIENT_PREFIX+r'リラックス(?:効果)?(?P<value>\d+(?:\.\d+)?)%付与\[(?P<turns>\d+)ターン\]'),'relax','リラックス','percent'),
  (re.compile(r'パッシブスキル(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)%強化\[(?P<turns>\d+)ターン\]'),'passive_boost','パッシブスキル','percent'),
  (re.compile(r'交換数UP\[(?P<value>\d+)回\]'),'exchange_count_up','交換数','points'),
  (re.compile(r'リフレイン\[(?P<value>\d+)ターン前\]'),'refrain','過去のアピール','points'),
@@ -288,6 +289,7 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect',random_pool=No
     if m.groupdict().get('turns'):e['turns']=int(m['turns'])
     if metric=='random_grant':e.update(value=int(m['value']),random_pool=copy.deepcopy(random_pool) if random_pool is not None else unavailable_pool())
     if metric=='mental_cost':e['recipient']='self'
+    if m.groupdict().get('phase_start'):e['trigger']='appeal_phase_start'
     if metric=='relax':e.update(trigger='appeal_phase_start',starts_next_turn=True)
     r=adjacent_restrictions(part,m.end())
     if r:e['restrictions']=r
@@ -401,6 +403,7 @@ def validate_effect_details(doc,known_idols,condition_context=None):
   if 'grant_count_maximum' in e and (e['metric']!='enthusiasm' or type(e['grant_count_maximum']) is not int or not 1<=e['grant_count_maximum']<=100):raise ValueError('Invalid maximum grant count')
   if 'recipient' in e and (e['metric'] not in {'rate_up','rate_down','rate_cut','mental_recovery','mental_cost','relax','melancholy'} or e['recipient'] not in {'self','rivals','all_units'} or 'audience' in e or (e['metric']=='mental_cost' and e['recipient']!='self')):raise ValueError('Invalid effect recipient')
   if 'starts_next_turn' in e and (e['starts_next_turn'] is not True or e['metric'] not in {'relax','melancholy'} or e.get('trigger')!='appeal_phase_start' or 'turns' not in e):raise ValueError('Invalid delayed effect timing')
+  if e['metric']=='mental_recovery' and e.get('trigger')=='appeal_phase_start' and 'turns' not in e:raise ValueError('Periodic recovery needs its own duration')
   if e['metric']=='relax' and 'trigger' in e and (e['trigger']!='appeal_phase_start' or not e.get('starts_next_turn') or 'turns' not in e):raise ValueError('Invalid relax timing')
   if e.get('trigger') in REACTION_TRIGGERS:
    if e['metric']!='rate_up' or set(e['targets'])-{'Vocal','Dance','Visual'} or e['unit']!='percent' or not {'turns','trigger_turns','uses'}<=set(e) or type(e['uses']) is not int or not 1<=e['uses']<=100:raise ValueError('Invalid reaction grant')
