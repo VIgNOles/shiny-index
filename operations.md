@@ -767,3 +767,29 @@ node tests/ui-v23-modifiers-smoke.mjs private/site-ui23-replay-next
 正常ZIP102ファイル（site100/原本/接続）の実展開・全SHA/check_pairを確認済み。出力のcheck_site/原本関連/対応画面を確認後に採用する。ZIPはC側、対応表とSHAはprivate/ui23-recovery-archive.json。
 
 直前UI22/bf612eへ切り戻す候補は同manifestのprivate/site-ui23-ui22-rollback-20261011を別の未作成先へ復元する。全100ファイルにbf8不変バンドルを保持し全版/最大UP3幅確認済み。index.html/details.mjs/details/latest.jsonをUI22の組で戻し、原本/native採用履歴と全不変バンドルを保持する。旧data-mental-spent-verified-20261011も保持。初期a6候補は非採用履歴で公開しない。本番全面障害注入/本番切戻しは未実施。重複候補を整理した場合もZIPから復元できる。
+
+
+## 2026-10-12 定期回復補完後のUI23再変換・復元
+
+仕様docs/data-phase-recovery-20261012.md。原本r20/native履歴ccdbを保持し派生d1-95f16ffad9c810bf/計20025。UI資産は23。正確な再現はdata-phase-recovery-verified-20261012のコードを使用する。取得済み原本からの再変換は次の手順。原本/旧効果/全版・画面の確認が済むまで本番siteを置き換えない。取得不要、原本/旧効果保持・原セル・全版・画面・CI検証後にpublish:で公開し匿名全ファイルを確認。
+
+~~~powershell
+.venv/Scripts/python.exe scripts/restore_archived_site.py private/recovery/phase-recovery-20261012/restored private/restored-phase-recovery-next --manifest private/phase-recovery-archive-20261012.json
+~~~
+再変換の出力先は毎回未作成のprivate先にする：
+
+~~~powershell
+if (Test-Path -LiteralPath private/site-phase-recovery-replay-next) { throw '既存の出力先は上書きしません' }
+Copy-Item -LiteralPath site -Destination private/site-phase-recovery-replay-next -Recurse
+.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx private/site-phase-recovery-replay-next
+.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx private/site-phase-recovery-replay-next --master-snapshot private/details/phase-recovery-replay-next.json
+.venv/Scripts/python.exe scripts/audit_effect_structure.py private/details/master-r20-visual-authoritative-20261011.json private/site-phase-recovery-replay-next private/audits/phase-recovery-replay-next.json --baseline-version d1-bf8bf97512968e30
+$env:UI_BROWSER_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+$env:UI_EXPECTED_VERSION='ui-v23'
+node tests/ui-phase-recovery-smoke.mjs private/site-phase-recovery-replay-next
+node tests/ui-v23-modifiers-smoke.mjs private/site-phase-recovery-replay-next
+~~~
+
+正常ZIP104ファイル(site102/原本/接続)を実展開/全SHA/check_pair検証済み。未作成先へ復元し本番を自動上書きしない。関連検査関数はcheck_pair(site=...,master=...,connection=...)と名付き引数で呼ぶ。
+
+直前UI23/bf8へ切り戻す候補は同manifestのprivate/site-phase-recovery-rollback-20261012を別の未作成先へ復元する。新95fバンドルも保持した全102ファイルで全版/強化・人物倍率3幅確認済み。index.html/details/latest.jsonを一組で戻し、UI23資産/原本/接続/全不変バンドルを保持。旧ui-v23-modifiers-verified-20261012も保持。本番全面障害注入/切戻し未実施。重複4フォルダー整理後もC ZIPから復元可能。

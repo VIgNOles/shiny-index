@@ -1,6 +1,36 @@
 # 現在の状態と再開手順
 
 <!-- current-state -->
+## 最新状態（2026-10-12）：UI23定期回復補完を公開検証・保存
+
+元の要件/明示変更はTASK.md、最新「進めてください」で安全停止の待機は解除済み。全体完成ではない。新しいユーザー判断待ちはなし。
+
+公開 https://vignoles.github.io/shiny-index/ 、UI v23維持、基礎r7/1466(P548/S918)/v1-93a6a8b8d40e754a、詳細原本r20/1419(P548/S871)/24025、公開d1-95f16ffad9c810bf。コードfd7d3f753515a4d984701d56e7a472129b7d3e0c、公開777d056cb9aaedfe8f30e7dff9549b193545f29b。コードCI38158696140/公開CI38158973656はWindows3.13.16/Linux3.12.14ともsuccess、Pages38158973731 success。保存タグdata-phase-recovery-verified-20261012。直前ui-v23-modifiers-verified-20261012/UI23-bf8と旧UI22以前を保持。
+
+今回まずUI23/bf8を公開検証・保存し、その先で9カード(P5/S4)/15項目（パネル12/思い出3）へフェイズ開始時回復14/リラックス短表記1を追加。旧20010効果保持・計20025。自己の期間と明記時点を保持し、単発/Linkへ借りず初回時点を推測しない。既存UI表示/操作のみなのでUI23維持。強化327/人物倍率69も保持。
+
+Python331/JS67、保存9HTML/33位置/18フィールド、XLSX/canonical全cards/coverage/内容ID一致。原本r20/24025 ID/8手修正/非効果/coverage不変。4SHAはprivate/audits/ui23-safe-pause-proof-20261011.jsonのprotected_filesと実照合済み。取得complete/revision4098/active_attempt=null、native履歴ccdbと派生95fを混同せず接続を書き換えない。Wiki通信/原本・Google書込0。パッシブ5890/5890、現行区間条件707構造化/未対応0、ライブpartial維持。
+
+公開/ローカル1280/390/320で6正例/7否定、P/S/通常/思い出/Link/短表記・同一効果/期間/時点/再読込/解除/横溢れ合格。基本/詳細も公開3幅、UI23強化/人物倍率11+12はローカル回帰合格。公開320px定期回復/390pxリラックスを視認。全102ファイル匿名HTTP200/全バイト/Git blob一致。隔離4障害→102サイト/原本/接続復旧、ZIP104実展開全SHA/check_pair、UI23-bf8切戻し候補の全版/11+12/3幅が合格。本番全面障害注入/切戻し未実施。初回の補助検証の関数名/空fact status、ターン以上判定の期待値、check_pair引数順を訂正し再検証済み。原本/本番破損や中断不整合ではない。
+
+変更src/skill_effects.py、tests/test_phase_recovery.py/ui-phase-recovery-smoke.mjs、docs/data-phase-recovery-20261012.md、README/TASK/HANDOFF/operations/verification/compound-progressとローカルdesign。site変更はindex.html/details/latest.json/95f不変バンドル2ファイルのみ、app/details/search/styleのUI資産不変。
+
+証拠private/audits/phase-recovery-*、private/recovery/phase-recovery-20261012/report.json、private/phase-recovery-before-publication-20261012。checkpoint=private/audits/phase-recovery-checkpoint-20261012.json、receipt=private/raw/detail-catalog-20261009/latest-verified-publication.json。最終保存SHA/タグは実Gitと照合。
+
+private/phase-recovery-archive-20261012.jsonとC:/Users/VIgNOles/.codex/visualizations/2026/10/06/01a111fa-3b50-7371-bad7-f4a3382e392f/shiny-index-phase-recovery-20261012/：
+- phase-recovery-r20-verified-snapshot.zip：104ファイル/79964042bytes、SHAa1832510c1fa2890a64732e72574896e66d7bf9e315ad0ec74d87ac731212640
+- ui23-bf8-with-phase-recovery-immutable-bundles.zip：102ファイル/74144739bytes、SHA487f5d6fd1afabdece05754864aa9898fc96135c0deae3c33ed4fbe21c6b6f6d
+
+全SHA再照合した重複4フォルダーだけを整理（論理2341061910bytes、D空き7006081024→9347788800bytes）。raw/原本/接続/canonical/site/監査/Git/全旧ZIP保持。operations.md末尾のrestore_archived_site.py手順で未作成先へ復元可能。check_pairは名付き引数。本番へ自動採用しない。文書/監査のCコピーは同archive root/verified-handoff/、copy-proofで全バイト照合。
+
+次の操作：Git/タグ・4SHA・site pointer/receipt/stateを実照合。95fが現行、bf8は切戻し、ccdbはnative履歴。保存原文の28理由群をprivate/audits/compound-residual-triage-20261012.jsonで精査し、明記範囲だけ変換する。複合5032中107候補（約2.1%、全live109）は機械棚卸しで厳密な意味網羅率/残工数率ではない。超過メンタル→思い出30、フレキシブル20、気力13、瞳9、状態変換5、即死7、期間欠落UP/DOWN、PERFECT4、Visua誤記3、リーダーシップ注記等。理由数は重複あり。旧効果/原セル/XLSX/全版/画面/公開/復旧を検証。データだけならUI23維持、表示/操作変更時のみUI番号更新。
+
+ROOTS3候補単位は未確認表示、旧不明5条件は解消済み。Google実画面はCua起動失敗で未検証（API/実export合格）。S90最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/スクリーンリーダー、私的全入力別PC再変換、本番全面復旧未完了。47個別Wikiページなし/実在新規基礎カード本番追加は指定保留、Pステージ/適正・Sファイト対象外、CSV画面非表示、問い合わせ必須ではない。全体完成・安全停止と扱わず通常の続行地点。
+<!-- /current-state -->
+
+## 定期回復の公開前記録（当時）
+
+
 ## 続行中（2026-10-12）：定期回復補完の検証、公開正常版はUI23/bf8
 
 候補private/site-phase-recovery-candidate-20261012/詳細d1-95f16ffad9c810bf、9カード/15項目・計20025効果。Python331/原セル/XLSX一致、画面/復旧を検証中。private/audits/phase-recovery-checkpoint-20261012.jsonを実状態と照合。以下は直前正常版。
@@ -48,7 +78,7 @@ UI23監査・checkpoint・receipt・文書のC側コピーは同archive rootのv
 2. 超過メンタル→思い出、フレキシブル/気力/瞳、状態変換、即死、期間欠落のUP/DOWN、PERFECT、原文Visua誤記等も未完了。ROOTS3候補の単位欠落は別枠の未確認表示。旧不明5条件は解消済みのまま。
 3. Google実画面はCua起動失敗で未検証、API/実exportは合格。環境復旧後に確認。S90最大Lv360原文空欄、日付不明56、独立公式網羅、全面実機/スクリーンリーダー、私的全入力別PC再変換、本番全面復旧も未完了。
 4. 47個別Wikiページなし・実在新規基礎カード本番追加実証は指定保留。Pステージ/適正・Sファイト対象外、CSV画面非表示、問い合わせ必須ではない。原本/ID/手修正・取得分離・低負荷方針を維持。
-<!-- /current-state -->
+
 
 ## UI23停止前の進行記録（当時の状態）
 
