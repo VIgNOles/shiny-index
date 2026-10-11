@@ -6,6 +6,7 @@ import math,re,unicodedata,copy
 from src.random_effects import unavailable_pool, validate_pool
 from src.skill_conditions_v2 import parse as parse_condition, validate_extension, join, idol_name
 from src.live_conditions import mechanic_rule, validate_rule
+from src.skill_conditions_v3 import KEYWORDS
 from src.reaction_effects import parse as reaction_facts, REACTION_TRIGGERS
 from src.consumption_effects import adjacent_consumption, validate_consumption
 from src.special_live_effects import facts as special_facts, SPECIAL_METRICS, SPECIAL_TARGETS
@@ -15,7 +16,8 @@ METRICS={'support_gain','support_recovery','support_cost_down','support_trouble_
 TRIGGERS={'produce_start','missed_promise','rest','lesson_or_work','unit_member_present','tension_max','audition_first','vocal_lesson','dance_lesson','visual_lesson','radio','talk','magazine','talk_event','solo_vocal_lesson','solo_dance_lesson','solo_radio','no_trouble','excellent','knowhow_acquired','always','say_halo','appeal_phase_start','turn_2'}
 SCOPES={'base','link','plus','change','grow','refrain','memory_link','memory_charge'}
 TARGETS.update({'パッシブスキル発動率','パッシブスキル','リラックス','過去のアピール'})
-METRICS.update({'mental_recovery','mental_cost','memory_gauge_gain','relax','passive_boost','refrain'})
+METRICS.update({'mental_recovery','mental_cost','memory_gauge_gain','memory_gauge_loss','relax','passive_boost','refrain','flexible','sparkle_eyes','vigor_gain'})
+TARGETS.update({'フレキシブル','瞳の輝き','気力'})
 METRICS.update(SPECIAL_METRICS)
 METRICS.update({'action_order','random_grant','idol_appeal_bonus'})
 TARGETS.add('ランダム効果')
@@ -154,9 +156,13 @@ INTEREST=re.compile(r'(?P<audience>全観客に|全観客の)?興味(?P<maximum>
 LIVE_EXTRA=[
  (re.compile(r'ランダム効果(?P<value>\d+)個付与'),'random_grant','ランダム効果','points'),
  (re.compile(r'(?P<phase_start>アピールフェイズ開始時(?:に)?)'+RECIPIENT_PREFIX+r'メンタル(?P<value>\d+(?:\.\d+)?)%回復\[(?P<turns>\d+)ターン\]'),'mental_recovery','メンタル','percent'),
- (re.compile(RECIPIENT_PREFIX+r'メンタル(?P<value>\d+(?:\.\d+)?)%回復'),'mental_recovery','メンタル','percent'),
+ (re.compile(RECIPIENT_PREFIX+r'(?:メンタル|Me)(?P<value>\d+(?:\.\d+)?)%回復'),'mental_recovery','メンタル','percent'),
  (re.compile(r'自身のメンタルを(?P<value>\d+(?:\.\d+)?)%減ら(?:す|し)'),'mental_cost','メンタル','percent'),
  (re.compile(r'思い出ゲージ(?P<value>\d+(?:\.\d+)?)%UP(?!\[(?!コスト:\d+\])|\d)'),'memory_gauge_gain','思い出ゲージ','percent'),
+ (re.compile(r'思い出ゲージ(?P<value>\d+(?:\.\d+)?)%DOWN(?=$|/|\[コスト:)'),'memory_gauge_loss','思い出ゲージ','percent'),
+ (re.compile(r'フレキシブル\[(?P<turns>\d+)ターン\]'),'flexible','フレキシブル','boolean'),
+ (re.compile(r'瞳の輝き\[(?P<turns>\d+)ターン\]'),'sparkle_eyes','瞳の輝き','boolean'),
+ (re.compile(r'気力\+(?P<value>\d+)(?=$|/|\[コスト:|交換数UP\[1回\])'),'vigor_gain','気力','points'),
  (re.compile(RECIPIENT_PREFIX+r'リラックス(?:効果)?(?P<value>\d+(?:\.\d+)?)%付与\[(?P<turns>\d+)ターン\]'),'relax','リラックス','percent'),
  (re.compile(r'パッシブスキル(?P<maximum>最大)?(?P<value>\d+(?:\.\d+)?)%強化\[(?P<turns>\d+)ターン\]'),'passive_boost','パッシブスキル','percent'),
  (re.compile(r'交換数UP\[(?P<value>\d+)回\]'),'exchange_count_up','交換数','points'),
@@ -208,6 +214,9 @@ def adjacent_restrictions(part,end):
   if b in SCALING:r['scaling']=SCALING[b]
   elif b=='興味無視':r['ignore_interest']=True
   elif b=='ダメージを受けるまで':r['until_damage']=True
+  elif b.startswith('キーワード:'):
+   names=b.removeprefix('キーワード:').split('、')
+   if names and len(names)==len(set(names)) and all(n in KEYWORDS for n in names):r['owner_keywords']=names
   end+=m.end()
  return r
 
@@ -253,6 +262,7 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect',random_pool=No
      if m['order']:e.update(appeal_order='first' if m['order']=='必ず最初に' else 'last',order_excludes=['collaboration_fes'])
      if consumption:=adjacent_consumption(part,m.end()):e['status_consumption']=consumption
      if enhancement:=adjacent_enhancement(part,m.end()):e['appeal_enhancement']=enhancement
+     if perfect:=re.match(r'\[PERFECTなら(\d+(?:\.\d+)?)倍アピール\]',part[m.end():]):e['perfect_value']=float(perfect[1])
     else:
      if m['turns']:e['turns']=int(m['turns'])
      if m.groupdict().get('maximum'):e['maximum']=True
@@ -282,9 +292,13 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect',random_pool=No
   for pattern,metric,target,unit in LIVE_EXTRA:
    for m in pattern.finditer(part):
     if part[:m.start()].count('[')!=part[:m.start()].count(']'):continue
-    if m.start() not in order_ends and m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]):continue
+    adjacent_vigor_exchange=metric=='exchange_count_up' and re.search(r'(?:^|/|\])気力\+[12]$',part[:m.start()])
+    if not adjacent_vigor_exchange and m.start() not in order_ends and m.start() and re.match(r'[\w一-龯ぁ-んァ-ヶ]',part[m.start()-1]):continue
     if m.groupdict().get('maximum') and current!='grow':continue
-    e=effect(metric,[target],unit,scope=current,value=float(m['value']),restriction_status='partial')
+    e=effect(metric,[target],unit,scope=current,value=1 if unit=='boolean' else float(m['value']),restriction_status='partial')
+    if metric=='vigor_gain':e['value']=int(m['value'])
+    # An adjacent healing modifier never becomes a fixed memory-gauge gain.
+    if metric=='mental_recovery' and re.match(r'\[(?:超過分は思い出ゲージに変換|超過思い出変換)\]',part[m.end():]):e['overflow_to_memory']=True
     if m.groupdict().get('maximum'):e['maximum']=True
     if m.groupdict().get('turns'):e['turns']=int(m['turns'])
     if metric=='random_grant':e.update(value=int(m['value']),random_pool=copy.deepcopy(random_pool) if random_pool is not None else unavailable_pool())
@@ -348,9 +362,18 @@ def validate_effect_details(doc,known_idols,condition_context=None):
    if key in seen:raise ValueError('Duplicate mechanic segment')
    seen.add(key);validate_rule(r['condition'],condition_context,r['scope'])
  for e in doc['effects']:
-  if set(e)-{'bonus_excludes','appeal_enhancement','random_pool','metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses','status_consumption','starts_next_turn','order_excludes'}:raise ValueError('Non-public effect field')
+  if set(e)-{'chance_tier','perfect_value','overflow_to_memory','bonus_excludes','appeal_enhancement','random_pool','metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses','status_consumption','starts_next_turn','order_excludes'}:raise ValueError('Non-public effect field')
   if e.get('metric') not in METRICS or not isinstance(e.get('targets'),list) or not e['targets'] or len(e['targets'])!=len(set(e['targets'])) or set(e['targets'])-TARGETS or e.get('unit') not in {'points','percent','multiplier','boolean'} or e.get('scope') not in SCOPES:raise ValueError('Invalid effect fact')
   validate_amount({k:e[k] for k in ('value','formula','amount_unknown') if k in e})
+  if 'perfect_value' in e and (e['metric']!='appeal' or type(e['perfect_value']) not in (int,float) or not math.isfinite(e['perfect_value']) or e['perfect_value']<0 or e.get('unit')!='multiplier'):raise ValueError('Invalid PERFECT appeal multiplier')
+  if 'chance_tier' in e and (e['metric']!='instant_satisfaction' or e['chance_tier'] not in {'rare','very_rare'}):raise ValueError('Invalid qualitative chance')
+  if 'overflow_to_memory' in e and (e['overflow_to_memory'] is not True or e['metric']!='mental_recovery' or e['targets']!=['メンタル'] or e['unit']!='percent'):raise ValueError('Invalid recovery overflow modifier')
+  if e['metric'] in {'flexible','sparkle_eyes','vigor_gain','memory_gauge_loss'}:
+   expected={'flexible':(['フレキシブル'],'boolean'),'sparkle_eyes':(['瞳の輝き'],'boolean'),'vigor_gain':(['気力'],'points'),'memory_gauge_loss':(['思い出ゲージ'],'percent')}
+   common={'metric','targets','unit','scope','value','restriction_status','activation_condition','mechanic_condition'}
+   timed=e['metric'] in {'flexible','sparkle_eyes'}
+   if (e['targets'],e['unit'])!=expected[e['metric']] or set(e)-(common|({'turns'} if timed else set())) or (timed and ('turns' not in e or type(e.get('value')) is not int or e['value']!=1)):raise ValueError('Invalid named status or immediate resource effect')
+   if e['metric']=='vigor_gain' and (type(e.get('value')) is not int or not 1<=e['value']<=100):raise ValueError('Invalid vigor gain')
   if 'appeal_enhancement' in e:
    a=e['appeal_enhancement']
    if e['metric']!='appeal' or e['unit']!='multiplier' or not isinstance(a,dict) or set(a)!={'target','factor','this_appeal_only'} or a.get('target') not in {'Vocal','Dance','Visual','魅了'} or a.get('factor')!=(1.5 if a.get('target')=='魅了' else 2) or a.get('this_appeal_only') is not True:raise ValueError('Invalid appeal enhancement')
@@ -376,8 +399,10 @@ def validate_effect_details(doc,known_idols,condition_context=None):
   if 'audience' in e and (e['metric'] not in {'appeal','interest','interest_minimum','audience_status_clear','charm','enthusiasm','interest_reverse','interest_limit'} or e['audience']!='all'):raise ValueError('Invalid appeal audience')
   if e['metric'] in SPECIAL_METRICS:
    metric=e['metric']
-   expected={'resurrection':(['メンタル'],'percent'),'audience_status_clear':(['観客ステータス'],'boolean'),'duet':(['アピール履歴'],'boolean'),'duet_add':(['アピール履歴'],'boolean'),'interest_minimum':(['興味'],'multiplier'),'charm':(['魅了'],'boolean'),'enthusiasm':(['熱狂'],'boolean'),'interest_reverse':(['興味'],'boolean'),'interest_limit':(['興味'],'boolean'),'melancholy':(['メンタル'],'percent')}
+   expected={'resurrection':(['メンタル'],'percent'),'audience_status_clear':(['観客ステータス'],'boolean'),'duet':(['アピール履歴'],'boolean'),'duet_add':(['アピール履歴'],'boolean'),'interest_minimum':(['興味'],'multiplier'),'charm':(['魅了'],'boolean'),'enthusiasm':(['熱狂'],'boolean'),'interest_reverse':(['興味'],'boolean'),'interest_limit':(['興味'],'boolean'),'melancholy':(['メンタル'],'percent'),'status_conversion':(e['targets'],'percent'),'instant_satisfaction':(['興味'],'boolean')}
    if (e['targets'],e['unit'])!=expected[metric] or 'value' not in e or ('boolean'==e['unit'] and e['value']!=1):raise ValueError('Invalid special effect')
+   if metric=='status_conversion' and (len(e['targets'])!=1 or e['targets'][0] not in {'Vocal','Dance','Visual'} or e.get('recipient')!='self' or 'turns' not in e or set(e)-{'metric','targets','unit','scope','value','turns','recipient','restriction_status','activation_condition','mechanic_condition'}):raise ValueError('Invalid status conversion')
+   if metric=='instant_satisfaction' and (e.get('chance_tier') not in {'rare','very_rare'} or e.get('probability')!={'unknown':True} or set(e)-{'metric','targets','unit','scope','value','chance_tier','probability','restriction_status','activation_condition','mechanic_condition'}):raise ValueError('Invalid uncertain satisfaction chance')
    if metric in {'interest_reverse','interest_limit','melancholy'} and 'turns' not in e:raise ValueError('Missing interest or melancholy duration')
    if metric=='melancholy' and (e.get('recipient') not in {'self','rivals','all_units'} or e.get('trigger')!='appeal_phase_start'):raise ValueError('Invalid melancholy recipient or timing')
    if metric=='resurrection' and (e.get('trigger')!='mental_zero' or 'turns' not in e or 'uses' not in e):raise ValueError('Invalid resurrection bounds')
@@ -398,10 +423,10 @@ def validate_effect_details(doc,known_idols,condition_context=None):
   if 'excludes' in e and (e['metric']!='audience_status_clear' or e['excludes']!=['興味変動無効']):raise ValueError('Invalid exclusion')
   if 'turn_range' in e:
    r=e['turn_range']
-   if e['metric']!='enthusiasm' or not isinstance(r,dict) or set(r)!={'minimum','maximum'} or any(type(r[k]) is not int for k in r) or not 1<=r['minimum']<=r['maximum']<=100 or 'turns' in e or 'turns_maximum' in e:raise ValueError('Invalid variable duration')
+   if e['metric'] not in {'enthusiasm','charm'} or not isinstance(r,dict) or set(r)!={'minimum','maximum'} or any(type(r[k]) is not int for k in r) or not 1<=r['minimum']<=r['maximum']<=100 or 'turns' in e or 'turns_maximum' in e:raise ValueError('Invalid variable duration')
   if 'turns_maximum' in e and (e['metric']!='enthusiasm' or type(e['turns_maximum']) is not int or not 1<=e['turns_maximum']<=100 or 'turns' in e):raise ValueError('Invalid maximum duration')
   if 'grant_count_maximum' in e and (e['metric']!='enthusiasm' or type(e['grant_count_maximum']) is not int or not 1<=e['grant_count_maximum']<=100):raise ValueError('Invalid maximum grant count')
-  if 'recipient' in e and (e['metric'] not in {'rate_up','rate_down','rate_cut','mental_recovery','mental_cost','relax','melancholy'} or e['recipient'] not in {'self','rivals','all_units'} or 'audience' in e or (e['metric']=='mental_cost' and e['recipient']!='self')):raise ValueError('Invalid effect recipient')
+  if 'recipient' in e and (e['metric'] not in {'rate_up','rate_down','rate_cut','mental_recovery','mental_cost','relax','melancholy','status_conversion'} or e['recipient'] not in {'self','rivals','all_units'} or 'audience' in e or (e['metric']=='mental_cost' and e['recipient']!='self')):raise ValueError('Invalid effect recipient')
   if 'starts_next_turn' in e and (e['starts_next_turn'] is not True or e['metric'] not in {'relax','melancholy'} or e.get('trigger')!='appeal_phase_start' or 'turns' not in e):raise ValueError('Invalid delayed effect timing')
   if e['metric']=='mental_recovery' and e.get('trigger')=='appeal_phase_start' and 'turns' not in e:raise ValueError('Periodic recovery needs its own duration')
   if e['metric']=='relax' and 'trigger' in e and (e['trigger']!='appeal_phase_start' or not e.get('starts_next_turn') or 'turns' not in e):raise ValueError('Invalid relax timing')
@@ -421,7 +446,8 @@ def validate_effect_details(doc,known_idols,condition_context=None):
   if 'restriction_status' in e and e['restriction_status'] not in {'structured','partial'}:raise ValueError('Invalid effect restriction')
   if 'restrictions' in e:
    r=e['restrictions']
-   if not isinstance(r,dict) or set(r)-{'group','idols','unit_types_min','unit_types_max','history_genres','until_damage','scaling','ignore_interest'}:raise ValueError('Non-public effect restriction')
+   if not isinstance(r,dict) or set(r)-{'group','idols','unit_types_min','unit_types_max','history_genres','until_damage','scaling','ignore_interest','owner_keywords'}:raise ValueError('Non-public effect restriction')
+   if 'owner_keywords' in r and (not isinstance(r['owner_keywords'],list) or not r['owner_keywords'] or any(not isinstance(n,str) or n not in KEYWORDS for n in r['owner_keywords']) or len(r['owner_keywords'])!=len(set(r['owner_keywords']))):raise ValueError('Invalid effect owner keywords')
    if 'group' in r and (not isinstance(r['group'],str) or not 0<len(r['group'])<=200):raise ValueError('Invalid effect group')
    if 'idols' in r and (not isinstance(r['idols'],list) or not r['idols'] or any(x not in known_idols for x in r['idols'])):raise ValueError('Unknown effect idol')
    if 'scaling' in r and r['scaling'] not in set(SCALING.values()):raise ValueError('Invalid effect scaling')

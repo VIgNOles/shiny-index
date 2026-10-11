@@ -441,3 +441,54 @@ test('personal multiplier bonus is distinct from percent value boosts and random
  assert.deepEqual(detailSearch(cards,new URLSearchParams('effect_type=idol_appeal_bonus&effect_turns=4&skill_q=緋田美琴+0.5倍を加算'),details),[cards[0]]);
  for(const query of ['effect_type=appeal_boost','effect_type=appeal','effect_type=random_grant','effect_type=idol_appeal_bonus&effect_turns=5','effect_type=idol_appeal_bonus&skill_q=七草にちか'])assert.deepEqual(detailSearch(cards,new URLSearchParams(query),details),[]);
 });
+
+
+test('overflow is conditional healing and never a fixed memory-gauge gain',()=>{
+ const heal={metric:'mental_recovery',targets:['メンタル'],value:25,unit:'percent',scope:'base',overflow_to_memory:true};
+ const plain={...heal,overflow_to_memory:undefined,scope:'link'};
+ const item={kind:'panel_live',effect_details:{effects:[heal,plain]}};
+ const m=(e,p)=>effectSearchMatches(item,e,new URLSearchParams(p));
+ assert.ok(m(heal,{effect_type:'mental_overflow',effect_target:'メンタル',skill_q:'超過分のみ'}));
+ for(const p of [{effect_type:'memory_gauge_gain'},{effect_type:'mental_overflow',effect_target:'思い出ゲージ'},{effect_type:'mental_overflow',effect_turns:'1'},{effect_type:'mental_overflow',skill_q:'Link：'}])assert.ok(!m(heal,p));
+ assert.ok(!m(plain,{effect_type:'mental_overflow'}));assert.ok(m(heal,{effect_type:'mental_recovery'}));
+ assert.ok(effectFactText(heal).includes('固定量のゲージ増加ではありません'));
+});
+test('named statuses and resource changes keep targets duration and scope distinct',()=>{
+ const es=[{metric:'sparkle_eyes',targets:['瞳の輝き'],value:1,unit:'boolean',scope:'base',turns:2},{metric:'flexible',targets:['フレキシブル'],value:1,unit:'boolean',scope:'plus',turns:1},{metric:'vigor_gain',targets:['気力'],value:2,unit:'points',scope:'link'},{metric:'memory_gauge_loss',targets:['思い出ゲージ'],value:30,unit:'percent',scope:'base'}];
+ const item={kind:'panel_live',effect_details:{effects:es}};
+ const matches=p=>es.some(e=>effectSearchMatches(item,e,new URLSearchParams(p)));
+ assert.ok(matches({effect_type:'sparkle_eyes',effect_turns:'2',skill_q:'代用不可'}));
+ assert.ok(!matches({effect_type:'sparkle_eyes',effect_target:'注目度'}));assert.ok(!matches({effect_type:'rate_up',effect_target:'注目度'}));
+ assert.ok(matches({effect_type:'flexible',effect_turns:'1',skill_q:'Plus 発動条件 翌ターン'}));assert.ok(!matches({effect_type:'flexible',effect_turns:'2'}));
+ assert.ok(matches({effect_type:'vigor_gain',effect_target:'気力',skill_q:'Link： 2増加'}));assert.ok(!matches({effect_type:'vigor_gain',effect_turns:'1'}));
+ assert.ok(matches({effect_type:'memory_gauge_loss',skill_q:'30%'}));assert.ok(!matches({effect_type:'rate_down'}));assert.ok(!matches({effect_type:'memory_gauge_loss',effect_turns:'1'}));
+});
+
+
+test('conversion and rare satisfaction never masquerade as normal buffs or certain appeals',()=>{
+ const conversion={metric:'status_conversion',targets:['Visual'],unit:'percent',value:40,turns:3,scope:'base',recipient:'self'};
+ const rare={metric:'instant_satisfaction',targets:['興味'],unit:'boolean',value:1,scope:'base',chance_tier:'very_rare',probability:{unknown:true}};
+ const item={kind:'panel_live',effect_details:{effects:[conversion,rare]}};
+ const m=(e,p)=>effectSearchMatches(item,e,new URLSearchParams(p));
+ assert.ok(m(conversion,{effect_type:'status_conversion',effect_target:'Visual',effect_turns:'3',effect_recipient:'self',skill_q:'40%UPへ変換 可否は未確認'}));
+ for(const p of [{effect_type:'rate_up'},{effect_type:'status_conversion',effect_turns:'4'},{effect_type:'status_conversion',effect_recipient:'rivals'}])assert.ok(!m(conversion,p));
+ assert.ok(m(rare,{effect_type:'instant_satisfaction',skill_q:'ごくごく稀 数値確率は未確認'}));assert.ok(!m(rare,{effect_type:'appeal'}));assert.ok(!m(rare,{effect_turns:'1'}));assert.ok(!effectFactText(rare).includes('3%'));
+});
+test('PERFECT alternative and charm minimum duration are bound to the same effect',()=>{
+ const appeal={metric:'appeal',targets:['Dance'],value:.6,perfect_value:3,unit:'multiplier',scope:'base'};
+ const other={metric:'appeal',targets:['Vocal'],value:5,unit:'multiplier',scope:'link'};
+ const charm={metric:'charm',targets:['魅了'],value:1,unit:'boolean',scope:'grow',audience:'all',turn_range:{minimum:2,maximum:3}};
+ const item={kind:'panel_live',effect_details:{effects:[appeal,other,charm]}};
+ const m=(e,p)=>effectSearchMatches(item,e,new URLSearchParams(p));
+ assert.ok(m(appeal,{effect_type:'appeal_perfect',effect_target:'Dance',skill_q:'PERFECT時は3倍'}));assert.ok(!m(other,{effect_type:'appeal_perfect'}));assert.ok(!m(appeal,{effect_type:'appeal_perfect',effect_target:'Vocal'}));assert.ok(!m(appeal,{effect_type:'appeal_perfect',effect_turns:'1'}));
+ assert.ok(m(charm,{effect_type:'charm',effect_turns:'2',effect_recipient:'all_audience'}));assert.ok(!m(charm,{effect_type:'charm',effect_turns:'3'}));assert.ok(effectFactText(charm).includes('[2～3ターン]'));
+});
+
+test('owner keywords qualify only their own effect and distinguish user from formation',()=>{
+ const e={metric:'rate_up',targets:['Dance'],value:40,turns:3,unit:'percent',scope:'base',restrictions:{owner_keywords:['リーダーシップ']}};
+ const other={metric:'rate_up',targets:['Dance'],value:30,turns:5,unit:'percent',scope:'plus'};
+ const item={kind:'panel_live',effect_details:{effects:[e,other]}};
+ assert.ok(effectSearchMatches(item,e,new URLSearchParams({effect_type:'rate_up',skill_q:'使用者 リーダーシップ'})));
+ assert.ok(!effectSearchMatches(item,other,new URLSearchParams({effect_type:'rate_up',skill_q:'リーダーシップ'})));
+ assert.ok(!effectSearchMatches(item,e,new URLSearchParams({effect_type:'rate_up',effect_turns:'5',skill_q:'リーダーシップ'})));
+});

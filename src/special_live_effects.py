@@ -2,9 +2,11 @@
 import re
 from src.skill_conditions_v2 import unit_name
 
-SPECIAL_METRICS={'resurrection','audience_status_clear','duet','duet_add','interest_minimum','charm','enthusiasm','interest_reverse','interest_limit','melancholy'}
+SPECIAL_METRICS={'resurrection','audience_status_clear','duet','duet_add','interest_minimum','charm','enthusiasm','interest_reverse','interest_limit','melancholy','status_conversion','instant_satisfaction'}
 SPECIAL_TARGETS={'観客ステータス','アピール履歴','魅了','熱狂'}
 PATTERNS=[
+ ('status_conversion',re.compile(r'自身のステータス効果全てを(?P<target>Vocal|Dance|Visual)(?P<value>\d+(?:\.\d+)?)%UP\[(?P<turns>\d+)ターン\]に変換(?=$|/|\[コスト:)')),
+ ('instant_satisfaction',re.compile(r'(?P<chance>ごくごく稀|ごく稀)に現在の興味値に関わらず一気に満足させる(?=$|/|\[コスト:)')),
  ('interest_reverse',re.compile(r'(?P<audience>全観客に|全観客の)?興味反転\[(?P<turns>\d+)ターン\]')),
  ('interest_limit',re.compile(r'(?P<audience>全観客に|全観客の)?興味限定\[(?P<turns>\d+)ターン\]')),
  ('melancholy',re.compile(r'(?P<recipient>自身に|ライバルに|全ユニットに)メランコリー効果(?P<value>\d+(?:\.\d+)?)%付与\[(?P<turns>\d+)ターン\]')),
@@ -13,7 +15,7 @@ PATTERNS=[
  ('duet_add',re.compile(r'このターンのアピールにデュエット\[(?P<target>[^\[\]]+)\]を追加(?=\[コスト:\d+\]|$|/)')),
  ('duet',re.compile(r'デュエット\[(?P<target>[^\[\]]+)\](?=$|/|\[)')),
  ('interest_minimum',re.compile(r'(?P<audience>全観客に|全観客の)?興味最小(?P<value>\d+(?:\.\d+)?)倍\[(?P<turns>\d+)ターン\]')),
- ('charm',re.compile(r'(?P<audience>全観客に|全観客の)?魅了\[(?P<turns>\d+)ターン\]')),
+ ('charm',re.compile(r'(?P<audience>全観客に|全観客の)?魅了\[(?:(?P<turns>\d+)ターン|(?P<low>\d+)[～〜~\-](?P<high>\d+)ターン)\]')),
  ('enthusiasm',re.compile(r'(?P<audience>全観客に|全観客の)?熱狂(?:最大(?P<count>\d+)つ付与)?\[(?:(?P<turns>\d+)ターン|(?P<low>\d+)[～〜~\-](?P<high>\d+)ターン|最大(?P<maxturns>\d+)ターン)\]')),
 ]
 def facts(part,scope,ctx):
@@ -25,7 +27,11 @@ def facts(part,scope,ctx):
    if m.start() and part[m.start()-1] not in '/]':continue
    g=m.groupdict()
    e={'metric':metric,'scope':scope,'restriction_status':'partial'}
-   if metric=='resurrection':
+   if metric=='status_conversion':
+    e.update(targets=[g['target']],unit='percent',value=float(g['value']),turns=int(g['turns']),recipient='self')
+   elif metric=='instant_satisfaction':
+    e.update(targets=['興味'],unit='boolean',value=1,chance_tier='very_rare' if g['chance']=='ごくごく稀' else 'rare',probability={'unknown':True})
+   elif metric=='resurrection':
     e.update(targets=['メンタル'],unit='percent',value=float(g['value']),turns=int(g['turns']),uses=int(g['uses']),trigger='mental_zero')
    elif metric=='audience_status_clear':
     e.update(targets=['観客ステータス'],unit='boolean',value=1,audience='all',excludes=['興味変動無効'])
