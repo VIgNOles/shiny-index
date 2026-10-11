@@ -304,3 +304,17 @@ test('interest reversal and restriction remain separate from numeric interest an
  assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'interest_limit',effect_turns:'2'}),d).length,0);
  assert.ok(effectFactText({metric:'rate_up',targets:['Dance'],unit:'percent',value:60,scope:'base',trigger:'reaction_damage',trigger_turns:3,turns:3,uses:6,shared_uses:true}).includes('共有'));
 });
+
+test('consumption search binds removed statuses to the same appeal and distinguishes grants',()=>{
+ const consume=statuses=>({statuses,timing:'after_appeal',quantity:'all',scaling:'status_count',passive_included:false});
+ const a={metric:'appeal',targets:['Dance'],value:6,minimum:1.2,unit:'multiplier',scope:'base',status_consumption:consume([{target:'Visual',direction:'UP'}])};
+ const b={metric:'appeal',targets:['Visual'],value:3,unit:'multiplier',scope:'link',status_consumption:consume([{target:'Dance',direction:'DOWN'}])};
+ const grant={metric:'rate_up',targets:['Visual'],value:15,unit:'percent',scope:'base',turns:6};
+ const d=new Map([['P1',{items:[{name:'消去例',kind:'panel_live',effect_details:{effects:[a,b,grant]}}]}]]);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'appeal_consume',effect_target:'Dance',skill_q:'消去対象：VisualUP'}),d).length,1);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'appeal_consume',effect_target:'Visual',skill_q:'消去対象：VisualUP'}),d).length,0);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'appeal_consume',effect_turns:'1'}),d).length,0);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'rate_up',skill_q:'消去対象：VisualUP'}),d).length,0);
+ assert.equal(detailSearch(cards,new URLSearchParams({effect_type:'appeal',skill_q:'消去対象：DanceDOWN Link'}),d).length,1);
+ assert.ok(effectFactText(a).includes('このアピール直後'));assert.ok(effectFactText(a).includes('パッシブは対象外'));
+});

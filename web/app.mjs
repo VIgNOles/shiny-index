@@ -1,4 +1,4 @@
-import {mechanicRuleText,mechanicRuleMatches,effectNames,effectFactText,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
+import {mechanicRuleText,mechanicRuleMatches,effectNames,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs';
 
 const $=id=>document.getElementById(id);
@@ -96,7 +96,10 @@ try{
  };
 
  const availableEffects=[...(detailMap.values())].flatMap(c=>c.items.flatMap(i=>i.effect_details?.effects??[]));
- for(const [value,label] of Object.entries(effectNames))if(availableEffects.some(e=>e.metric===value))$('effect-type').add(new Option(label,value));
+ for(const [value,label] of Object.entries(effectNames)){
+  const filter=new URLSearchParams({effect_type:value});
+  if(availableEffects.some(e=>effectMatches(e,filter)))$('effect-type').add(new Option(label,value));
+ }
  for(const value of [...new Set(availableEffects.flatMap(e=>e.targets))])$('effect-target').add(new Option(value,value));
  for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns']]){
   $(id).addEventListener('change',event=>{if(event.target.value)params.set(key,event.target.value);else params.delete(key);commitParams();});

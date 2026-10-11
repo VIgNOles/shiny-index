@@ -6,6 +6,7 @@ import math,re,unicodedata
 from src.skill_conditions_v2 import parse as parse_condition, validate_extension, join, idol_name
 from src.live_conditions import mechanic_rule, validate_rule
 from src.reaction_effects import parse as reaction_facts, REACTION_TRIGGERS
+from src.consumption_effects import adjacent_consumption, validate_consumption
 from src.special_live_effects import facts as special_facts, SPECIAL_METRICS, SPECIAL_TARGETS
 LIVE={'panel_live','mb_live','generated_live','possessed_live','memory_appeal','quick_skill'}
 TARGETS={'Vocal','Dance','Visual','メンタル','SP','体力','絆','テンション','トラブル率','注目度','思い出ゲージ','リアクション回避率','メンタルダメージ','興味','影響力','アピール値','基礎能力値','施設Lv','パーフェクト','エクセレント','イベント発生率','ノウハウ発現率','アドバイス抽選率','交換数','Excellent'}
@@ -208,6 +209,7 @@ def live(text,scope='base',ctx=None,standalone=None,slot='effect'):
      if m['maximum']:e['maximum']=True
      if m['audience']:e['audience']='all'
      if m['order']:e['appeal_order']='first' if m['order']=='必ず最初に' else 'last'
+     if consumption:=adjacent_consumption(part,m.end()):e['status_consumption']=consumption
     else:
      if m['turns']:e['turns']=int(m['turns'])
      if m.groupdict().get('maximum'):e['maximum']=True
@@ -276,9 +278,10 @@ def validate_effect_details(doc,known_idols,condition_context=None):
    if key in seen:raise ValueError('Duplicate mechanic segment')
    seen.add(key);validate_rule(r['condition'],condition_context,r['scope'])
  for e in doc['effects']:
-  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses'}:raise ValueError('Non-public effect field')
+  if set(e)-{'metric','targets','unit','scope','value','formula','trigger','probability','per_member','cap','turns','restrictions','restriction_status','maximum','amount_unknown','advice','degree','uses','source_notation','minimum','audience','activation_condition','appeal_order','mechanic_condition','duet_target','timing','excludes','turn_range','turns_maximum','grant_count_maximum','recipient','trigger_turns','shared_uses','status_consumption'}:raise ValueError('Non-public effect field')
   if e.get('metric') not in METRICS or not isinstance(e.get('targets'),list) or not e['targets'] or len(e['targets'])!=len(set(e['targets'])) or set(e['targets'])-TARGETS or e.get('unit') not in {'points','percent','multiplier','boolean'} or e.get('scope') not in SCOPES:raise ValueError('Invalid effect fact')
   validate_amount({k:e[k] for k in ('value','formula','amount_unknown') if k in e})
+  if 'status_consumption' in e:validate_consumption(e)
   if e['metric']=='refrain' and (e['unit']!='points' or type(e.get('value')) not in (int,float) or e['value']%1 or e['value']<1):raise ValueError('Invalid refrain distance')
   if 'appeal_order' in e and (e['metric']!='appeal' or e['appeal_order'] not in {'first','last'}):raise ValueError('Invalid appeal order')
   if 'activation_condition' in e and e['activation_condition']!={'status':'unsupported'}:
