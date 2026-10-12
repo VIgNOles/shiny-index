@@ -28,7 +28,7 @@
     <div class="search-layout">
       <section id="search-controls" class="controls" tabindex="-1" role="search" aria-label="カード検索と絞り込み">
         <label class="query" for="q">カード名・アイドル名・シリーズ名で検索</label>
-        <input id="q" type="search" placeholder="例：櫻木真乃 トワコレ" autocomplete="off" aria-controls="cards">
+        <input id="q" type="search" placeholder="例：さくらぎまの トワコレ" autocomplete="off" aria-controls="cards">
         <div id="filters" aria-label="主な絞り込み条件"></div>
         <div id="common-filters">
           <p class="filter-help">条件を選ぶと検索結果に反映します。</p>
@@ -45,6 +45,16 @@
             <div id="advanced-groups"></div>
             <p class="filter-help">区分・企画タグ・詳しい入手方法の間は「すべて満たす」。例：期間限定 ＋ 誕生日。</p>
           </section>
+          <details id="trait-filters" class="filter-group">
+            <summary>Sカードの育成特性から探す</summary>
+            <fieldset id="trait-controls">
+              <legend class="visually-hidden">Sカードの育成特性</legend>
+              <label for="trait-idea">アイデア<select id="trait-idea"><option value="">指定なし</option></select></label>
+              <label for="trait-inspiration">ひらめき<select id="trait-inspiration"><option value="">指定なし</option></select></label>
+              <label for="trait-music">楽曲熟練度<select id="trait-music"><option value="">指定なし</option></select></label>
+              <p class="filter-help">同じSカードで選択した種類をすべて満たすものを探します。詳細未収録・種類不明は含みません。</p>
+            </fieldset>
+          </details>
           <details id="skill-filters" class="filter-group">
             <summary>スキル・性能から探す</summary>
             <fieldset id="skill-controls">
@@ -61,7 +71,7 @@
             <details id="effect-coverage"><summary>収録範囲と検索の補足</summary><p id="detail-coverage" class="filter-help">詳細情報を読み込み中…</p><p id="effect-coverage-text" class="filter-help"></p></details>
           </details>
         </div>
-        <p id="mobile-filter-help" class="filter-help" hidden>発動条件・対象・継続ターン・実装日などは、詳しい条件から設定できます。</p>
+        <p id="mobile-filter-help" class="filter-help" hidden>効果量・範囲・必要特訓・発動条件・実装日などは、詳しい条件から設定できます。</p>
         <button id="open-filters" type="button" aria-haspopup="dialog" aria-controls="filter-dialog" hidden>詳しい条件を設定</button>
         <div id="filter-panel">
               <details id="performance-advanced" class="filter-group">
@@ -69,10 +79,21 @@
                 <fieldset id="advanced-skill-controls"><legend class="visually-hidden">スキル性能の詳しい条件</legend>
                 <fieldset id="live-origins"><legend>ライブスキルの種類</legend><div id="live-origin-options" class="filter-options"></div><p class="filter-help">未指定は全種類。MB＝メモリーブースト。生成は生成元を詳細に表示します。</p></fieldset>
                 <div id="mechanic-control"><p class="filter-heading">ライブスキルの追加機能</p><div id="skill-mechanics" class="filter-options" role="group" aria-label="ライブスキルの追加機能"></div><p class="filter-help">複数は「または」。その機能を持つライブを探します。一致した効果がLink等の追加部分とは限りません。</p></div>
+                <label id="scope-control" for="effect-scope">効果の範囲<select id="effect-scope"><option value="">指定なし</option></select></label>
+                <fieldset id="amount-controls" class="amount-controls"><legend>確定した効果量</legend>
+                  <label for="effect-unit">単位<select id="effect-unit"><option value="">指定なし</option></select></label>
+                  <div class="amount-bounds">
+                    <label for="effect-min">下限（以上）<input id="effect-min" type="text" inputmode="decimal" autocomplete="off" aria-describedby="amount-help"></label>
+                    <label for="effect-max">上限（以下）<input id="effect-max" type="text" inputmode="decimal" autocomplete="off" aria-describedby="amount-help"></label>
+                  </div>
+                  <p id="amount-help" class="filter-help">単位を選び、必要な上下限を入力してください。明記された確定値だけを検索し、可変・最大・Lv依存の値や発動確率は含みません。</p>
+                </fieldset>
+                <label id="unlock-control" for="unlock-star-max">一致スキルの必要特訓<select id="unlock-star-max"><option value="">指定なし</option><option value="0">0凸まで（明記のみ）</option><option value="1">1凸まで</option><option value="2">2凸まで</option><option value="3">3凸まで</option><option value="4">4凸まで</option></select></label>
+                <p class="filter-help">必要特訓は同じ一致スキルの明記値で判定します。不明は0凸とみなしません。現行データには0凸の明記値がありません。</p>
                 <label id="condition-control" for="skill-condition">発動条件に含まれる要素<select id="skill-condition"><option value="">指定なし</option></select></label>
                 <label id="recipient-control" for="effect-recipient">効果の対象<select id="effect-recipient"><option value="">指定なし</option></select></label>
                 <label id="turns-control" for="effect-turns">継続ターン<select id="effect-turns"><option value="">指定なし</option><option value="1">1ターン以上</option><option value="2">2ターン以上</option><option value="3">3ターン以上</option><option value="4">4ターン以上</option><option value="5">5ターン以上</option><option value="7">7ターン以上</option><option value="10">10ターン以上</option></select></label>
-                <p class="filter-help">効果・属性・対象・継続は同じ1効果で照合。期間に幅があれば最短で判定し、未記載の対象や期間は推定しません。</p>
+                <p class="filter-help">効果・属性・範囲・効果量・対象・継続は同じ1効果で照合。期間に幅があれば最短で判定し、未記載の対象や期間は推定しません。</p>
                 </fieldset>
               </details>
           <details id="advanced-filters" class="filter-group">
@@ -115,6 +136,25 @@
             <div id="legacy-groups"></div>
           </details>
         </div>
+        <details id="search-guide" class="filter-group">
+          <summary>用語と検索例</summary>
+          <dl class="search-terms">
+            <dt>P／S・人物の読み</dt><dd>Pはプロデュース、Sはサポートカードです。人物は読み仮名でも検索でき、空白区切りはすべての語に一致します。</dd>
+            <dt>Link付きスキル／効果の範囲</dt><dd>「Link付きスキル」はLink機能を持つライブを探します。追加部分の効果だけを探すには「効果の範囲」でLinkを選びます。</dd>
+            <dt>効果量・必要特訓</dt><dd>確定した数値と、一致スキルに明記された必要特訓を探します。可変の最大値・発動確率・不明な解放段階は含みません。</dd>
+            <dt>育成特性</dt><dd>Sカードのアイデア・ひらめき・楽曲熟練度を組み合わせます。表記ゆれをまとめて検索し、詳細未収録は含みません。</dd>
+          </dl>
+          <p class="filter-help">例を選ぶと、現在の検索条件をその例に置き換えます。</p>
+          <ul class="search-examples">
+            <li><a href="?q=%E3%81%BE%E3%81%A9%E3%81%8B+Hug%3F">読みで探す：まどか Hug？</a></li>
+            <li><a href="?q=%E3%81%95%E3%81%8F%E3%82%89%E3%81%8E%E3%81%BE%E3%81%AE+%E3%83%88%E3%83%AF%E3%82%B3%E3%83%AC">人物＋シリーズ：真乃のトワコレ</a></li>
+            <li><a href="?card_kind=S&amp;effect_type=cap_increase&amp;effect_target=Vocal&amp;effect_unit=points&amp;effect_min=100">Vocal上限100以上のSカード</a></li>
+            <li><a href="?skill_kind=panel_live&amp;mechanic=link&amp;effect_scope=link&amp;effect_type=appeal">Link部分にアピールがあるパネルライブ</a></li>
+            <li><a href="?card_kind=S&amp;trait_idea=vocal">ボーカルのアイデアを持つSカード</a></li>
+            <li><a href="?card_kind=S&amp;trait_inspiration=mental">メンタルのひらめきを持つSカード</a></li>
+            <li><a href="?card_kind=S&amp;trait_music=singing">歌唱力の楽曲熟練度を持つSカード</a></li>
+          </ul>
+        </details>
         <div id="filter-issues" role="alert" hidden></div>
       </section>
 

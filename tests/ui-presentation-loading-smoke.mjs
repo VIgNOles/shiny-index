@@ -84,6 +84,22 @@ try{
  console.log('pending performance URL, all matching values/conditions/probabilities/limits/unlocks and information order PASS');
  await perf.close();
 
+ const traitOnly=await pageFor(),releaseTraits=await holdDetails(traitOnly);
+ await traitOnly.goto(base+'?trait_idea=vocal',{waitUntil:'domcontentloaded'});
+ await traitOnly.waitForFunction(()=>document.querySelector('#count').textContent==='詳細情報を読み込み中');
+ assert.equal(await traitOnly.locator('.card').count(),0,'trait-only URL must also wait for details');
+ assert.equal(await traitOnly.locator('#trait-idea').inputValue(),'vocal');
+ assert.equal(await traitOnly.locator('#trait-controls').evaluate(e=>e.disabled),true);
+ releaseTraits();await loaded(traitOnly);
+ const traitExpected=detail.cards.filter(c=>c.card_kind==='S'&&c.traits?.idea==='ボーカル').length;
+ assert.equal(await traitOnly.locator('#count').textContent(),traitExpected+' / '+basic.cards.length+' 件');
+ assert.equal(await traitOnly.locator('#trait-controls').evaluate(e=>e.disabled),false);
+ await traitOnly.locator('.detail-toggle').first().click();
+ assert.equal(await traitOnly.locator('.card-detail').first().evaluate(e=>e.firstElementChild.className),'performance');
+ assert.ok((await traitOnly.locator('.matched-trait').first().textContent()).includes('ボーカル'));
+ await traitOnly.close();
+ console.log('trait-only URL waits for verified detail data, retains selection and shows the matched training trait first PASS');
+
  const duplicate=detail.cards.find(c=>c.items.some(i=>(i.numeric_facts??[]).some(f=>f.metric==='appeal'&&(i.effect_details?.effects??[]).some(e=>e.scope==='base'&&e.metric==='appeal'&&e.value===f.value&&(f.targets??[f.target]).length===e.targets.length&&(f.targets??[f.target]).every(t=>e.targets.includes(t))))));
  const duplicateCard=basic.cards.find(c=>c.card_id===duplicate.card_id),dedup=await pageFor();
  await dedup.goto(base+'?'+new URLSearchParams({q:duplicateCard.card_title}),{waitUntil:'networkidle'});
@@ -128,6 +144,13 @@ try{
  assert.equal(await failed.locator('.card').count(),0);
  assert.equal(new URL(failed.url()).search.slice(1),query);
  await failed.locator('#filter-issues button').first().click();
+ assert.equal(await failed.locator('#count').textContent(),basic.cards.length+' / '+basic.cards.length+' 件');
+ await failed.goto(base+'?trait_idea=vocal',{waitUntil:'networkidle'});
+ assert.equal(await failed.locator('#count').textContent(),'条件を適用できません');
+ assert.equal(await failed.locator('.card').count(),0);
+ assert.equal(await failed.locator('#trait-idea').inputValue(),'vocal');
+ await failed.locator('#filter-issues button').first().click();
+ assert.equal(new URL(failed.url()).searchParams.has('trait_idea'),false);
  assert.equal(await failed.locator('#count').textContent(),basic.cards.length+' / '+basic.cards.length+' 件');
  await failed.close();
  console.log('unrecorded list indication, detail failure preserves conditions and basic search recovery PASS');

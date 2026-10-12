@@ -107,3 +107,14 @@ test('unknown people receive no inferred reading and literal names still work',(
  const spaced=[{...cards[0],idol_name:'樋口　円香'}];
  assert.equal(search(spaced,new URLSearchParams({q:'ひぐちまどか'})).length,1);
 });
+
+
+test('fixed card IDs select one exact card independently of renamed titles and other search conditions remain AND',()=>{
+ const rows=[{...cards[0],card_id:'fixed-a',card_title:'旧名称'}, {...cards[0],card_id:'fixed-b',card_title:'旧名称'}];
+ const params=new URLSearchParams('card_id=fixed-a');
+ assert.deepEqual(search(rows,params).map(c=>c.card_id),['fixed-a']);
+ assert.deepEqual(search(rows.map(c=>({...c,card_title:'改名後'})),params).map(c=>c.card_id),['fixed-a']);
+ assert.deepEqual(search(rows,new URLSearchParams('card_id=unknown')),[]);
+ assert.deepEqual(search(rows,new URLSearchParams('card_id=fixed-a&card_kind=S')),[]);
+ assert.deepEqual(search(rows,new URLSearchParams('card_id=fixed-a&q=存在しない語')),[]);
+});

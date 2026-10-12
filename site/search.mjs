@@ -87,6 +87,7 @@ function compareCards(a,b,sort,direction){
  return String(av??'').localeCompare(String(bv??''),'ja')*(direction==='asc'?1:-1)||byDateDesc(a,b);
 }
 export function search(cards,params){
+ const exactId=params.get('card_id');
  const terms=norm(params.get('q')).split(' ').filter(Boolean);
  const readingTerms=terms.map(readingNorm);
  const fields=['card_kind','rarity','acquisition_category','series_ids','collab_work','review_status'];
@@ -96,6 +97,7 @@ export function search(cards,params){
  const from=parseDatePart(params.get('from')),to=parseDatePart(params.get('to'));
  const sort=params.get('sort')||'date_new',direction=params.get('direction');
  const rows=cards.filter(card=>{
+  if(exactId&&card.card_id!==exactId)return false;
   const searchable=[
    card.card_title,card.idol_name,card.unit_name,card.collab_work,card.acquisition_category,
    ...card.series_ids.flatMap(id=>[id,seriesNames[id],seriesAliases[id]])

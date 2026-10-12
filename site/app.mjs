@@ -1,4 +1,4 @@
-import {effectGroups,filterCatalog,applicableItems,performanceIssues,liveKinds,searchEffects,detailMatches,matchDetailItem,hasSkillConditions,mechanicRuleText,mechanicRuleMatches,recipientNames,effectNames,effectTargets,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs?ui=27';
+import {scopeNames,effectUnitNames,traitNames,traitCatalog,hasTraitConditions,effectGroups,filterCatalog,applicableItems,performanceIssues,liveKinds,searchEffects,detailMatches,matchDetailItem,hasSkillConditions,mechanicRuleText,mechanicRuleMatches,recipientNames,effectNames,effectTargets,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs?ui=27';
 import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs?ui=27';
 
 const $=id=>document.getElementById(id);
@@ -57,6 +57,7 @@ try{
    '詳細情報を読み込めませんでした：'+detailError+'。基本情報の検索は利用できます。';
   $('skill-controls').disabled=!detailDoc;
   $('advanced-skill-controls').disabled=!detailDoc;
+  $('trait-controls').disabled=!detailDoc;
   const effectCounts=detailDoc?.coverage.effect_detail_counts;
   $('effect-coverage-text').textContent=detailLoading?'性能条件は詳細情報の読み込み後に適用します。':effectCounts?
    'サポートスキル '+(effectCounts.support_skill?.structured??0)+'項目、固有アビリティ '+(effectCounts.unique_ability?.structured??0)+'項目の効果を検索できます。ライブ・思い出はアピール倍率や、継続ターンを読み取れた効果が対象です。未対応の複合効果もあるため、検索結果が0件でも該当カードがないとは限りません。':
@@ -95,9 +96,14 @@ try{
  };
 
  let catalog=filterCatalog(cards,detailMap);
- for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns'],['effect-recipient','effect_recipient']]){
+ const effectSelects=[['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns'],['effect-recipient','effect_recipient'],['effect-scope','effect_scope'],['effect-unit','effect_unit'],['unlock-star-max','unlock_star_max']];
+ const traitSelects=Object.keys(traitNames).map(kind=>['trait-'+kind,'trait_'+kind]);
+ for(const [id,key] of [...effectSelects,...traitSelects]){
   $(id).addEventListener('change',event=>{if(event.target.value)params.set(key,event.target.value);else params.delete(key);commitParams();});
  }
+ for(const [value,label] of Object.entries(scopeNames))$('effect-scope').add(new Option(label,value));
+ for(const [value,label] of Object.entries(effectUnitNames))$('effect-unit').add(new Option(label,value));
+ for(let value=0;value<=4;value++)$('unlock-star-max').add(new Option('特訓 '+value+'以下',String(value)));
  for(const [value,label] of Object.entries(conditionNames))$('skill-condition').add(new Option(label,value));
  for(const [value,label] of [['live','ライブスキル'],['panel_passive','パッシブスキル'],['support_skill','育成サポートスキル'],['memory_appeal','思い出アピール'],['cap_increase','ステータス上限UP'],['unique_ability','固有アビリティ'],['quick_skill','クイックスキル']])$('skill-kind').add(new Option(label,value));
  for(const value of liveKinds){const label=add($('live-origin-options'),'label','','filter-option'),input=document.createElement('input');input.type='checkbox';input.value=value;input.name='live_origin';label.append(input,document.createTextNode(kindNames[value]));}
@@ -107,7 +113,7 @@ try{
   const input=document.createElement('input');input.type='checkbox';input.value=value;input.name='mechanic';
   wrapper.append(input,document.createTextNode(label));
  }
- const bindSearch=(id,key)=>{
+ const bindSearch=(id,key,commitOnChange=false)=>{
   let composing=false;const input=$(id);
   const cancel=()=>{if(pendingSearch.has(id)){clearTimeout(pendingSearch.get(id).timer);pendingSearch.delete(id);}};
   const apply=()=>{if(input.value)params.set(key,input.value);else params.delete(key);commitParams('replace');};
@@ -115,8 +121,10 @@ try{
   input.addEventListener('compositionstart',()=>{composing=true;cancel();});
   input.addEventListener('compositionend',()=>{composing=false;schedule();});
   input.addEventListener('input',event=>{if(!composing&&!event.isComposing)schedule();});
+  if(commitOnChange)input.addEventListener('change',()=>{cancel();apply();});
  };
  bindSearch('skill-q','skill_q');
+ for(const key of ['effect_min','effect_max'])bindSearch(key.replaceAll('_','-'),key,true);
  $('skill-kind').addEventListener('change',event=>{
   if(event.target.value==='__mixed__')return;params.delete('skill_kind');if(event.target.value==='live')for(const v of liveKinds)params.append('skill_kind',v);else if(event.target.value)params.set('skill_kind',event.target.value);commitParams();
  });
@@ -129,7 +137,8 @@ try{
  $('detail-available').addEventListener('change',event=>{
   if(event.target.checked)params.set('detail_status','available');else params.delete('detail_status');commitParams();
  });
- $('skill-filters').open=['skill_q','skill_kind','skill_condition','mechanic','detail_status','effect_type','effect_target','effect_turns','effect_recipient'].some(key=>params.has(key));
+ $('trait-filters').open=hasTraitConditions(params);
+ $('skill-filters').open=['effect_scope','effect_unit','effect_min','effect_max','unlock_star_max','skill_q','skill_kind','skill_condition','mechanic','detail_status','effect_type','effect_target','effect_turns','effect_recipient'].some(key=>params.has(key));
 
  const filterOrder={
   card_kind:['P','S'],rarity:['UR','SSR','SR','R','N'],
@@ -376,7 +385,7 @@ try{
  });
 
  const active=$('active-filters');
- const conditionGroups=[['カード',['q','card_kind','rarity','person','unit_name','idol_name','from','to','collab_work','review_status','detail_status']],['シリーズ・入手',['browse','series_ids','acquisition_category']],['スキル・性能',['skill_kind','effect_type','effect_target','skill_q']],['詳しい条件',['mechanic','skill_condition','effect_recipient','effect_turns']]];
+ const conditionGroups=[['カード',['q','card_kind','rarity','person','unit_name','idol_name','from','to','collab_work','review_status','detail_status']],['シリーズ・入手',['browse','series_ids','acquisition_category']],['スキル・性能',['skill_kind','effect_type','effect_target','skill_q']],['詳しい条件',['mechanic','skill_condition','effect_recipient','effect_turns','effect_scope','effect_unit','effect_min','effect_max','unlock_star_max']],['育成特性',['trait_idea','trait_inspiration','trait_music']]];
  const clearFields=fields=>{for(const field of fields)params.delete(field);dateDraft={from:params.get('from')??'',to:params.get('to')??''};for(const k of ['from','to'])renderDateBound(k);commitParams();$(editing?'filter-dialog-heading':'results-heading').focus({preventScroll:true});};
  const addChip=(parent,label,field,value)=>{
   const button=add(parent,'button',label+' ×','filter-chip');button.type='button';button.setAttribute('aria-label',label+'を解除');
@@ -400,6 +409,12 @@ try{
   if(key==='skill_kind')return kindNames[value]??value;
   if(key==='mechanic')return mechanicNames[value]??value;
   if(key==='skill_condition')return '発動条件の要素：'+(conditionNames[value]??value);
+  if(key==='effect_scope')return '効果範囲：'+(scopeNames[value]??value);
+  if(key==='effect_unit')return '効果量の単位：'+(effectUnitNames[value]??value);
+  if(key==='effect_min')return '効果量の下限：'+value;
+  if(key==='effect_max')return '効果量の上限：'+value;
+  if(key==='unlock_star_max')return '必要特訓 '+value+'以下（明記分）';
+  if(key.startsWith('trait_'))return ({trait_idea:'アイデア',trait_inspiration:'ひらめき',trait_music:'楽曲熟練度'})[key]+'：'+(traitNames[key.slice(6)]?.[value]??value);
   if(key==='effect_type')return '効果：'+(effectNames[value]??value);
   if(key==='effect_recipient')return '効果の対象：'+(recipientNames[value]??value);
   if(key==='effect_turns')return '継続：'+value+'ターン以上';
@@ -424,13 +439,25 @@ try{
   if($('selected-conditions-summary'))$('selected-conditions-summary').textContent='選択中の条件（'+conditionCount()+'件）';
   $('advanced-count').textContent=['from','to','detail_status'].some(k=>params.get(k))?'（指定あり）':'';
   for(const field of ['series_ids','acquisition_category']){const n=params.getAll(field).length;filterGroups.get(field).querySelector('.selection-count').textContent=n?'（'+n+'件選択）':'';}
-  const detailKeys=['mechanic','skill_condition','effect_recipient','effect_turns','from','to','detail_status',...legacyFields];
+  const detailKeys=['mechanic','skill_condition','effect_recipient','effect_turns','effect_scope','effect_unit','effect_min','effect_max','unlock_star_max','from','to','detail_status',...legacyFields];
   let detailCount=detailKeys.reduce((n,k)=>n+params.getAll(k).filter(Boolean).length,0);
   for(const key of ['series_ids','acquisition_category'])if(filterGroups.get(key).dataset.legacy==='true')detailCount+=params.getAll(key).filter(Boolean).length;
   const kinds=params.getAll('skill_kind');if(kinds.length&&kinds.length<4&&kinds.every(k=>liveKinds.has(k)))detailCount++;
   $('open-filters').textContent=detailCount?'詳しい条件を変更（'+detailCount+'条件）':'詳しい条件を設定';
  };
- const retainOption=(select,value)=>{if(value&&![...select.options].some(o=>o.value===value))select.add(new Option('選択中：'+(effectNames[value]??recipientNames[value]??(select.id==='effect-turns'?value+'ターン以上':value)),value));};
+ const retainOption=(select,value)=>{
+  const label=select.id.startsWith('trait-')?traitNames[select.id.slice(6)]?.[value]:
+   select.id==='effect-scope'?scopeNames[value]:select.id==='effect-unit'?effectUnitNames[value]:
+   select.id==='unlock-star-max'?'特訓 '+value+'以下':effectNames[value]??recipientNames[value]??(select.id==='effect-turns'?value+'ターン以上':value);
+  if(value&&![...select.options].some(option=>option.value===value))select.add(new Option('選択中：'+(label??value),value));
+ };
+ const populateTraits=()=>{
+  const catalog=traitCatalog(detailMap);
+  for(const [kind,names] of Object.entries(traitNames)){
+   const select=$('trait-'+kind);select.replaceChildren(new Option('指定なし',''));
+   for(const [value,label] of Object.entries(names))if(catalog[kind].includes(value))select.add(new Option(label,value));
+  }
+ };
  const populateEffects=()=>{
   const items=applicableItems(params,catalog),effects=items.flatMap(i=>i.effects),type=params.get('effect_type');
   const names={appeal:'アピール・ライブの機能',status:'能力・ステータスの変化',recovery_gauge:'回復・ゲージ',audience:'観客への効果',produce:'育成サポート',random:'ランダム候補',passive:'パッシブの効果',cap:'ステータス上限'};
@@ -477,7 +504,7 @@ try{
   $('legacy-filters').querySelector('.filter-help').textContent='元のリンクの式を保持しています。同じ欄は「または」、異なる欄は「すべて満たす」です。'+(params.has('person')&&(params.has('unit_name')||params.has('idol_name'))?'このリンクの人物は新方式が優先され、旧ユニット・アイドル指定は評価されません。':'旧ユニット・アイドル指定は両方満たします。');
  };
  const issuesFor=()=>{
-  const issues=detailLoading&&(hasSkillConditions(params)||params.has('detail_status'))?
+  const issues=detailLoading&&(hasSkillConditions(params)||hasTraitConditions(params)||params.has('detail_status'))?
    [{key:'performance',message:'詳細情報を読み込み中です。性能条件を保持し、読み込み後に検索します。'}]:
    performanceIssues(params,catalog,!!detailDoc);
   for(const key of ['from','to'])if(params.get(key)&&!parseDatePart(params.get(key)))issues.push({key,message:'実在する年月日を指定してください：'+params.get(key)});
@@ -495,8 +522,9 @@ try{
   if(issues.length){add(host,'strong',detailLoading&&issues.some(i=>i.key==='performance')?'詳細情報を読み込み中':'条件を適用できません');for(const issue of issues){add(host,'p',issue.message);const b=add(host,'button','この条件を解除');b.type='button';b.onclick=()=>clearFields(issue.key==='performance'?['detail_status',...conditionGroups.slice(2).flatMap(([,keys])=>keys)]:[issue.key]);}}
  };
  const renderControls=()=>{
-  populateEffects();renderLegacy();
-  for(const [id,key] of [['effect-type','effect_type'],['effect-target','effect_target'],['effect-turns','effect_turns'],['effect-recipient','effect_recipient']]){retainOption($(id),params.get(key));$(id).value=params.get(key)??'';}
+  populateEffects();populateTraits();renderLegacy();
+  for(const [id,key] of [...effectSelects,...traitSelects]){retainOption($(id),params.get(key));$(id).value=params.get(key)??'';}
+  for(const key of ['effect_min','effect_max']){const id=key.replaceAll('_','-');if(!pendingSearch.has(id))$(id).value=params.get(key)??'';}
   if(!pendingSearch.has('skill-q'))$('skill-q').value=params.get('skill_q')??'';
   const kinds=params.getAll('skill_kind');const parent=kinds.length&&kinds.every(k=>liveKinds.has(k))?'live':kinds.length===1&&[...$('skill-kind').options].some(o=>o.value===kinds[0])?kinds[0]:kinds.length?'__mixed__':'';retainOption($('skill-kind'),parent);if(parent==='__mixed__')$('skill-kind').querySelector('option[value="__mixed__"]').textContent='リンクの情報条件（複数指定）';$('skill-kind').value=parent;
   retainOption($('skill-condition'),params.get('skill_condition'));$('skill-condition').value=params.get('skill_condition')??'';
@@ -521,7 +549,7 @@ try{
  $('cards').after(more);
  const detailLine=(list,term,value)=>{
   const row=add(list,'div','','detail-row');
-  add(row,'dt',term);add(row,'dd',value);
+  add(row,'dt',term);add(row,'dd',value);return row;
  };
  const supplementaryFacts=(item,facts=item.numeric_facts??[],scope='base')=>{
   const effects=(item.effect_details?.effects??[]).filter(e=>e.scope===scope);
@@ -557,8 +585,9 @@ try{
   let traitsList=null;
   if(card.traits){
    const list=add(section,'dl','','card-facts');
-   detailLine(list,'アイデア',card.traits.idea);detailLine(list,'ひらめき',card.traits.inspiration);
-   detailLine(list,'楽曲熟練度',card.traits.music_proficiencies.join('・'));
+   for(const [key,label,value] of [['trait_idea','アイデア',card.traits.idea],['trait_inspiration','ひらめき',card.traits.inspiration],['trait_music','楽曲熟練度',card.traits.music_proficiencies.join('・')]]){
+    const row=detailLine(list,label,value);if(params.get(key))row.classList.add('matched-trait');
+   }
    traitsList=list;
    const stats=card.max_status;
    detailLine(list,'最大Lv '+stats.level,['Vo','Da','Vi','Me'].map((label,i)=>label+' '+(stats[['vocal','dance','visual','mental'][i]]??'未記載')).join(' / '));
@@ -628,6 +657,7 @@ try{
   if(detailLoading||detailError||!detailMap.has(cardData.card_id)){
    add(head,'p',detailLoading?'詳細読込中':detailError?'詳細読込失敗':'詳細未収録'+(!cardData.wiki_url?'（個別ページ未確認・保留）':''),'detail-status'+(detailLoading?' detail-status-loading':''));
   }
+  if(hasTraitConditions(params))add(head,'p','一致：'+traitSelects.filter(([,key])=>params.get(key)).map(([,key])=>chipText(key,params.get(key))).join(' / '),'match-reason trait-match-reason');
   if(matching.length){
    const first=matching[0],name=first.item.name.length>70?first.item.name.slice(0,70)+'…':first.item.name;
    add(head,'p','一致：'+kindNames[first.item.kind]+' / '+name+(matching.length>1?'（ほか'+(matching.length-1)+'件）':''),'match-reason');
@@ -661,7 +691,7 @@ try{
   const buildDetail=()=>{
    if(detail.dataset.built)return;
    detail.dataset.built='true';
-   if(hasSkillConditions(params))performanceNode(detail,cardData);
+   if(hasSkillConditions(params)||hasTraitConditions(params))performanceNode(detail,cardData);
    const list=add(detail,'dl','','card-facts');
    detailLine(list,'カード名',cardData.card_title);
    detailLine(list,'アイドル',cardData.idol_name);
@@ -673,7 +703,7 @@ try{
    detailLine(list,'確認状態',text(cardData.review_status));
    if(cardData.collab_work)detailLine(list,'コラボ作品',cardData.collab_work);
    if(cardData.variant_kind!=='base')detailLine(list,'派生種別','アイドルロード派生');
-   if(!hasSkillConditions(params))performanceNode(detail,cardData);
+   if(!hasSkillConditions(params)&&!hasTraitConditions(params))performanceNode(detail,cardData);
    const action=add(detail,'div','','card-action');
    const wiki=wikiLink(cardData.wiki_url);
    if(wiki){
@@ -719,7 +749,7 @@ try{
  };
  function render(limit=100){
   const issues=issuesFor();renderIssues(issues);
-  const waiting=detailLoading&&(hasSkillConditions(params)||params.has('detail_status'));
+  const waiting=detailLoading&&(hasSkillConditions(params)||hasTraitConditions(params)||params.has('detail_status'));
   shown=issues.length?[]:detailSearch(search(cards,params),params,detailMap);
   const ids=new Set(shown.map(card=>card.card_id));
   expandedIds=new Set([...expandedIds].filter(id=>ids.has(id)));
@@ -762,7 +792,7 @@ try{
  );
  for(const field of ['series_ids','acquisition_category'])
   filterGroups.get(field).open=!!params.getAll(field).length;
- $('performance-advanced').open=['mechanic','skill_condition','effect_recipient','effect_turns'].some(k=>params.has(k))||params.getAll('skill_kind').some(k=>liveKinds.has(k))&&params.getAll('skill_kind').length<4;
+ $('performance-advanced').open=['mechanic','skill_condition','effect_recipient','effect_turns','effect_scope','effect_unit','effect_min','effect_max','unlock_star_max'].some(k=>params.has(k))||params.getAll('skill_kind').some(k=>liveKinds.has(k))&&params.getAll('skill_kind').length<4;
  render();
  const mobile=matchMedia('(max-width:899px)'),dialog=$('filter-dialog'),panel=$('filter-panel');
  if($('selected-conditions'))$('selected-conditions').open=!mobile.matches;
