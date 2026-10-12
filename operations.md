@@ -1,3 +1,122 @@
+# 現在の更新・検証・復旧手順（2026-10-13 JST）
+
+<!-- review-current-20261013 -->
+採用された優先1〜9の実装・ローカル検証は完了。現行はUI27、基礎 `v1-93a6a8b8d40e754a`、詳細 `d1-4123183cd3640b4e`、site108ファイル。原本r21／13手修正・基礎1,466・詳細1,419／24,025項目／20,096効果を維持しています。Git保存は優先1〜2 `6b9f07a`、3〜5 `05e3302`、6〜7 `318a782`、共有・比較と本節の整理は本節を含む最終Gitチェックポイントを参照してください。[UI27仕様](docs/ui-v27-spec.md)・[継続記録](docs/review-continuation-20261013.md)・[最終検証](docs/verification.md)。
+
+最後に確認した公開版はUI26。本作業でpush・公開・Google原本書込・Wiki取得は行っていません。以下はローカル候補の生成・検査・Git保存までの手順で、公開・原本変更・取得再開を自動実行しません。最終固定候補は `private/candidates/review-adopted-final-20261013`、検証証拠は `private/audits/review-adopted-final-20261013`。Python378成功／実symlink権限依存1skip、JS97成功、UI6幅・タッチ2設定、検索450（独立97）、新条件／共有比較各3幅、108ファイル一致検査が合格しています。
+ローカル採用後も最終候補と108ファイル・UI5資産が一致し、非UI103ファイルは不変です。証拠は `private/audits/review-adopted-final-20261013/local-adoption.json`。
+<!-- /review-current-20261013 -->
+
+## 1. 編集原本を確認する
+
+唯一の編集原本は非公開Google Sheets、`private/master.xlsx` は承認済みローカルスナップショットです。接続情報は `private/sheets-connection.json` に保管し、Gitやsiteへ入れません。同時編集を止め、新鮮なXLSXを非公開の別名で出力します。日常手修正は次の順序です。
+
+```powershell
+./.venv/Scripts/python.exe scripts/import_sheet_export.py review private/master.xlsx <新鮮なXLSX> <新しい差分報告JSON>
+# 基礎差分、detail_edit_changes / field_changes / resolved_before・after、revision、保護比較を確認する
+./.venv/Scripts/python.exe scripts/import_sheet_export.py apply private/master.xlsx <同じXLSX> <確認済みの同じ差分報告JSON>
+```
+
+`apply` は原本を変更する別工程です。今回の改善作業では実行していません。review後に入力が変われば再reviewします。ID・所属・取得値・aliases・origin・収録範囲・meta・保護セルの変更は拒否し、詳細の日常手修正は既存項目G〜M列だけ。詳細追加や取得値採用は従来のadopt／add_manual等の別工程です。無変更時は原本を再保存しません。
+
+## 2. 更新内容に応じて別の隔離候補を作る
+
+未作成の固有名を使い、既存siteと不変バンドルを保持します。以下の `NEW` は作業ごとに別名へ置き換え、AまたはBの片方を選びます。既存siteをコピーした候補へ `src.indexer prepare` を実行しません。
+
+```powershell
+New-Item -ItemType Directory -Path private/candidates,private/details,private/audits -Force | Out-Null
+```
+
+### A. UIだけ、または基礎版を変えない詳細更新
+
+現行siteを未作成の候補へコピーします。UIだけならexportは不要です。詳細を更新する場合だけ、確認済みの原本をコピー先へexportします。
+
+```powershell
+$candidateRoot = 'private/candidates/ui-or-detail-next-NEW'
+if (Test-Path -LiteralPath $candidateRoot) { throw '既存の候補は上書きしません' }
+Copy-Item -LiteralPath site -Destination $candidateRoot -Recurse
+# 詳細を更新する場合だけ実行（UIだけなら省略）
+./.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx $candidateRoot --master-snapshot private/details/detail-next-NEW.json
+```
+
+### B. 基礎版も更新する
+
+基礎の生成先と完成候補を、どちらも未作成の別ディレクトリにします。prepare→stage_release→詳細exportの順で同じ原本から生成します。`--previous-site site` が旧基礎の不変バンドルを保持し、同じ内容版が既にあれば以前のバイト列を選びます。stage_releaseは旧詳細を自動で引き継がないため、詳細ディレクトリを明示コピーしてからexportし、旧詳細の不変バンドルも保持します。
+
+```powershell
+$baseBuildRoot = 'private/candidates/base-build-next-NEW'
+$candidateRoot = 'private/candidates/data-next-NEW'
+if (Test-Path -LiteralPath $baseBuildRoot) { throw '既存の基礎生成先は使いません' }
+if (Test-Path -LiteralPath $candidateRoot) { throw '既存の候補は上書きしません' }
+./.venv/Scripts/python.exe -m src.indexer prepare private/master.xlsx $baseBuildRoot
+./.venv/Scripts/python.exe scripts/stage_release.py $baseBuildRoot $candidateRoot --previous-site site
+Copy-Item -LiteralPath site/details -Destination (Join-Path $candidateRoot 'details') -Recurse
+./.venv/Scripts/python.exe scripts/export_detail_sheet.py private/master.xlsx $candidateRoot --master-snapshot private/details/data-next-NEW.json
+```
+
+どちらの経路でも、最後にUI5資産をwebソースから反映します。
+
+```powershell
+./.venv/Scripts/python.exe scripts/refresh_ui_assets.py $candidateRoot
+```
+
+UI番号・資産クエリはwebソースで管理します。画面・操作が変わればUI番号を更新し、データだけの更新では維持します。候補作成・変換は取得や原本採用を伴いません。基礎／詳細のpointer・HTML・manifestの版を組で検査します。
+
+## 3. 候補の同じバイト列を試験する
+
+検証記録は候補の外の新しい非公開JSONへ保存します。ブラウザー依存と `UI_BROWSER_PATH` は環境に合わせ、試験中は `UI_EXPECTED_VERSION='ui-v27'` を指定します。
+
+```powershell
+$releaseProof = 'private/audits/site-next-NEW-release.json'
+./.venv/Scripts/python.exe scripts/check_release.py $candidateRoot --record $releaseProof
+./.venv/Scripts/python.exe scripts/run_unit_tests_ci.py
+$env:COMPOUND_SITE = $candidateRoot
+node --test tests/search.test.mjs tests/detail-search.test.mjs tests/compound-passive.test.mjs
+Remove-Item Env:COMPOUND_SITE
+$env:UI_EXPECTED_VERSION = 'ui-v27'
+node tests/ui-filter-redesign-smoke.mjs $candidateRoot
+node tests/ui-mobile-discovery-smoke.mjs $candidateRoot
+node tests/ui-compound-passive-smoke.mjs $candidateRoot
+node tests/ui-presentation-loading-smoke.mjs $candidateRoot
+node tests/ui-mobile-navigation-smoke.mjs $candidateRoot
+node tests/ui-priority67-smoke.mjs $candidateRoot
+node tests/ui-sharing-comparison-smoke.mjs $candidateRoot
+node tests/ui-search-audit.mjs $candidateRoot
+node tests/ui-advanced-search-audit.mjs $candidateRoot
+./.venv/Scripts/python.exe scripts/check_release.py $candidateRoot --compare $releaseProof
+```
+
+上記は新条件と共有・比較を含む現行UI27の試験です。通常のsiteに対しては `npm test`／`npm run test:ui`／`npm run test:search-ui` でも実行できます。候補変更後は検証し直します。`check_release` は構造・不変版・UIソース一致と全ファイル集合／SHAを検査します。旧UIへの切戻し候補には現行ソースとの一致を要求せず、下の復旧手順で対応版を検証します。
+
+## 4. 検証済み状態をGitへ保存する
+
+候補の試験が通った後で、既存不変バンドルを消さずに変更分だけをローカルsiteへ採用し、`check_release.py site --compare <同じ記録JSON>` で全ファイル一致を再確認します。Git差分にprivateや原本がないことを確認し、検証済み変更だけをチェックポイント保存します。新しい不変バンドルはignore対象なので、必要なsiteの追加には `git add -f site` を使い、`.gitattributes` の `site/** -text` を維持します。コミットしただけでは公開しません。
+
+外部公開は別途許可された時だけ行います。`publish: ` で始まるmainへのpushまたはPagesの手動実行は公開操作です。新Pages経路は同じコミットのWindows／Linux検証とLinux UI・検索試験の成功を待ち、試験したsiteから作ったartifactの全ファイル集合／SHAを照合してそのartifactを配置します。CI内でUIを再生成せず、公開後に匿名URLと全ファイルを照合します。今回このクラウド実行・外部公開・匿名照合は未実施です。
+
+## 5. 復旧は別の候補で確認する
+
+改善前の正式基準版B1は [基準版の保存・復元手順](docs/baseline-pre-review-v1-20261012.md)に従い、新しい別フォルダーへGit bundleと非公開入力を組で復元します。現在の原本・siteを直接巻き戻さず、全SHA・版・原本対応を確認してから採用を判断します。
+
+現行データを保持してUI26を選ぶ候補は次のように作れます。
+
+```powershell
+./.venv/Scripts/python.exe scripts/build_ui_rollback.py --ref ui-v26-20261012 --source site --output private/candidates/rollback-ui26-NEW
+./.venv/Scripts/python.exe scripts/check_site.py private/candidates/rollback-ui26-NEW
+```
+
+対応タグ側のUI試験と表示を確認します。これは候補生成だけで、外部公開・本番切戻しではありません。データ版も戻す場合はHTML・基礎／詳細pointer・各モジュールを対応する組で復元します。`src.indexer rollback` は基礎版用で、詳細を含む全面復旧を単独で行うものではありません。Gitの強制巻戻しや旧不変バンドル削除は行いません。
+
+## 履歴の読み方と保留範囲
+
+以下の日時付き記録は当時の操作・版・公開結果を保持した履歴です。「現行」「最新」「未収録」等の表現が残っていても、現状には本書冒頭・HANDOFFのcurrent-state・検証記録冒頭を優先します。古い公開コマンドや旧版の試験をそのまま今回の更新へ流用しません。
+
+指定保留47個別ページ・実在新規基礎カード本番追加、補完／曖昧検索、発動確率・高度な可変値検索、名前付き保存／所持登録、索引分割／Worker／app全面分割は保留のままです。曖昧表記7項目と、思い出チャージの旧参考値のみ96項目は推測補完しません（範囲検索は構造化44項目）。全効果の独立公式網羅・Google実画面・実機Safari等は未確認、新しいクラウドCI／公開workflowも未実行です。取得・編集原本・公開の自動同期やアカウント導入は追加していません。
+
+---
+
+## 優先順位1〜2の実装時点の手順（以下は履歴）
+
 # 優先順位1〜2の変更に対応する更新手順（2026-10-13）
 
 今回の変更・検証記録は `docs/review-priority12-20261013.md`。以下は変更箇所の現行手順で、従来の取得・原本採用・保存入力・保留範囲は維持する。下の過去の公開手順より本節を優先する。

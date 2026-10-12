@@ -88,7 +88,7 @@
                   </div>
                   <p id="amount-help" class="filter-help">単位を選び、必要な上下限を入力してください。明記された確定値だけを検索し、可変・最大・Lv依存の値や発動確率は含みません。</p>
                 </fieldset>
-                <label id="unlock-control" for="unlock-star-max">一致スキルの必要特訓<select id="unlock-star-max"><option value="">指定なし</option><option value="0">0凸まで（明記のみ）</option><option value="1">1凸まで</option><option value="2">2凸まで</option><option value="3">3凸まで</option><option value="4">4凸まで</option></select></label>
+                <label id="unlock-control" for="unlock-star-max">一致スキルの必要特訓<select id="unlock-star-max"><option value="">指定なし</option></select></label>
                 <p class="filter-help">必要特訓は同じ一致スキルの明記値で判定します。不明は0凸とみなしません。現行データには0凸の明記値がありません。</p>
                 <label id="condition-control" for="skill-condition">発動条件に含まれる要素<select id="skill-condition"><option value="">指定なし</option></select></label>
                 <label id="recipient-control" for="effect-recipient">効果の対象<select id="effect-recipient"><option value="">指定なし</option></select></label>
@@ -166,8 +166,11 @@
           </div>
           <div class="result-tools">
             <label for="sort">並べ替え<select id="sort"></select></label>
+            <button id="copy-search-link" type="button">検索条件のURLをコピー</button>
           </div>
         </div>
+        <p id="copy-link-status" class="filter-help" role="status" aria-live="polite"></p>
+        <div id="copy-link-fallback" hidden><label for="copy-link-value">コピー用の検索URL<input id="copy-link-value" type="text" readonly></label></div>
         <div class="selected-row">
           <details id="selected-conditions" open>
             <summary id="selected-conditions-summary">選択中の条件</summary>
@@ -176,6 +179,17 @@
           <button id="reset" type="button">全条件を解除</button>
         </div>
         <p class="filter-help combination-help">異なる欄の条件はすべて満たすカードを表示します。同じ多選択欄の中は「または」です。</p>
+        <div id="comparison-selection" class="comparison-selection" hidden>
+          <p id="comparison-count" role="status" aria-live="polite"></p>
+          <div id="comparison-selected"></div>
+          <button id="compare-cards" type="button" disabled>選んだカードを比較</button>
+          <button id="clear-comparison" type="button">比較の選択を解除</button>
+        </div>
+        <section id="card-comparison" class="card-comparison" aria-labelledby="comparison-heading" hidden>
+          <div class="comparison-heading"><h2 id="comparison-heading" tabindex="-1">カード比較</h2><button id="close-comparison" type="button">比較を閉じる</button></div>
+          <p class="filter-help">2〜4枚を、このページで一時的に比較できます。性能条件を指定すると、一致したスキルの値・条件・必要特訓を表示します。</p>
+          <div id="comparison-table-container" class="comparison-scroll" role="region" aria-label="カード比較表" tabindex="0"></div>
+        </section>
         <ul id="cards" class="cards-list"></ul>
       </section>
     </div>

@@ -101,7 +101,7 @@ try{
    await page.locator('#reset').click();assert.equal(await page.locator('#count').textContent(),basic.cards.length+' / '+basic.cards.length+' 件');
    await page.route('**/details.json',route=>route.fulfill({status:503,body:'unavailable'}));await page.goto(base,{waitUntil:'networkidle'});assert.equal(await page.locator('#skill-kind').isDisabled(),true);assert.equal(await page.locator('#effect-turns').isDisabled(),true);
    await page.locator('[data-browse-shortcut=twilights]').click();assert.equal(await page.locator('#count').textContent(),basic.cards.filter(c=>c.series_ids.includes('twilights')).length+' / '+basic.cards.length+' 件');await page.unroute('**/details.json');
-   console.log(width+' UI26 inline people/series/performance, advanced-only draft/cancel/apply/history/Escape/resize/focus/failure PASS');
+   console.log(width+' inline people/series/performance, advanced-only draft/cancel/apply/history/Escape/resize/focus/failure PASS');
   }
   if(width===1280){
    await page.goto(base,{waitUntil:'networkidle'});await page.locator('#advanced-filters').evaluate(e=>e.open=true);

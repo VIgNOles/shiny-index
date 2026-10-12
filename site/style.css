@@ -250,3 +250,33 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 .search-terms dd{margin:3px 0 0}
 .search-examples{padding-left:20px;font-size:13px}
 .search-examples a{display:inline-block;min-height:44px;padding:8px 0;color:#174f88;overflow-wrap:anywhere}
+
+.matched-trait{background:#eef5ff;border-left:3px solid #315fa5;padding-left:8px}
+.card-permalink{display:inline-block;color:inherit;min-height:44px;align-content:center;text-decoration:none}
+.card-permalink:hover{text-decoration:underline;color:#174f88}
+.compare-toggle{grid-column:2;grid-row:5;white-space:nowrap;padding:8px 10px;font-size:12px}
+.compare-toggle[aria-pressed="true"]{background:#e0efff;border-color:#2869ad;color:#123e6c}
+#copy-link-status:empty{display:none}
+#copy-link-fallback{margin:8px 0 12px}
+#copy-link-fallback label{display:grid;gap:5px;font-size:13px}
+#copy-link-value{width:100%;min-width:0}
+.comparison-selection,.card-comparison{border:1px solid #b9d3ec;border-radius:10px;padding:12px;background:#f4f9ff;margin:12px 0}
+.comparison-selection{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+#comparison-count{margin:0;width:100%;font-weight:700}
+#comparison-selected{display:flex;flex-wrap:wrap;gap:6px;width:100%;min-width:0}
+#comparison-selected button{font-size:12px;max-width:100%;overflow-wrap:anywhere;text-align:left}
+.comparison-heading{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center}
+.comparison-heading h2{font-size:21px;margin:0}
+.comparison-scroll{max-width:100%;overflow-x:auto;margin-top:10px;background:#fff}
+.comparison-scroll:focus-visible,#comparison-heading:focus{outline:3px solid #2877cc;outline-offset:3px}
+.comparison-table{border-collapse:collapse;font-size:13px;width:100%;table-layout:fixed}
+.comparison-table caption{text-align:left;padding:8px;color:#40546d}
+.comparison-table th,.comparison-table td{border:1px solid #cbd7e4;padding:10px;vertical-align:top;overflow-wrap:anywhere;text-align:left}
+.comparison-table thead th{background:#eaf3ff}
+.comparison-table th:first-child{width:110px}
+.comparison-table a{display:inline-block;min-height:44px;color:#174f88}
+.comparison-skill{border-bottom:1px solid #d5dfeb;padding:10px 0}
+.comparison-skill:first-child{padding-top:0}
+.comparison-skill p{margin:6px 0}
+.comparison-skill:last-child{border-bottom:0}
+@media(max-width:350px){.compare-toggle{grid-column:1;grid-row:auto;justify-self:start}}
