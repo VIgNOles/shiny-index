@@ -1,5 +1,5 @@
-import {effectGroups,filterCatalog,applicableItems,performanceIssues,liveKinds,searchEffects,detailMatches,matchDetailItem,hasSkillConditions,mechanicRuleText,mechanicRuleMatches,recipientNames,effectNames,effectTargets,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs?ui=25';
-import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs?ui=25';
+import {effectGroups,filterCatalog,applicableItems,performanceIssues,liveKinds,searchEffects,detailMatches,matchDetailItem,hasSkillConditions,mechanicRuleText,mechanicRuleMatches,recipientNames,effectNames,effectTargets,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs?ui=26';
+import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs?ui=26';
 
 const $=id=>document.getElementById(id);
 const labels={
@@ -52,6 +52,7 @@ try{
   detailCoverageText(detailDoc.coverage,cards.length):
   '詳細情報を読み込めませんでした：'+detailError+'。基本情報の検索は利用できます。';
  $('skill-controls').disabled=!detailDoc;
+ $('advanced-skill-controls').disabled=!detailDoc;
  const effectCounts=detailDoc?.coverage.effect_detail_counts;
  $('effect-coverage-text').textContent=effectCounts?
   'サポートスキル '+(effectCounts.support_skill?.structured??0)+'項目、固有アビリティ '+(effectCounts.unique_ability?.structured??0)+'項目の効果を検索できます。ライブ・思い出はアピール倍率や、継続ターンを読み取れた効果が対象です。未対応の複合効果もあるため、検索結果が0件でも該当カードがないとは限りません。':
@@ -417,7 +418,11 @@ try{
   if(!conditionCount())active.textContent='絞り込み条件なし';
   $('advanced-count').textContent=['from','to','detail_status'].some(k=>params.get(k))?'（指定あり）':'';
   for(const field of ['series_ids','acquisition_category']){const n=params.getAll(field).length;filterGroups.get(field).querySelector('.selection-count').textContent=n?'（'+n+'件選択）':'';}
-  $('open-filters').textContent='絞り込み（'+conditionCount()+'）';
+  const detailKeys=['mechanic','skill_condition','effect_recipient','effect_turns','from','to','detail_status',...legacyFields];
+  let detailCount=detailKeys.reduce((n,k)=>n+params.getAll(k).filter(Boolean).length,0);
+  for(const key of ['series_ids','acquisition_category'])if(filterGroups.get(key).dataset.legacy==='true')detailCount+=params.getAll(key).filter(Boolean).length;
+  const kinds=params.getAll('skill_kind');if(kinds.length&&kinds.length<4&&kinds.every(k=>liveKinds.has(k)))detailCount++;
+  $('open-filters').textContent=detailCount?'詳しい条件を変更（'+detailCount+'条件）':'詳しい条件を設定';
  };
  const retainOption=(select,value)=>{if(value&&![...select.options].some(o=>o.value===value))select.add(new Option('選択中：'+(effectNames[value]??recipientNames[value]??(select.id==='effect-turns'?value+'ターン以上':value)),value));};
  const populateEffects=()=>{
@@ -476,8 +481,10 @@ try{
   return issues;
  };
  const renderIssues=issues=>{
-  $('filter-issues').hidden=!issues.length;$('filter-issues').replaceChildren();
-  if(issues.length){add($('filter-issues'),'strong','条件を適用できません');for(const issue of issues){add($('filter-issues'),'p',issue.message);const b=add($('filter-issues'),'button','この条件を解除');b.type='button';b.onclick=()=>clearFields(issue.key==='performance'?['detail_status',...conditionGroups.slice(2).flatMap(([,keys])=>keys)]:[issue.key]);}}
+  const host=$(editing?'draft-filter-issues':'filter-issues');
+  host.hidden=!issues.length;host.replaceChildren();
+  if(!editing){$('draft-filter-issues').hidden=true;$('draft-filter-issues').replaceChildren();}
+  if(issues.length){add(host,'strong','条件を適用できません');for(const issue of issues){add(host,'p',issue.message);const b=add(host,'button','この条件を解除');b.type='button';b.onclick=()=>clearFields(issue.key==='performance'?['detail_status',...conditionGroups.slice(2).flatMap(([,keys])=>keys)]:[issue.key]);}}
  };
  const renderControls=()=>{
   populateEffects();renderLegacy();
@@ -699,6 +706,7 @@ try{
   const parent=mobile.matches?$('dialog-filter-body'):document.querySelector('.controls');
   if(panel.parentElement!==parent)parent.append(panel);
   $('open-filters').hidden=!mobile.matches;
+  $('mobile-filter-help').hidden=!mobile.matches;
  };
  function renderPreview(){
   const issues=issuesFor();renderIssues(issues);const n=issues.length?0:detailSearch(search(cards,params),params,detailMap).length;
@@ -710,7 +718,7 @@ try{
  };
  $('open-filters').onclick=()=>{
   flushPending();appliedParams=new URLSearchParams(params);params=new URLSearchParams(params);editing=true;
-  history.pushState({filterPanel:true},'',location.href);dialog.showModal();document.body.classList.add('filter-dialog-open');renderControls();renderPreview();$('filter-dialog-heading').focus();
+  history.pushState({filterPanel:true},'',location.href);$('performance-advanced').open=true;dialog.showModal();document.body.classList.add('filter-dialog-open');renderControls();renderPreview();$('filter-dialog-heading').focus();
  };
  const cancelPanel=(message='')=>{
   if(!editing||panelClosing)return;panelClosing=true;cancelMessage=message;cancelPending();history.back();
