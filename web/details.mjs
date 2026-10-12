@@ -236,6 +236,9 @@ export function effectMatches(e,params){
 }
 
 const itemSearchParts=item=>[item.name,kindNames[item.kind],activationConditionText(itemActivationCondition(item)),...(item.mechanics??[]).map(m=>mechanicNames[m]),...(item.cap_targets??[]),...(item.kind==='generated_live'?[generationParentText(item)]:[])];
+const passiveTarget='(?:Vocal|Dance|Visual|Vo|Da|Vi|注目度|思い出ゲージ|リアクション回避率|メンタル\\s*ダメージ|メンタル)';
+const passiveRates=new RegExp('('+passiveTarget+'(?:\\s*&\\s*'+passiveTarget+')*)\\s*(\\d+(?:\\.\\d+)?)%\\s*(UP|DOWN|CUT)','g');
+const passiveAliases={Vo:'Vocal',Da:'Dance',Vi:'Visual'};
 export function effectSearchMatches(item,e,params){
  const words=normalized(params.get('skill_q')).trim().split(/\s+/).filter(Boolean);
  if(!effectMatches(e,params))return false;
@@ -246,7 +249,23 @@ export function effectSearchMatches(item,e,params){
   if(!options.length)return !params.get('effect_target')&&!params.get('effect_turns')&&words.every(w=>randomWordMatches(normalized(common.join(' ')),w));
   return options.some(o=>randomOptionMatches(o,params)&&words.every(w=>randomWordMatches(normalized([...common,randomOptionText(o)].join(' ')),w)));
  }
- return words.every(word=>normalized([...itemSearchParts(item),effectFactText(e)].join(' ')).includes(word));
+ // Passive names contain every rate in the skill. Under an effect filter,
+ // borrow neither another target's amount nor an activation probability.
+ const passiveFact=item.kind==='panel_passive'&&e.source_field==='numeric_facts';
+ const parts=itemSearchParts(passiveFact?{...item,name:''}:item);
+ const views=[parts];
+ if(passiveFact){
+  const direction={passive_up:'UP',passive_down:'DOWN',passive_cut:'CUT'}[e.metric];
+  parts.push(...e.targets.map(target=>target+e.value+'%'+direction));
+  // Preserve keyword AND for an explicitly shared rate, without joining
+  // separately written effects that happen to have the same amount.
+  for(const match of (item.name??'').matchAll(passiveRates)){
+   const targets=match[1].split('&').map(target=>{const t=target.replace(/\s+/g,'');return passiveAliases[t]??t;});
+   if(Number(match[2])===e.value&&match[3]===direction&&targets.some(target=>e.targets.includes(target)))
+    views.push([...parts,match[0],targets.join(' & ')+e.value+'%'+direction]);
+  }
+ }
+ return views.some(view=>words.every(word=>normalized([...view,effectFactText(e)].join(' ')).includes(word)));
 }
 
 // Search-only facts retain their source field. The canonical detail object is never changed.

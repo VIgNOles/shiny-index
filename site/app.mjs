@@ -1,5 +1,5 @@
-import {effectGroups,filterCatalog,applicableItems,performanceIssues,liveKinds,searchEffects,detailMatches,matchDetailItem,hasSkillConditions,mechanicRuleText,mechanicRuleMatches,recipientNames,effectNames,effectTargets,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs?ui=26';
-import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs?ui=26';
+import {effectGroups,filterCatalog,applicableItems,performanceIssues,liveKinds,searchEffects,detailMatches,matchDetailItem,hasSkillConditions,mechanicRuleText,mechanicRuleMatches,recipientNames,effectNames,effectTargets,effectFactText,effectMatches,effectSearchMatches,hasEffectFilters,detailSearch,loadDetails,detailCoverageText,generationParentText,activationConditionText,itemActivationCondition,conditionNames,kindNames,mechanicNames,factText} from './details.mjs?ui=26&rev=1';
+import {search,seriesNames,browseOptions,officialUnits,parseDatePart} from './search.mjs?ui=26&rev=1';
 
 const $=id=>document.getElementById(id);
 const labels={

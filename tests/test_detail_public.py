@@ -1,10 +1,54 @@
 import json
 import copy,unittest
 from src.detail_master import adopt,empty
-from src.detail_public import public_document,validate_public
+from src.detail_public import public_document,validate_public,numeric_facts
 from tests.test_detail_master import candidate,CID,rehash
 
 class DetailPublicTests(unittest.TestCase):
+ def test_compound_rate_facts_keep_each_explicit_target_and_amount(self):
+  rate=lambda target,value,direction='UP':dict(metric='rate',target=target,value=value,unit='percent',direction=direction)
+  cases=[
+   ('Vocal30%UP',[rate('Vocal',30)]),
+   ('Vocal & Dance & Visual30%UP',[rate('Vocal',30),rate('Dance',30),rate('Visual',30)]),
+   ('Vo&Da&Vi 25%UP',[rate('Vocal',25),rate('Dance',25),rate('Visual',25)]),
+   ('Da30%UP / Vo&Vi10%UP',[rate('Dance',30),rate('Vocal',10),rate('Visual',10)]),
+   ('Vi120%UP / メンタル ダメージ & 注目度30%DOWN',[rate('Visual',120),rate('メンタルダメージ',30,'DOWN'),rate('注目度',30,'DOWN')]),
+   ('Vocal&Dance15.5%UP',[rate('Vocal',15.5),rate('Dance',15.5)]),
+   ('Visual60%UP / Vocal & Dance30%UP',[rate('Visual',60),rate('Vocal',30),rate('Dance',30)]),
+   ('Vocal & Visual20%DOWN / メンタルダメージ10%CUT',[rate('Vocal',20,'DOWN'),rate('Visual',20,'DOWN'),rate('メンタルダメージ',10,'CUT')]),
+   ('Dance & 注目度40%UP',[rate('Dance',40),rate('注目度',40)]),
+  ]
+  for text,expected in cases:
+   with self.subTest(text=text):self.assertEqual(numeric_facts({'name':text,'effect_private':text}),expected)
+
+ def test_incomplete_attribute_spelling_is_not_guessed(self):
+  self.assertEqual(numeric_facts({'name':'Dancel7%UP / Voca4%UP / Visua5%UP'}),[])
+
+ def test_compound_rate_facts_also_keep_memory_link_targets_separate(self):
+  doc=self.memory_document(link='Vocal & Dance25%UP[3ターン]')
+  item=next(i for i in doc['cards'][0]['items'] if i['kind']=='memory_appeal')
+  self.assertTrue(item['memory_link_present'])
+  self.assertEqual([(f['target'],f['value']) for f in item['memory_link_facts'] if f['metric']=='rate'],[('Vocal',25),('Dance',25)])
+
+ def test_compound_rates_do_not_use_activation_probability_or_limit(self):
+  facts=numeric_facts({'name':'Vocal & Dance30%UP','effect_private':'[確率:60%] [最大:2回]'})
+  self.assertEqual(facts,[
+   dict(metric='rate',target='Vocal',value=30,unit='percent',direction='UP'),
+   dict(metric='rate',target='Dance',value=30,unit='percent',direction='UP'),
+   dict(metric='activation_probability',value=60,unit='percent'),
+   dict(metric='activation_limit',value=2,unit='times')])
+  self.assertEqual(numeric_facts({'name':'発動判定','effect_private':'[確率:30%] [最大:1回]'}),[
+   dict(metric='activation_probability',value=30,unit='percent'),dict(metric='activation_limit',value=1,unit='times')])
+
+ def test_compound_rate_export_uses_override_without_changing_identity_or_source(self):
+  c=candidate();c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',name='Vocal & Dance & Visual30%UP',effect_private='[条件:3ターン以前] [確率:10%] [最大:1回]')
+  rehash(c);m=adopt(empty(c['base_dataset_version']),c);base=[{'card_id':CID,'card_kind':'P'}]
+  row=m['registry'][0];row.update(override={'name':'Vocal & Dance40%UP'},reason='確認済み',source_ref='test:compound',updated_at='2026-10-13T00:00:00+09:00')
+  original=copy.deepcopy(m);doc=public_document(m,base);item=doc['cards'][0]['items'][0]
+  self.assertEqual([(f['target'],f['value']) for f in item['numeric_facts'] if f['metric']=='rate'],[('Vocal',40),('Dance',40)])
+  self.assertEqual(item['detail_id'],row['detail_id']);self.assertEqual(m,original)
+  self.assertNotIn('effect_private',json.dumps(doc,ensure_ascii=False))
+
  def test_confirmed_status_and_override_survives_reacquisition_without_rewriting_source(self):
   c=candidate();raw='[条件:パッシブスキル発動率UP強化が付与されている場合] [確率:30%] [最大:1回]'
   c['cards'][0]['panel_nodes'][0].update(kind='panel_passive',effect_private=raw);rehash(c)

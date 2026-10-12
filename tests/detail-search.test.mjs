@@ -531,3 +531,32 @@ test('applicability is independent of text, rarity and selected people; incompat
 test('structured effects remain the unique source and do not duplicate numeric references',()=>{
  const item={kind:'panel_live',effect_details:{effects:[{metric:'rate_up',targets:['Vocal'],value:50,unit:'percent'}]},numeric_facts:[{metric:'rate',target:'Vocal',value:50,direction:'UP'}]};assert.equal(searchEffects(item).length,1);assert.equal(searchEffects(item)[0].source_field,'effect_details');
 });
+
+// Expectations are written independently of the conversion/search functions.
+test('compound passive searches keep separate amounts and activation probability distinct',()=>{
+ const item={detail_id:'compound',kind:'panel_passive',name:'Visual60%UP / Vocal & Dance30%UP',numeric_facts:[
+  {metric:'rate',target:'Visual',value:60,unit:'percent',direction:'UP'},
+  {metric:'rate',target:'Vocal',value:30,unit:'percent',direction:'UP'},
+  {metric:'rate',target:'Dance',value:30,unit:'percent',direction:'UP'},
+  {metric:'activation_probability',value:80,unit:'percent'}
+ ]};
+ const d=new Map([['P1',{items:[item]}]]),before=JSON.stringify(item);
+ const match=(target,q)=>detailSearch(cards,new URLSearchParams({skill_kind:'panel_passive',effect_type:'passive_up',effect_target:target,skill_q:q}),d);
+ for(const [target,q] of [['Visual','60%UP'],['Vocal','30%UP'],['Dance','30%UP'],['Vocal','Vocal30%UP'],['Vocal','Vocal Dance 30%UP']])assert.deepEqual(match(target,q),[cards[0]],target+q);
+ for(const [target,q] of [['Visual','30%UP'],['Vocal','60%UP'],['Dance','60%UP'],['Vocal','80%']])assert.deepEqual(match(target,q),[],target+q);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams('skill_q=Visual60%UP'),d),[cards[0]]);
+ assert.equal(JSON.stringify(item),before);
+});
+
+test('separately written equal passive rates are not a shared compound effect',()=>{
+ const item={kind:'panel_passive',name:'Vocal30%UP / Dance30%UP',numeric_facts:[{metric:'rate',target:'Vocal',value:30,direction:'UP'},{metric:'rate',target:'Dance',value:30,direction:'UP'}]};
+ const d=new Map([['P1',{items:[item]}]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'passive_up',effect_target:'Vocal',skill_q:'Vocal Dance 30%UP'}),d),[]);
+});
+
+test('overlapping compound groups never lend a second groups attribute',()=>{
+ const item={kind:'panel_passive',name:'Vocal & Dance30%UP / Vocal & Visual30%UP',numeric_facts:[{metric:'rate',target:'Vocal',value:30,direction:'UP'},{metric:'rate',target:'Dance',value:30,direction:'UP'},{metric:'rate',target:'Visual',value:30,direction:'UP'}]};
+ const d=new Map([['P1',{items:[item]}]]);
+ for(const q of ['Vocal Dance 30%UP','Vocal Visual 30%UP'])assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'passive_up',effect_target:'Vocal',skill_q:q}),d),[cards[0]]);
+ assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'passive_up',effect_target:'Vocal',skill_q:'Dance Visual30%UP'}),d),[]);
+});

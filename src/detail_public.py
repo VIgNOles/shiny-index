@@ -24,8 +24,15 @@ def numeric_facts(item):
         facts.append({'metric':'appeal_range','targets':re.findall(r'Vocal|Dance|Visual',match[1]+match[2]),'minimum':float(match[3]),'maximum':float(match[4]),'unit':'multiplier'})
     for match in re.finditer(r'(Vocal|Dance|Visual)((?:\s*&\s*(?:Vocal|Dance|Visual))*)\s*(最大)?\s*(\d+(?:\.\d+)?)倍(?:アピール)?',value):
         facts.append({'metric':'appeal_maximum' if match[3] else 'appeal','targets':re.findall(r'Vocal|Dance|Visual',match[1]+match[2]),'value':float(match[4]),'unit':'multiplier'})
-    for match in re.finditer(r'(Vocal|Dance|Visual|注目度|思い出ゲージ|リアクション回避率|メンタルダメージ|メンタル)\s*(\d+(?:\.\d+)?)%\s*(UP|DOWN|CUT)',value):
-        facts.append({'metric':'rate','target':match[1],'value':float(match[2]),'unit':'percent','direction':match[3]})
+    rate_target=r'(?:Vocal|Dance|Visual|Vo|Da|Vi|注目度|思い出ゲージ|リアクション回避率|メンタル\s*ダメージ|メンタル)'
+    aliases={'Vo':'Vocal','Da':'Dance','Vi':'Visual'}
+    for match in re.finditer(r'('+rate_target+r'(?:\s*&\s*'+rate_target+r')*)\s*(\d+(?:\.\d+)?)%\s*(UP|DOWN|CUT)',value):
+        # Retain the single-target schema, expanding only explicitly joined
+        # targets. Each separately written amount starts a new match.
+        for target in re.findall(rate_target,match[1]):
+            target=re.sub(r'\s+','',target)
+            target=aliases.get(target,target)
+            facts.append({'metric':'rate','target':target,'value':float(match[2]),'unit':'percent','direction':match[3]})
     for label,metric,unit in [('確率','activation_probability','percent'),('最大','activation_limit','times')]:
         match=re.search(r'\['+label+r':\s*(\d+)(?:%|回)\]',value)
         if match:facts.append({'metric':metric,'value':int(match[1]),'unit':unit})

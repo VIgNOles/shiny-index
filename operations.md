@@ -1,3 +1,42 @@
+# 優先順位1〜2の変更に対応する更新手順（2026-10-13）
+
+今回の変更・検証記録は `docs/review-priority12-20261013.md`。以下は変更箇所の現行手順で、従来の取得・原本採用・保存入力・保留範囲は維持する。下の過去の公開手順より本節を優先する。
+
+## 公開候補と検証済み成果物
+
+原本から未作成の隔離候補へ生成し、`scripts/refresh_ui_assets.py <候補>` でUI5資産を反映する。データのみの更新ではUI番号を維持する。今回の検索修正はUI26のまま資産クエリ `ui=26&rev=1` を用いて、以前の検索コードのキャッシュを回避した。
+
+```powershell
+./.venv/Scripts/python.exe scripts/check_release.py <候補> --record private/audits/<固有名>-release.json
+./.venv/Scripts/python.exe scripts/run_unit_tests_ci.py
+npm test
+# UI試験スクリプトに候補を指定して実行する（既定はsite）
+node tests/ui-filter-redesign-smoke.mjs <候補>
+node tests/ui-mobile-discovery-smoke.mjs <候補>
+node tests/ui-compound-passive-smoke.mjs <候補>
+node tests/ui-search-audit.mjs <候補>
+node tests/ui-advanced-search-audit.mjs <候補>
+./.venv/Scripts/python.exe scripts/check_release.py <候補> --compare private/audits/<固有名>-release.json
+```
+
+実カードの単体回帰を隔離候補へ向ける場合は `$env:COMPOUND_SITE='<候補>'` を設定し、通常のsite試験に戻す前に解除する。検査はUIソースからの期待バイト、HTML・pointer・全不変バンドル、全公開ファイル集合とSHAを確認する。記録ファイルは候補の外へ保存する。試験後に候補を変更したら再検証し、検査前に現行siteへ上書きしない。
+
+検証済み候補をローカルsiteへ採用した後も `--compare` で同じファイル集合・SHAを確認する。既存不変バンドルを削除・上書きしない。Git保存時は、新不変バンドルがignoreされるため、従来どおり `git add -f site` が必要。公開する変更をレビューして保存する。
+
+Pagesは `publish: ` で始まるmainへのpushまたは手動実行で、同じコミットの再利用verify workflowを実行する。Windows／Linuxの単体検証とLinuxのUI・検索監査が成功し、UIソース一致と試験前後の全ファイルSHA一致が確認できた場合にだけdeployへ進む。CI内でUI資産は再生成しない。Linuxで試験したsiteから作るPages artifactをそのまま公開し、実際の `artifact.tar` の全ファイル集合・SHAも検証記録と照合する。別ジョブでsiteを生成・再アップロードしない。公開後の匿名URL照合は従来どおり `scripts/check_public.py` を実行する。
+
+## 詳細を含む日常手修正の取込
+
+編集停止→新鮮なXLSX出力→既存の `import_sheet_export.py review` →差分確認→同じ入力の `apply` の順を維持する。
+
+詳細は `detail_edit_changes` に項目ID・カードID・種類・取得名称、手修正と根拠等の変更前後、`field_changes`、`resolved_before/after` を出す。`detail_new_edit_ids`／`detail_changed_edit_ids`／`detail_removed_edit_ids` で追加・変更・解除を確認する。`detail_revision` と件数、`detail_protected_unchanged` も確認する。
+
+旧原本と比較して、詳細の固定ID、所属、取得値、aliases、origin、カード情報、収録範囲、meta、実際の保護セルの変更を拒否する。この日常手修正経路で変更できる詳細は既存項目のG〜M列。詳細revisionは同値、または手修正を伴う＋1だけを許容する。取得更新・詳細追加・ID変更は従来のadopt／add_manual等の別工程で行う。
+
+applyはreview時の原本・入力SHAと報告全体の一致、保存前バックアップ、基礎・詳細双方の保存後読み戻しを検証する。旧形式のreview報告は再reviewしてから使う。変更がないときは原本を再保存しない。今回、実原本やGoogleへのapplyは行っていない。
+
+---
+
 # 管理者の操作手順
 
 2026-10-11の現行はUI21・詳細原本r20/1419カード・24025項目・8手修正。最新の検証・再開基準はHANDOFF.mdとdocs/verification.md、UI21/r20の復元は本書末尾を参照してください。後続の日時付き工程・旧版の停止/稼働記録は当時の履歴です。
