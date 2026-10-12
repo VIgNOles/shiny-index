@@ -48,7 +48,7 @@ try{
    for(const item of cases){
     const params=new URLSearchParams({q:item.title,skill_kind:'panel_passive',effect_type:'passive_up',effect_target:item.target,skill_q:item.word});
     await page.goto(base+'?'+params,{waitUntil:'networkidle'});
-    assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v26');
+    assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v27');
     assert.equal(await page.evaluate(()=>window.DETAIL_VERSION),detailPointer.detail_version);
     assert.equal(await page.locator('#count').textContent(),`${item.match?1:0} / ${total} 件`,params.toString());
     assert.deepEqual(await page.locator('.card').evaluateAll(nodes=>nodes.map(node=>node.dataset.cardId)),item.match?[item.id]:[],params.toString());
@@ -58,8 +58,8 @@ try{
    assert.deepEqual(new Set([...requested].map(value=>new URL(value).pathname.split('/').at(-1))),assets,'all revised UI assets loaded');
    for(const value of requested){
     const url=new URL(value);
-    assert.equal(url.searchParams.get('ui'),'26',value);
-    assert.equal(url.searchParams.get('rev'),'1','stale asset query: '+value);
+    assert.equal(url.searchParams.get('ui'),'27',value);
+    assert.equal(url.searchParams.get('rev'),null,'stale asset query: '+value);
    }
    assert.deepEqual(errors,[]);
    console.log(`${width} compound passive fixed-ID positive6/negative5 and revised assets PASS`);

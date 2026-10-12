@@ -25,7 +25,7 @@ try{
   for(const [kind,type,target] of [['panel_passive','passive_up','Vocal'],['cap_increase','cap_increase','Visual']]){
    const expected=detail.cards.filter(c=>c.items.some(i=>i.kind===kind&&(kind==='panel_passive'?i.numeric_facts.some(f=>f.metric==='rate'&&f.direction==='UP'&&(f.targets??[f.target]).includes(target)):i.cap_targets.includes(target)))).map(c=>c.card_id);
    await page.goto(base+'?'+new URLSearchParams({skill_kind:kind,effect_type:type,effect_target:target}),{waitUntil:'networkidle'});
-   assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v26');
+   assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v27');
    assert.equal(await page.locator('#count').textContent(),expected.length+' / '+basic.cards.length+' 件');
    const shown=await page.locator('.card').evaluateAll(nodes=>nodes.map(n=>n.dataset.cardId));assert.ok(shown.every(id=>expected.includes(id)));
    assert.equal(await page.locator('.match-reason').count(),shown.length);

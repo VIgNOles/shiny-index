@@ -23,7 +23,7 @@ const results=[];
 try{
  for(const profile of ['iPhone 13','Pixel 7']){
   const context=await browser.newContext({...devices[profile]}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(base,{waitUntil:'networkidle'});assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v26');
+  await page.goto(base,{waitUntil:'networkidle'});assert.equal(await page.evaluate(()=>window.UI_VERSION),process.env.UI_EXPECTED_VERSION??'ui-v27');
   for(const id of ['people-filter','series-shortcuts','skill-filters'])assert.equal(await page.locator('#'+id).evaluate(e=>!!e.closest('dialog')),false);
   await page.locator('[data-browse-shortcut=twilights]').tap();assert.ok(new URL(page.url()).searchParams.getAll('browse').includes('twilights'));assert.equal(await page.locator('#filter-dialog').isVisible(),false);
   await page.locator('#reset').tap();await page.locator('#people-filter>summary').tap();await page.locator('[data-person-unit=unit_1]').check();assert.ok(new URL(page.url()).searchParams.getAll('person').includes('unit:unit_1'));await page.locator('#reset').tap();

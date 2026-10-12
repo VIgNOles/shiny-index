@@ -560,3 +560,164 @@ test('overlapping compound groups never lend a second groups attribute',()=>{
  for(const q of ['Vocal Dance 30%UP','Vocal Visual 30%UP'])assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'passive_up',effect_target:'Vocal',skill_q:q}),d),[cards[0]]);
  assert.deepEqual(detailSearch(cards,new URLSearchParams({effect_type:'passive_up',effect_target:'Vocal',skill_q:'Dance Visual30%UP'}),d),[]);
 });
+
+
+import {fixedEffectAmount,amountMatches,scopeNames,effectUnitNames,hasAmountFilters,traitNames,normalizeTrait,hasTraitConditions,traitMatches,traitCatalog,traitIssues} from '../web/details.mjs';
+test('fixed numeric bounds are inclusive and bind scope target and amount to one effect',()=>{
+ const item={name:'fixed',kind:'panel_live',mechanics:['link'],unlock_star:2,effect_details:{effects:[
+  {metric:'appeal',targets:['Vocal'],unit:'multiplier',value:4.5,scope:'base'},
+  {metric:'appeal',targets:['Dance'],unit:'multiplier',value:6,scope:'link'},
+  {metric:'rate_up',targets:['Vocal'],unit:'percent',value:50,turns:3,scope:'plus'}
+ ]}};
+ const d=new Map([['P1',{items:[item]}]]),before=JSON.stringify(item);
+ const found=query=>detailSearch(cards,new URLSearchParams(query),d).map(c=>c.card_id);
+ for(const query of [
+  'effect_type=appeal&effect_target=Vocal&effect_scope=base&effect_unit=multiplier&effect_min=4.5&effect_max=4.5',
+  'effect_scope=link&effect_unit=multiplier&effect_min=6&unlock_star_max=2',
+  'effect_scope=plus&effect_type=rate_up&effect_unit=percent&effect_min=50&effect_turns=3',
+  'mechanic=link&effect_scope=base&effect_unit=multiplier&effect_max=4.5'
+ ])assert.deepEqual(found(query),['P1'],query);
+ for(const query of [
+  'effect_type=appeal&effect_target=Vocal&effect_scope=link',
+  'effect_type=appeal&effect_target=Vocal&effect_unit=multiplier&effect_min=6',
+  'effect_scope=plus&effect_unit=multiplier&effect_min=4',
+  'effect_scope=base&effect_unit=multiplier&effect_min=4.5001',
+  'effect_scope=base&effect_unit=multiplier&effect_max=4.4999',
+  'effect_scope=link&unlock_star_max=1',
+  'effect_scope=invalid', 'effect_min=4.5',
+  'effect_unit=percent&effect_min=60&effect_max=40'
+ ])assert.deepEqual(found(query),[],query);
+ assert.equal(JSON.stringify(item),before);
+});
+test('numeric bounds never use maxima ranges formulas probabilities or conditional amounts',()=>{
+ const fixed={metric:'rate_up',targets:['Vocal'],unit:'percent',value:50,scope:'base'};
+ assert.equal(fixedEffectAmount(fixed),50);
+ const variable=[
+  {...fixed,maximum:true},{...fixed,minimum:10},{...fixed,formula:{offset:0,coefficient:10}},
+  {...fixed,unknown:true},{...fixed,amount_unknown:true},{...fixed,perfect_value:80},
+  {...fixed,per_member:true},{...fixed,restrictions:{scaling:'mental'}},
+  {...fixed,status_consumption:{quantity:'all'}},{...fixed,value:NaN},
+  {...fixed,value:Infinity},{...fixed,value:'50'},{...fixed,unit:'boolean'},
+  {...fixed,value:undefined,probability:{value:50}}
+ ];
+ for(const e of variable){
+  assert.equal(fixedEffectAmount(e),null,JSON.stringify(e));
+  assert.ok(!amountMatches(e,new URLSearchParams('effect_unit=percent&effect_min=0')));
+ }
+ assert.ok(amountMatches({...fixed,probability:{value:5}},new URLSearchParams('effect_unit=percent&effect_min=50')));
+ assert.ok(!amountMatches({...fixed,probability:{value:80}},new URLSearchParams('effect_unit=percent&effect_min=80')));
+ for(const invalid of ['effect_min=NaN','effect_min=Infinity','effect_min=-1','effect_min=1e2','effect_max=3.4.5','effect_min=60&effect_max=40'])
+  assert.ok(!amountMatches(fixed,new URLSearchParams('effect_unit=percent&'+invalid)),invalid);
+});
+test('passive rates and cap values use explicit separate units and never borrow activation probability',()=>{
+ const d=new Map([['P1',{items:[
+  {kind:'panel_passive',name:'Vocal40%UP',unlock_star:1,numeric_facts:[{metric:'rate',target:'Vocal',value:40,direction:'UP'},{metric:'activation_probability',value:80}]},
+  {kind:'cap_increase',cap_targets:['Dance'],cap_delta:100,unlock_star:3}
+ ]}]]);
+ const result=query=>detailSearch(cards,new URLSearchParams(query),d).map(c=>c.card_id);
+ assert.deepEqual(result('effect_type=passive_up&effect_unit=percent&effect_min=40&effect_max=40&unlock_star_max=1'),['P1']);
+ assert.deepEqual(result('effect_type=passive_up&effect_unit=percent&effect_min=80'),[]);
+ assert.deepEqual(result('effect_type=cap_increase&effect_target=Dance&effect_unit=points&effect_min=100&unlock_star_max=3'),['P1']);
+ assert.deepEqual(result('effect_type=cap_increase&effect_unit=percent&effect_min=100'),[]);
+ assert.deepEqual(result('effect_type=cap_increase&effect_unit=points&effect_min=100&unlock_star_max=1'),[]);
+});
+test('required training compares the same matched item and never treats an unknown stage as zero',()=>{
+ const items=[
+  {name:'unknown',kind:'panel_live',unlock_star:null},
+  {name:'absent',kind:'support_skill'},
+  {name:'zero',kind:'panel_live',unlock_star:0},
+  {name:'two',kind:'panel_live',unlock_star:2},
+  {name:'four',kind:'panel_live',unlock_star:4},
+  {name:'text',kind:'panel_live',unlock_star:'1'}
+ ];
+ const d={items};
+ assert.deepEqual(detailMatches(d,new URLSearchParams('unlock_star_max=0')).map(m=>m.item.name),['zero']);
+ assert.deepEqual(detailMatches(d,new URLSearchParams('unlock_star_max=2')).map(m=>m.item.name),['zero','two']);
+ for(const query of ['unlock_star_max=2&skill_q=four','unlock_star_max=4&skill_q=unknown','unlock_star_max=4&skill_kind=support_skill','unlock_star_max=4&skill_q=text','unlock_star_max=5','unlock_star_max=-1','unlock_star_max=1.5'])assert.deepEqual(detailMatches(d,new URLSearchParams(query)),[],query);
+});
+test('effect scope preserves all eight explicit sections and does not redefine live Link ownership',()=>{
+ const effects=Object.keys(scopeNames).map((scope,index)=>({metric:'appeal',targets:['Vocal'],unit:'multiplier',value:index+1,scope}));
+ const item={kind:'panel_live',name:'scoped',mechanics:['link'],effect_details:{effects}};
+ for(const [index,scope] of Object.keys(scopeNames).entries()){
+  const matches=detailMatches({items:[item]},new URLSearchParams({effect_scope:scope,effect_unit:'multiplier',effect_min:String(index+1),effect_max:String(index+1)}));
+  assert.equal(matches[0].effects.length,1);assert.equal(matches[0].effects[0].scope,scope);
+ }
+ const memory={kind:'memory_appeal',effect_details:{effects:[effects.find(e=>e.scope==='memory_link')]}};
+ assert.equal(detailMatches({items:[memory]},new URLSearchParams('effect_scope=memory_link')).length,1);
+ assert.deepEqual(detailMatches({items:[memory]},new URLSearchParams('mechanic=link&effect_scope=memory_link')),[]);
+});
+test('random amount scope target duration and text all stay inside one chance candidate',()=>{
+ const e={metric:'random_grant',targets:['ランダム効果'],value:3,unit:'points',scope:'plus',random_pool:{options:[
+  {kind:'rate_up',targets:['Vocal'],value:40,unit:'percent',turns:4},
+  {kind:'rate_up',targets:['Dance'],value:80,unit:'percent',turns:2},
+  {kind:'exchange_count_up',targets:['交換数'],value:1,unit:'points'}
+ ]}};
+ const item={kind:'panel_live',effect_details:{effects:[e]}};
+ const m=query=>effectSearchMatches(item,e,new URLSearchParams('effect_type=random_grant&'+query));
+ assert.ok(m('effect_scope=plus&effect_target=Vocal&effect_unit=percent&effect_min=40&effect_max=40&effect_turns=4&skill_q=40%UP'));
+ assert.ok(m('effect_scope=plus&effect_target=交換数&effect_unit=points&effect_min=1&effect_max=1'));
+ for(const query of [
+  'effect_target=Vocal&effect_unit=percent&effect_min=80',
+  'effect_target=Dance&effect_unit=percent&effect_min=80&effect_turns=4',
+  'effect_target=Vocal&effect_unit=percent&effect_min=40&skill_q=80%UP',
+  'effect_unit=points&effect_min=3', 'effect_scope=base',
+  'effect_unit=percent&effect_min=40&effect_recipient=self'
+ ])assert.ok(!m(query),query);
+ assert.ok(!effectSearchMatches(item,e,new URLSearchParams('effect_unit=percent&effect_min=40')));
+ assert.ok(!m('effect_target=Vocal&effect_unit=multiplier&effect_min=0'));
+});
+test('numeric and training validation reject malformed queries and explain unavailable fields',()=>{
+ const base=[{card_id:'P1',card_kind:'P'}];
+ const catalog=filterCatalog(base,new Map([['P1',{card_id:'P1',card_kind:'P',items:[{kind:'panel_live',unlock_star:2,effect_details:{effects:[{metric:'appeal',targets:['Vocal'],unit:'multiplier',scope:'base',value:4}]}}]}]]));
+ const issues=query=>performanceIssues(new URLSearchParams(query),catalog);
+ assert.deepEqual(issues('effect_type=appeal&effect_scope=base&effect_unit=multiplier&effect_min=4&effect_max=4&unlock_star_max=2'),[]);
+ for(const [query,key] of [
+  ['effect_min=4','effect_unit'],['effect_unit=unknown','effect_unit'],
+  ['effect_unit=percent','effect_unit'],['effect_unit=multiplier&effect_min=NaN','effect_min'],
+  ['effect_unit=multiplier&effect_min=5&effect_max=4','effect_min'],
+  ['effect_scope=unknown','effect_scope'],['effect_scope=plus','effect_scope'],
+  ['unlock_star_max=5','unlock_star_max'],['unlock_star_max=NaN','unlock_star_max']
+ ])assert.ok(issues(query).some(i=>i.key===key),query);
+ const noStar=catalog.map(i=>({...i,unlock_star:null}));
+ assert.ok(performanceIssues(new URLSearchParams('unlock_star_max=4'),noStar).some(i=>i.key==='unlock_star_max'));
+ assert.ok(performanceIssues(new URLSearchParams('effect_scope=base'),catalog,false).length);
+ assert.equal(hasAmountFilters(new URLSearchParams('effect_min=0')),true);
+ assert.deepEqual(Object.keys(effectUnitNames),['multiplier','percent','points']);
+});
+test('training traits normalize existing width case punctuation and aliases without guessing missing data',()=>{
+ for(const [kind,value,expected] of [
+  ['idea','ボーカル','vocal'],['idea','Ｖｏ．','vocal'],['idea','Dance','dance'],
+  ['inspiration','Ｖｏ．','vocal'],['inspiration','Vo','vocal'],['inspiration','Ｄａ．','dance'],
+  ['inspiration','Vi.','visual'],['inspiration','Me.','mental'],['inspiration','メンタル','mental'],
+  ['music','歌唱力','singing'],['music','集中力','concentration']
+ ])assert.equal(normalizeTrait(kind,value),expected,kind+value);
+ for(const [kind,value] of [['inspiration','－'],['idea','Me.'],['music','Vo.'],['idea',null],['inspiration','不明']])assert.equal(normalizeTrait(kind,value),null);
+ assert.equal(Object.keys(traitNames.music).length,5);
+});
+test('trait filters require the same S card and combine with skill conditions without extra acquisition',()=>{
+ const base=[{card_id:'a',card_kind:'S'},{card_id:'b',card_kind:'S'},{card_id:'p',card_kind:'P'},{card_id:'missing',card_kind:'S'}];
+ const d=new Map([
+  ['a',{card_id:'a',card_kind:'S',traits:{idea:'ボーカル',inspiration:'Vo',music_proficiencies:['歌唱力','安定感']},items:[{kind:'panel_passive',name:'A',unlock_star:2}]}],
+  ['b',{card_id:'b',card_kind:'S',traits:{idea:'ダンス',inspiration:'Ｖｉ．',music_proficiencies:['集中力']},items:[{kind:'panel_passive',name:'B',unlock_star:1}]}],
+  ['p',{card_id:'p',card_kind:'P',traits:{idea:'ボーカル',inspiration:'Vo.',music_proficiencies:['歌唱力']},items:[]}]
+ ]);
+ const before=JSON.stringify([...d]),find=query=>detailSearch(base,new URLSearchParams(query),d).map(c=>c.card_id);
+ assert.deepEqual(find('trait_idea=vocal&trait_inspiration=vocal&trait_music=singing'),['a']);
+ assert.deepEqual(find('trait_idea=vocal&trait_music=stability&unlock_star_max=2'),['a']);
+ assert.deepEqual(find('trait_idea=vocal&trait_inspiration=visual'),[]);
+ assert.deepEqual(find('trait_idea=vocal&skill_q=B'),[]);
+ assert.deepEqual(find('trait_idea=vocal&unlock_star_max=1'),[]);
+ assert.deepEqual(find('trait_idea=invalid'),[]);
+ assert.deepEqual(find('trait_music=concentration'),['b']);
+ assert.equal(traitMatches(d.get('p'),new URLSearchParams('trait_idea=vocal')),false);
+ assert.equal(hasTraitConditions(new URLSearchParams('trait_idea=vocal')),true);
+ const catalog=traitCatalog(d);
+ assert.deepEqual(catalog,{idea:['vocal','dance'],inspiration:['vocal','visual'],music:['singing','stability','concentration']});
+ assert.deepEqual(traitIssues(new URLSearchParams('trait_idea=vocal'),catalog),[]);
+ assert.equal(traitIssues(new URLSearchParams('trait_idea=other'),catalog)[0].key,'trait_idea');
+ assert.equal(traitIssues(new URLSearchParams('trait_inspiration=mental'),catalog)[0].key,'trait_inspiration');
+ assert.equal(traitIssues(new URLSearchParams('trait_idea=vocal'),catalog,false)[0].key,'performance');
+ assert.deepEqual(performanceIssues(new URLSearchParams('trait_idea=vocal'),filterCatalog(base,d)),[]);
+ assert.ok(performanceIssues(new URLSearchParams('card_kind=P&trait_idea=vocal'),filterCatalog(base,d)).some(i=>i.key==='trait_idea'));
+ assert.equal(JSON.stringify([...d]),before);
+});

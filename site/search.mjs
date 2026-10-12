@@ -37,6 +37,24 @@ const idolRanks=new Map(officialUnits.flatMap((unit,unitIndex)=>unit.idols.map((
 const rarityRanks=new Map(['UR','SSR','SR','R','N'].map((rarity,index)=>[rarity,index]));
 export const norm=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('ja').replace(/\s+/g,' ').trim();
 
+// Confirmed person readings only. Keep display names and the source dictionaries intact.
+const idolReadings={
+ '櫻木真乃':'さくらぎ まの','風野灯織':'かざの ひおり','八宮めぐる':'はちみや めぐる',
+ '月岡恋鐘':'つきおか こがね','幽谷霧子':'ゆうこく きりこ','三峰結華':'みつみね ゆいか',
+ '田中摩美々':'たなか まみみ','白瀬咲耶':'しらせ さくや',
+ '小宮果穂':'こみや かほ','園田智代子':'そのだ ちよこ','西城樹里':'さいじょう じゅり',
+ '杜野凛世':'もりの りんぜ','有栖川夏葉':'ありすがわ なつは',
+ '桑山千雪':'くわやま ちゆき','大崎甘奈':'おおさき あまな','大崎甜花':'おおさき てんか',
+ '芹沢あさひ':'せりざわ あさひ','黛冬優子':'まゆずみ ふゆこ','和泉愛依':'いずみ めい',
+ '浅倉透':'あさくら とおる','樋口円香':'ひぐち まどか','福丸小糸':'ふくまる こいと','市川雛菜':'いちかわ ひなな',
+ '七草にちか':'ななくさ にちか','緋田美琴':'あけた みこと',
+ '斑鳩ルカ':'いかるが るか','鈴木羽那':'すずき はな','郁田はるき':'いくた はるき',
+ '七草はづき':'ななくさ はづき',
+ 'ルビー':'るびー','有馬かな':'ありま かな','MEMちょ':'めむちょ','黒川あかね':'くろかわ あかね'
+};
+const readingNorm=value=>norm(value).replace(/[ァ-ヶ]/g,char=>String.fromCharCode(char.charCodeAt(0)-0x60)).replace(/\s+/g,'');
+const idolReadingIndex=new Map(Object.entries(idolReadings).map(([name,reading])=>[norm(name).replace(/\s+/g,''),readingNorm(reading)]));
+
 export function parseDatePart(value){
  if(!value)return null;
  const match=/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/.exec(value);
@@ -70,6 +88,7 @@ function compareCards(a,b,sort,direction){
 }
 export function search(cards,params){
  const terms=norm(params.get('q')).split(' ').filter(Boolean);
+ const readingTerms=terms.map(readingNorm);
  const fields=['card_kind','rarity','acquisition_category','series_ids','collab_work','review_status'];
  const browse=params.getAll('browse');
  const people=params.getAll('person');
@@ -81,7 +100,9 @@ export function search(cards,params){
    card.card_title,card.idol_name,card.unit_name,card.collab_work,card.acquisition_category,
    ...card.series_ids.flatMap(id=>[id,seriesNames[id],seriesAliases[id]])
   ].join(' ');
-  if(!terms.every(term=>norm(searchable).includes(term)))return false;
+  const normalizedSearchable=norm(searchable);
+  const reading=idolReadingIndex.get(norm(card.idol_name).replace(/\s+/g,''))??'';
+  if(!terms.every((term,index)=>normalizedSearchable.includes(term)||reading.includes(readingTerms[index])))return false;
   if(browse.length&&!browse.some(value=>matchesBrowse(card,value)))return false;
   if(!fields.every(field=>!params.getAll(field).length||params.getAll(field).some(value=>
    value==='unknown'?card[field]==null||card[field]==='unknown':

@@ -1,5 +1,5 @@
 export const kindNames={panel_live:'パネルのライブスキル',mb_live:'MBライブスキル',generated_live:'生成ライブスキル',panel_passive:'パッシブスキル',unique_ability:'固有アビリティ',cap_increase:'ステータス上限UP',memory_appeal:'思い出アピール',possessed_live:'所持ライブスキル',support_skill:'サポートスキル',quick_skill:'クイックスキル'};
-export const mechanicNames={link:'Link',plus:'Plus',change:'Change',grow:'Grow / GrowUp',refrain:'Refrain'};
+export const mechanicNames={link:'Link付きスキル',plus:'Plus',change:'Change',grow:'Grow / GrowUp',refrain:'Refrain'};
 export const liveKinds=new Set(['panel_live','mb_live','generated_live','possessed_live']);
 const normalized=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('ja');
 export function factText(fact){
@@ -79,7 +79,66 @@ export const effectNames={passive_up:'パッシブのUP効果',passive_down:'パ
 export const recipientNames={self:'自身',rivals:'ライバル（自身以外の全ユニット）',all_units:'全ユニット',all_audience:'全観客'};
 export function effectRecipient(e){return e.recipient??(e.audience==='all'?'all_audience':null);}
 export const triggerNames={produce_start:'プロデュース開始時',missed_promise:'約束を守れなかった時',rest:'休むを選択時',lesson_or_work:'レッスン・お仕事選択時',unit_member_present:'行動場所に自分以外のユニットメンバーがいる時',tension_max:'テンション最高で一緒に行動時',audition_first:'オーディション1位',vocal_lesson:'一緒にボーカルレッスン',dance_lesson:'一緒にダンスレッスン',visual_lesson:'一緒にビジュアルレッスン',radio:'一緒にラジオ出演',talk:'一緒にトークショー出演',magazine:'一緒に雑誌撮影',talk_event:'一緒にトークイベント出演',solo_vocal_lesson:'ボーカルレッスン',solo_dance_lesson:'ダンスレッスン',solo_radio:'ラジオ出演',no_trouble:'スキル発動時に一緒に行動し、トラブルなし',excellent:'一緒に行動してエクセレント発生時',knowhow_acquired:'ノウハウブック獲得時',always:'常時',say_halo:'say "Halo"編',appeal_phase_start:'アピールフェイズ開始時',turn_2:'2ターン目',mental_zero:'メンタルが0になった時に回復',reaction_evaded:'観客のリアクションを回避成功時に付与',reaction_damage:'観客のリアクションでダメージを受けた時に付与'};
-const scopeNames={base:'',link:'Link',plus:'Plus',change:'Change',grow:'Grow',refrain:'Refrain',memory_link:'思い出Link',memory_charge:'思い出チャージ'};
+export const scopeNames={base:'通常',link:'Link',plus:'Plus',change:'Change',grow:'Grow',refrain:'Refrain',memory_link:'思い出Link',memory_charge:'思い出チャージ'};
+export const effectUnitNames={multiplier:'倍率（倍）',percent:'割合（%）',points:'量（ポイント・回数）'};
+const amountKeys=['effect_unit','effect_min','effect_max'];
+const decimal=value=>/^\d+(?:\.\d+)?$/.test(value??'')&&Number.isFinite(Number(value));
+export function hasAmountFilters(params){return amountKeys.some(key=>params.get(key));}
+// Numeric search deliberately excludes values whose amount changes with a level,
+// state or conditional alternative. It never uses probability or a display maximum.
+export function fixedEffectAmount(e){
+ if(!effectUnitNames[e.unit]||typeof e.value!=='number'||!Number.isFinite(e.value)||e.value<0)return null;
+ if(e.maximum||e.minimum!=null||e.formula||e.unknown||e.amount_unknown||e.perfect_value!=null||e.per_member||e.status_consumption||e.restrictions?.scaling)return null;
+ return e.value;
+}
+export function amountMatches(e,params){
+ if(!hasAmountFilters(params))return true;
+ const unit=params.get('effect_unit'),min=params.get('effect_min'),max=params.get('effect_max');
+ if(!effectUnitNames[unit]||min&&!decimal(min)||max&&!decimal(max)||min&&max&&Number(min)>Number(max))return false;
+ const value=fixedEffectAmount(e);
+ return value!=null&&e.unit===unit&&(!min||value>=Number(min))&&(!max||value<=Number(max));
+}
+export const traitNames={
+ idea:{vocal:'ボーカル',dance:'ダンス',visual:'ビジュアル',appeal:'アピール',talk:'トーク'},
+ inspiration:{vocal:'Vocal',dance:'Dance',visual:'Visual',mental:'メンタル'},
+ music:{singing:'歌唱力',expression:'表現力',stability:'安定感',unity:'団結力',concentration:'集中力'}
+};
+const traitFields={idea:'idea',inspiration:'inspiration',music:'music_proficiencies'};
+const traitAliases={vo:'vocal',vocal:'vocal','ボーカル':'vocal',da:'dance',dance:'dance','ダンス':'dance',vi:'visual',visual:'visual','ビジュアル':'visual',me:'mental',mental:'mental','メンタル':'mental'};
+export function normalizeTrait(kind,value){
+ const key=normalized(value).replace(/[\s.・]/g,'');
+ for(const [code,label] of Object.entries(traitNames[kind]??{}))if([normalized(code),normalized(label)].includes(key))return code;
+ const alias=traitAliases[key];
+ return ['idea','inspiration'].includes(kind)&&Object.hasOwn(traitNames[kind],alias)?alias:null;
+}
+export function hasTraitConditions(params){return Object.keys(traitFields).some(kind=>params.get('trait_'+kind));}
+export function traitMatches(card,params){
+ if(!hasTraitConditions(params))return true;
+ if(card?.card_kind!=='S'||!card.traits)return false;
+ return Object.entries(traitFields).every(([kind,field])=>{
+  const selected=params.get('trait_'+kind);if(!selected)return true;
+  if(!Object.hasOwn(traitNames[kind],selected))return false;
+  const values=card.traits[field];return (Array.isArray(values)?values:[values]).some(value=>normalizeTrait(kind,value)===selected);
+ });
+}
+export function traitCatalog(details){
+ const cards=details instanceof Map?[...details.values()]:details;
+ // The applicability catalog has one row per skill; read each card's traits once.
+ const traits=[...new Set(cards.filter(card=>card.card_kind==='S'&&card.traits).map(card=>card.traits))];
+ return Object.fromEntries(Object.entries(traitFields).map(([kind,field])=>{
+  const values=traits.flatMap(trait=>{const value=trait[field];return Array.isArray(value)?value:[value];});
+  return [kind,[...new Set(values.map(value=>normalizeTrait(kind,value)).filter(Boolean))]];
+ }));
+}
+export function traitIssues(params,catalog,loaded=true){
+ if(!hasTraitConditions(params))return [];
+ if(!loaded)return [{key:'performance',message:'詳細情報を読み込めないため、育成特性の条件を適用できません。'}];
+ return Object.keys(traitFields).flatMap(kind=>{
+  const key='trait_'+kind,value=params.get(key);if(!value)return [];
+  if(!Object.hasOwn(traitNames[kind],value))return [{key,message:'不明な育成特性の種類が残っています。'}];
+  return catalog[kind]?.includes(value)?[]:[{key,message:'選択したP／Sに、この育成特性は収録されていません。育成特性はSカード専用です。'}];
+ });
+}
 export function effectAmount(a,level){
  if(a.amount_unknown||a.unknown)return '量未記載';
  if(a.formula){const f=a.formula;if(level!=null)return String(f.offset+f.coefficient*level);return (f.offset?f.offset+' + ':'')+'スキルLv×'+f.coefficient;}
@@ -116,7 +175,7 @@ export function mechanicRuleMatches(item,rule,params){
 
 export function effectFactText(e,level,includeCandidates=true){
  const target=['random_grant','idol_appeal_bonus'].includes(e.metric)?'':e.targets.join(' / '),unit=e.metric==='refrain'?'ターン前':{points:'',percent:'%',multiplier:'倍',boolean:''}[e.unit];
- let result=(scopeNames[e.scope]?scopeNames[e.scope]+'：':'')+(e.metric==='random_grant'?'ランダム効果':effectNames[e.metric]??e.metric)+' · '+target+(e.cap?'上限':'');
+ let result=(e.scope!=='base'&&scopeNames[e.scope]?scopeNames[e.scope]+'：':'')+(e.metric==='random_grant'?'ランダム効果':effectNames[e.metric]??e.metric)+' · '+target+(e.cap?'上限':'');
  if(e.unit!=='boolean')result+=' '+(e.maximum?'最大':'')+(e.minimum!=null?e.minimum+'～':'')+effectAmount(e,level)+(e.amount_unknown?'':unit);
  if(e.metric==='random_grant'){
   result+='個付与';
@@ -211,11 +270,13 @@ function randomWordMatches(text,word){
 }
 function randomOptionMatches(o,params){
  const target=params.get('effect_target');if(target&&!o.targets.includes(target))return false;
+ if(!amountMatches(o,params))return false;
  const turns=params.get('effect_turns');if(turns){const n=Number(turns);if(!Number.isInteger(n)||n<1||!o.turns||o.turns<n)return false;}
  return true;
 }
-export function hasEffectFilters(params){return ['effect_type','effect_target','effect_turns','effect_recipient'].some(k=>params.has(k)&&params.get(k));}
+export function hasEffectFilters(params){return ['effect_type','effect_target','effect_turns','effect_recipient','effect_scope',...amountKeys].some(k=>params.has(k)&&params.get(k));}
 export function effectMatches(e,params){
+ const scope=params.get('effect_scope');if(scope&&(!Object.hasOwn(scopeNames,scope)||e.scope!==scope))return false;
  const recipient=params.get('effect_recipient');if(recipient&&effectRecipient(e)!==recipient)return false;
  const type=params.get('effect_type');
  if(type==='action_order'){if(!e.appeal_order)return false;}
@@ -228,8 +289,9 @@ export function effectMatches(e,params){
  if(e.metric==='random_grant'){
   // Chance candidates participate only when explicitly requested.
   if(type!=='random_grant')return false;
-  return !(params.get('effect_target')||params.get('effect_turns'))||(e.random_pool?.options??[]).some(o=>randomOptionMatches(o,params));
+  return !(params.get('effect_target')||params.get('effect_turns')||hasAmountFilters(params))||(e.random_pool?.options??[]).some(o=>randomOptionMatches(o,params));
  }
+ if(!amountMatches(e,params))return false;
  if(params.get('effect_target')&&!e.targets.includes(params.get('effect_target')))return false;
  if(params.get('effect_turns')){const n=Number(params.get('effect_turns'));const guaranteed=e.turns??e.turn_range?.minimum;if(!Number.isInteger(n)||n<1||!guaranteed||guaranteed<n)return false;}
  return true;
@@ -246,7 +308,7 @@ export function effectSearchMatches(item,e,params){
   const common=[...itemSearchParts(item),effectFactText(e,undefined,false)];
   const options=e.random_pool?.options??[];
   // No mixing one candidate's attribute with another candidate's duration/text.
-  if(!options.length)return !params.get('effect_target')&&!params.get('effect_turns')&&words.every(w=>randomWordMatches(normalized(common.join(' ')),w));
+  if(!options.length)return !params.get('effect_target')&&!params.get('effect_turns')&&!hasAmountFilters(params)&&words.every(w=>randomWordMatches(normalized(common.join(' ')),w));
   return options.some(o=>randomOptionMatches(o,params)&&words.every(w=>randomWordMatches(normalized([...common,randomOptionText(o)].join(' ')),w)));
  }
  // Passive names contain every rate in the skill. Under an effect filter,
@@ -282,11 +344,13 @@ export function searchEffects(item){
   effects.push({metric:'cap_increase',targets:[...item.cap_targets],value:item.cap_delta,unit:'points',scope:'base',source_field:'cap_delta',source_index:0,source_detail_id:item.detail_id});
  return effects;
 }
-export function hasSkillConditions(params){return ['skill_q','skill_kind','mechanic','skill_condition','effect_type','effect_target','effect_recipient','effect_turns'].some(k=>params.get(k));}
+export function hasSkillConditions(params){return ['skill_q','skill_kind','mechanic','skill_condition','effect_type','effect_target','effect_recipient','effect_turns','effect_scope','unlock_star_max',...amountKeys].some(k=>params.get(k));}
 export function matchDetailItem(item,params){
  const q=normalized(params.get('skill_q')).trim().split(/\s+/).filter(Boolean);
  const kinds=params.getAll('skill_kind'),mechanics=params.getAll('mechanic'),condition=params.get('skill_condition');
  if(kinds.length&&!kinds.includes(item.kind))return null;
+ const star=params.get('unlock_star_max');
+ if(star&&(!/^[0-4]$/.test(star)||!Number.isInteger(item.unlock_star)||item.unlock_star<0||item.unlock_star>Number(star)))return null;
  if(condition&&!activationConditionTypes(itemActivationCondition(item)).includes(condition))return null;
  if(mechanics.length&&(!liveKinds.has(item.kind)||!mechanics.some(v=>(item.mechanics??[]).includes(v))))return null;
  const effects=searchEffects(item);
@@ -306,10 +370,10 @@ export function matchDetailItem(item,params){
 }
 export function detailMatches(detail,params){return hasSkillConditions(params)?(detail?.items??[]).map(i=>matchDetailItem(i,params)).filter(Boolean):[];}
 export function detailSearch(cards,params,details){
- if(!hasSkillConditions(params)&&params.get('detail_status')!=='available')return cards;
+ if(!hasSkillConditions(params)&&!hasTraitConditions(params)&&params.get('detail_status')!=='available')return cards;
  return cards.filter(card=>{
   const detail=details.get(card.card_id);
-  return !!detail&&(!hasSkillConditions(params)||detailMatches(detail,params).length>0);
+  return !!detail&&traitMatches(detail,params)&&(!hasSkillConditions(params)||detailMatches(detail,params).length>0);
  });
 }
 export async function loadDetails(baseVersion,version){
@@ -332,14 +396,14 @@ export async function loadDetails(baseVersion,version){
 export const effectGroups={"appeal": ["appeal", "appeal_enhanced", "idol_appeal_bonus", "appeal_boost", "appeal_perfect", "appeal_consume", "action_order", "appeal_first", "appeal_last", "refrain", "duet", "duet_add"], "status": ["base_stat_boost", "rate_up", "rate_down", "rate_cut", "exchange_count_up", "status_conversion", "passive_boost", "flexible", "sparkle_eyes"], "recovery_gauge": ["mental_recovery", "mental_cost", "memory_gauge_gain", "memory_gauge_loss", "memory_gain_boost", "mental_overflow", "relax", "resurrection", "vigor_gain"], "audience": ["interest", "interest_minimum", "interest_reverse", "interest_limit", "charm", "enthusiasm", "melancholy", "audience_status_clear", "instant_satisfaction"], "produce": ["support_gain", "support_recovery", "support_cost_down", "support_trouble_down", "support_rest_gain", "support_bond", "support_tension_protection", "support_presence_up", "support_event_rate", "support_knowhow_rate", "support_location_level", "support_perfect", "support_excellent", "support_advice_rate"], "random": ["random_grant"], "passive": ["passive_up", "passive_down", "passive_cut"], "cap": ["cap_increase"]};
 export function filterCatalog(cards,details){
  const cardById=new Map(cards.map(c=>[c.card_id,c]));
- return [...details.values()].flatMap(c=>(c.items??[]).map(item=>({kind:item.kind,card_kind:cardById.get(c.card_id)?.card_kind,mechanics:item.mechanics??[],conditions:activationConditionTypes(itemActivationCondition(item)),effects:searchEffects(item)})));
+ return [...details.values()].flatMap(c=>(c.items??[]).map(item=>({kind:item.kind,unlock_star:item.unlock_star,card_kind:cardById.get(c.card_id)?.card_kind,traits:c.traits,mechanics:item.mechanics??[],conditions:activationConditionTypes(itemActivationCondition(item)),effects:searchEffects(item)})));
 }
 export function applicableItems(params,catalog){
  const kinds=params.getAll('skill_kind'),cardKinds=params.getAll('card_kind');
  return catalog.filter(i=>(!kinds.length||kinds.includes(i.kind))&&(!cardKinds.length||cardKinds.includes(i.card_kind)));
 }
 export function performanceIssues(params,catalog,loaded=true){
- if(!loaded&&(hasSkillConditions(params)||params.has('detail_status')))return [{key:'performance',message:'詳細情報を読み込めないため、性能条件を適用できません。基本条件だけの検索は利用できます。'}];
+ if(!loaded&&(hasSkillConditions(params)||hasTraitConditions(params)||params.has('detail_status')))return [{key:'performance',message:'詳細情報を読み込めないため、性能条件を適用できません。基本条件だけの検索は利用できます。'}];
  const issues=[],add=(key,message)=>issues.push({key,message});
  for(const kind of params.getAll('skill_kind'))if(!kindNames[kind])add('skill_kind','不明な「探す情報」が残っています：'+kind);
  for(const m of params.getAll('mechanic'))if(!mechanicNames[m])add('mechanic','不明なライブ機能が残っています：'+m);
@@ -354,6 +418,23 @@ export function performanceIssues(params,catalog,loaded=true){
  if(type&&effectNames[type]&&!typed.length)add('effect_type','この「探す情報」には、選択した効果が収録されていません。');
  if(params.get('effect_target')&&!typed.some(e=>effectTargets(e).includes(params.get('effect_target'))))add('effect_target','この効果の属性・能力には対応していません。');
  if(params.get('effect_recipient')&&!typed.some(e=>effectRecipient(e)===params.get('effect_recipient')))add('effect_recipient','この効果には選択した対象の明記がありません。');
+ const scope=params.get('effect_scope');
+ if(scope&&!Object.hasOwn(scopeNames,scope))add('effect_scope','不明な効果範囲が残っています。');
+ else if(scope&&!typed.some(e=>e.scope===scope))add('effect_scope','この情報・効果には、選択した範囲の効果が収録されていません。');
+ const unit=params.get('effect_unit'),min=params.get('effect_min'),max=params.get('effect_max');
+ if(unit&&!Object.hasOwn(effectUnitNames,unit))add('effect_unit','不明な効果量の単位が残っています。');
+ if((min||max)&&!unit)add('effect_unit','効果量の検索には単位を選択してください。');
+ for(const [key,value] of [['effect_min',min],['effect_max',max]])if(value&&!decimal(value))add(key,'効果量は0以上の有限の数値で指定してください。');
+ if(min&&max&&decimal(min)&&decimal(max)&&Number(min)>Number(max))add('effect_min','効果量の下限は上限以下にしてください。');
+ const amounts=typed.flatMap(e=>e.metric==='random_grant'?(e.random_pool?.options??[]):[e]);
+ if(unit&&effectUnitNames[unit]&&!amounts.some(e=>e.unit===unit&&fixedEffectAmount(e)!=null))add('effect_unit','この情報・効果には選択した単位の確定効果量がありません。可変値・最大値・Lv依存値は検索対象外です。');
+ const star=params.get('unlock_star_max');
+ if(star&&!/^[0-4]$/.test(star))add('unlock_star_max','必要特訓の上限は0〜4で指定してください。');
+ else if(star&&!items.some(i=>Number.isInteger(i.unlock_star)))add('unlock_star_max','この情報には明記された必要特訓段階がありません。不明値は検索対象外です。');
+ if(hasTraitConditions(params)){
+  const cardKinds=params.getAll('card_kind');
+  issues.push(...traitIssues(params,traitCatalog(catalog.filter(i=>!cardKinds.length||cardKinds.includes(i.card_kind))),loaded));
+ }
  const turns=params.get('effect_turns');
  if(turns&&(!/^\d+$/.test(turns)||Number(turns)<1))add('effect_turns','継続ターンは1以上の整数で指定してください。');
  else if(turns&&!typed.some(e=>e.turns||e.turn_range?.minimum||e.metric==='random_grant'&&e.random_pool?.options?.some(o=>o.turns)))add('effect_turns','この情報・効果には検索できる継続期間がありません。パッシブ・上限や即時効果に期間は推定しません。');

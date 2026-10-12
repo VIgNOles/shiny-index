@@ -17,7 +17,7 @@ const server=process.env.UI_BASE_URL?null:createServer(async(req,res)=>{
 if(server)await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base=process.env.UI_BASE_URL??'http://127.0.0.1:'+server.address().port+'/';
 const output=process.env.UI_AUDIT_DIR;if(output)await mkdir(output,{recursive:true});
-const report={base_version:bp.dataset_version,detail_version:dp.detail_version,ui:process.env.UI_EXPECTED_VERSION??'ui-v26',checks:[],independent_checks:0,option_checks:0};
+const report={base_version:bp.dataset_version,detail_version:dp.detail_version,ui:process.env.UI_EXPECTED_VERSION??'ui-v27',checks:[],independent_checks:0,option_checks:0};
 const browser=await chromium.launch({headless:true,executablePath:process.env.UI_BROWSER_PATH});
 try{
  const page=await browser.newPage({viewport:{width:1280,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));

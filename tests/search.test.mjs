@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import {test} from 'node:test';import assert from 'node:assert/strict';import{search,csv}from'../web/search.mjs';
 const cards=[{card_id:'a',card_title:'【Hug？】',idol_name:'樋口円香',card_kind:'P',rarity:'SSR',first_implemented_on:'2026-09-29',series_ids:[],unknown_fields:[]},{card_id:'b',card_title:'別カード',idol_name:'樋口円香',card_kind:'S',rarity:'SR',first_implemented_on:null,series_ids:[],unknown_fields:['first_implemented_on']}];
 test('NFKC and AND',()=>assert.equal(search(cards,new URLSearchParams('q=Hug? 円香')).length,1));
@@ -56,4 +57,53 @@ test('browse buckets use OR and remain distinct from detailed facets',()=>{
  assert.deepEqual(search(rows,new URLSearchParams('browse=limited_gacha&series_ids=birthday'))
   .map(card=>card.card_id),['l']);
  assert.equal(search(rows,new URLSearchParams('series_ids=twilights')).length,1);
+});
+
+
+// Independent expected readings for the current public person dictionary.
+const expectedReadings=[
+ ['櫻木真乃','さくらぎ まの'],['風野灯織','かざの ひおり'],['八宮めぐる','はちみや めぐる'],
+ ['月岡恋鐘','つきおか こがね'],['幽谷霧子','ゆうこく きりこ'],['三峰結華','みつみね ゆいか'],
+ ['田中摩美々','たなか まみみ'],['白瀬咲耶','しらせ さくや'],
+ ['小宮果穂','こみや かほ'],['園田智代子','そのだ ちよこ'],['西城樹里','さいじょう じゅり'],
+ ['杜野凛世','もりの りんぜ'],['有栖川夏葉','ありすがわ なつは'],
+ ['桑山千雪','くわやま ちゆき'],['大崎甘奈','おおさき あまな'],['大崎甜花','おおさき てんか'],
+ ['芹沢あさひ','せりざわ あさひ'],['黛冬優子','まゆずみ ふゆこ'],['和泉愛依','いずみ めい'],
+ ['浅倉透','あさくら とおる'],['樋口円香','ひぐち まどか'],['福丸小糸','ふくまる こいと'],['市川雛菜','いちかわ ひなな'],
+ ['七草にちか','ななくさ にちか'],['緋田美琴','あけた みこと'],
+ ['斑鳩ルカ','いかるが るか'],['鈴木羽那','すずき はな'],['郁田はるき','いくた はるき'],
+ ['七草はづき','ななくさ はづき'],
+ ['ルビー','るびー'],['有馬かな','ありま かな'],['MEMちょ','めむちょ'],['黒川あかね','くろかわ あかね']
+];
+const publicPointer=JSON.parse(readFileSync(new URL('../site/data/latest.json',import.meta.url),'utf8'));
+const publicCatalog=JSON.parse(readFileSync(new URL('../site/data/'+publicPointer.dataset_version+'/cards.json',import.meta.url),'utf8'));
+test('confirmed readings cover every current public person and retain all their cards',()=>{
+ const expectedNames=expectedReadings.map(([name])=>name).sort();
+ assert.deepEqual(publicCatalog.dictionaries.filter(row=>row.type==='idol').map(row=>row.name).sort(),expectedNames);
+ for(const [name,reading] of expectedReadings){
+  const exactIds=publicCatalog.cards.filter(card=>card.idol_name===name).map(card=>card.card_id).sort();
+  assert.ok(exactIds.length,name+' has public cards');
+  const katakana=reading.replace(/[ぁ-ゖ]/g,char=>String.fromCharCode(char.charCodeAt(0)+0x60));
+  for(const query of [reading,reading.replaceAll(' ',''),katakana,katakana.replaceAll(' ','　')]){
+   assert.deepEqual(search(publicCatalog.cards,new URLSearchParams({q:query})).map(card=>card.card_id).sort(),exactIds,query);
+  }
+ }
+});
+test('readings support half width, mixed terms and preserve query AND with title and series',()=>{
+ for(const q of ['ﾋｸﾞﾁ ﾏﾄﾞｶ','ひぐち 円香','樋口 まどか','ﾏﾄﾞｶ Hug？']){
+  const result=search(cards,new URLSearchParams({q}));
+  assert.equal(result.length,q.includes('Hug')?1:2,q);
+ }
+ assert.equal(search(cards,new URLSearchParams({q:'まどか 存在しない語'})).length,0);
+ assert.equal(search(cards,new URLSearchParams({q:'ひぐちまどが'})).length,0);
+ const series=[{...cards[0],series_ids:['twilights']}];
+ assert.equal(search(series,new URLSearchParams({q:'まどか トワコレ'})).length,1);
+ assert.equal(search(series,new URLSearchParams({q:'まどか キャスコレ'})).length,0);
+});
+test('unknown people receive no inferred reading and literal names still work',()=>{
+ const rows=[{...cards[0],idol_name:'未知人物'}];
+ assert.equal(search(rows,new URLSearchParams({q:'未知人物'})).length,1);
+ assert.equal(search(rows,new URLSearchParams({q:'みちじんぶつ'})).length,0);
+ const spaced=[{...cards[0],idol_name:'樋口　円香'}];
+ assert.equal(search(spaced,new URLSearchParams({q:'ひぐちまどか'})).length,1);
 });

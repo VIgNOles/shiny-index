@@ -17,7 +17,7 @@ const server=process.env.UI_BASE_URL?null:createServer(async(req,res)=>{
 if(server)await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base=process.env.UI_BASE_URL??'http://127.0.0.1:'+server.address().port+'/';
 const output=process.env.UI_AUDIT_DIR;if(output)await mkdir(output,{recursive:true});
-const report={base_version:bp.dataset_version,detail_version:dp.detail_version,ui:process.env.UI_EXPECTED_VERSION??'ui-v26',checks:[],independent_checks:0,option_checks:0};
+const report={base_version:bp.dataset_version,detail_version:dp.detail_version,ui:process.env.UI_EXPECTED_VERSION??'ui-v27',checks:[],independent_checks:0,option_checks:0};
 const browser=await chromium.launch({headless:true,executablePath:process.env.UI_BROWSER_PATH});
 try{
  const page=await browser.newPage({viewport:{width:1280,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -66,6 +66,8 @@ try{
  await page.locator('#sort').selectOption('date_new');
  while(await page.locator('#more').isVisible())await page.locator('#more').click();
  const all=await visibleIds();assert.equal(all.length,basic.cards.length);assert.equal(new Set(all).size,basic.cards.length);assert.deepEqual(all,search(basic.cards,new URLSearchParams('sort=date_new')).map(c=>c.card_id));
+ // Build each detail only for this exhaustive link audit; the loading test checks laziness.
+ await page.locator('.detail-toggle').evaluateAll(nodes=>nodes.forEach(node=>node.click()));
  const links=await page.locator('.card-action a').evaluateAll(es=>es.map(e=>e.href));assert.ok(links.every(u=>u.startsWith('https://wikiwiki.jp/shinycolors/')));assert.equal(links.length,basic.cards.filter(c=>c.wiki_url).length);
  report.full_results=all.length;report.wiki_links=links.length;report.no_page_cards=basic.cards.length-links.length;
  assert.deepEqual(errors,[]);await page.close();
