@@ -1,6 +1,6 @@
 # UI v26：スマホで直接探せる検索入口
 
-2026-10-12。実装・検証中。ユーザー原文はTASK.md。UI25の検索の意味を保ち、スマホの入口だけを見直す。
+2026-10-12。実装・ローカル総点検済み。公開確認へ進行中。ユーザー原文はTASK.md。UI25の検索の意味を保ち、スマホの入口だけを見直す。
 
 ## 採用判断
 
@@ -18,3 +18,9 @@
 3. 公開全ファイル一致、匿名公開のPC/スマホ確認、CI、UI25切戻し候補、保護SHA、復旧ZIPを確認し記録する。
 
 範囲の限界：全ゲーム情報の独立公式網羅・実機Safari/全Android/スクリーンリーダーの全面適合は保証しない。47件・新規カード本番追加の保留、原文の欠損/期間スキップ、対象外を維持する。
+
+## 再現と切戻し
+
+既存のPythonセットアップ後、npm ci と npx playwright install chromium。npm test、npm run test:ui（6幅＋タッチ2設定）、npm run test:search-ui（通常/詳細の総点検）を実行する。Windowsの既存EdgeはUI_BROWSER_PATHで指定可能。公開確認はUI_BASE_URL=https://vignoles.github.io/shiny-index/、UI_EXPECTED_VERSION=ui-v26。依存追加なし。
+
+UI25正常保存点はui-v25-20261012。python scripts/build_ui_rollback.py --ref ui-v25-20261012 --source site --output private/site-ui25-restore-candidate で新しい隔離候補を作り確認する。原本とデータを保ったまま5画面資産だけを戻せる。本番切戻しは実施しない。UIのみ更新時は全uiクエリも同じ番号へ揃え、データだけの更新時はUI26を維持する。

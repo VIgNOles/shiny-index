@@ -61,3 +61,5 @@ jobs:
         run: python scripts/refresh_ui_assets.py site
       - if: runner.os == 'Linux'
         run: npm run test:ui
+      - if: runner.os == 'Linux'
+        run: npm run test:search-ui
