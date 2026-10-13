@@ -84,6 +84,18 @@ try{
  }
  let params=new URLSearchParams(location.search);
  let editing=false,appliedParams=null,panelClosing=false,cancelMessage='';
+ // A displayed URL and an unfinished clipboard request belong to one search state.
+ let copyRequest=0,sharedSearch=location.search;
+ const invalidateCopyLink=()=>{
+  copyRequest++;
+  $('copy-link-fallback').hidden=true;
+  $('copy-link-value').value='';
+  $('copy-link-status').textContent='';
+ };
+ for(const eventType of ['input','change','compositionstart'])document.addEventListener(eventType,event=>{
+  const target=event.target;
+  if(target instanceof Element&&target.closest('#search-controls,#filter-panel')&&!target.matches('[name="date-mode"]'))invalidateCopyLink();
+ },true);
  const pendingSearch=new Map();
  const cancelPending=()=>{for(const pending of pendingSearch.values())clearTimeout(pending.timer);pendingSearch.clear();};
  const flushPending=()=>{const tasks=[...pendingSearch.values()];cancelPending();for(const task of tasks)task.apply();};
@@ -725,10 +737,19 @@ try{
  $('close-comparison').onclick=()=>{comparisonOpen=false;renderComparison();$('compare-cards').focus({preventScroll:true});};
  $('clear-comparison').onclick=()=>{comparisonIds.clear();renderComparison();$('results-heading').focus({preventScroll:true});};
  $('copy-search-link').onclick=async()=>{
-  flushPending();const url=new URL(location.href);url.hash='';
-  $('copy-link-fallback').hidden=true;
-  try{if(!navigator.clipboard?.writeText)throw Error('clipboard unavailable');await navigator.clipboard.writeText(url.href);$('copy-link-status').textContent='検索条件のURLをコピーしました。';}
-  catch{$('copy-link-value').value=url.href;$('copy-link-fallback').hidden=false;$('copy-link-value').focus();$('copy-link-value').select();$('copy-link-status').textContent='URLを選択しました。端末のコピー操作でコピーしてください。';}
+  flushPending();invalidateCopyLink();
+  const request=copyRequest,searchState=location.search,url=new URL(location.href);url.hash='';
+  const current=()=>request===copyRequest&&searchState===location.search;
+  try{
+   if(!navigator.clipboard?.writeText)throw Error('clipboard unavailable');
+   await navigator.clipboard.writeText(url.href);
+   if(current())$('copy-link-status').textContent='検索条件のURLをコピーしました。';
+  }catch{
+   if(!current())return;
+   $('copy-link-value').value=url.href;$('copy-link-fallback').hidden=false;
+   $('copy-link-value').focus();$('copy-link-value').select();
+   $('copy-link-status').textContent='URLを選択しました。端末のコピー操作でコピーしてください。';
+  }
  };
  const cardNode=cardData=>{
   const row=add($('cards'),'li','','card');row.dataset.cardId=cardData.card_id;
@@ -829,6 +850,7 @@ try{
   $('cards').children[previous]?.querySelector('.detail-toggle')?.focus();
  };
  function render(limit=100){
+  if(sharedSearch!==location.search){sharedSearch=location.search;invalidateCopyLink();}
   const issues=issuesFor();renderIssues(issues);
   const waiting=detailLoading&&(hasSkillConditions(params)||hasTraitConditions(params)||params.has('detail_status'));
   shown=issues.length?[]:detailSearch(search(cards,params),params,detailMap);
