@@ -60,3 +60,8 @@ README／operations／HANDOFF／verificationの冒頭へ、現行版・ローカ
 最終候補／証拠：`private/candidates/review-adopted-final-20261013`／`private/audits/review-adopted-final-20261013`。Git保存はローカルのみ。push・外部公開・Google原本更新・Wiki取得は行っていない。新workflowのクラウド実行／公開成果物照合は公開時の別工程で未実施。
 
 残る限界：曖昧な欠け表記7項目、詳細未収録47件、構造化44／旧参考のみ96のチャージ、全効果の独立公式照合、Google実画面と物理端末／Safari全面確認。発動確率／高度な可変値検索・名前付き保存／所持・補完UI・索引分割／Worker／全面分割等の保留判断を維持する。
+
+
+## 後続：94f07aa公開完了（2026-10-13 JST）
+
+共有URL修正94f07aaについてユーザーから外部公開の明示承認を受け、CI／Pages・実URL検証まで完了した。通常CI38357356411／Pages38357469472が成功し、公開108ファイルとquery4資産がGit版に一致。実URLの検索450・PC／スマホ6幅・比較／共有／再発試験も成功。原本4268SHA変更0、比較表の長さは保留のまま。タグui-v27-20261013で公開sourceを固定し、後続の文書commitで記録する。[公開完了記録](publication-ui27-94f07aa-20261013.md)。

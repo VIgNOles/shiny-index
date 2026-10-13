@@ -1,10 +1,9 @@
 # 現在の更新・検証・復旧手順（2026-10-13 JST）
 
 <!-- review-current-20261013 -->
-採用された優先1〜9の実装・ローカル検証は完了。現行はUI27、基礎 `v1-93a6a8b8d40e754a`、詳細 `d1-4123183cd3640b4e`、site108ファイル。原本r21／13手修正・基礎1,466・詳細1,419／24,025項目／20,096効果を維持しています。Git保存は優先1〜2 `6b9f07a`、3〜5 `05e3302`、6〜7 `318a782`、共有・比較と本節の整理は本節を含む最終Gitチェックポイントを参照してください。[UI27仕様](docs/ui-v27-spec.md)・[継続記録](docs/review-continuation-20261013.md)・[最終検証](docs/verification.md)。
+UI27／94f07aaの公開・クラウド検証・実URL照合を2026-10-13 JSTに完了しました。[公開URL](https://vignoles.github.io/shiny-index/)／[公開記録](docs/publication-ui27-94f07aa-20261013.md)。CI38357356411／Pages38357469472が成功し、公開108ファイル・query4資産・検索450・PC／スマホ6幅・比較／共有／再発試験が合格。保存タグ `ui-v27-20261013` は94f07aaを指します。
 
-最後に確認した公開版はUI26。本作業でpush・公開・Google原本書込・Wiki取得は行っていません。以下はローカル候補の生成・検査・Git保存までの手順で、公開・原本変更・取得再開を自動実行しません。最終固定候補は `private/candidates/review-adopted-final-20261013`、検証証拠は `private/audits/review-adopted-final-20261013`。Python378成功／実symlink権限依存1skip、JS97成功、UI6幅・タッチ2設定、検索450（独立97）、新条件／共有比較各3幅、108ファイル一致検査が合格しています。
-ローカル採用後も最終候補と108ファイル・UI5資産が一致し、非UI103ファイルは不変です。証拠は `private/audits/review-adopted-final-20261013/local-adoption.json`。
+基礎v1-93a6a8b8d40e754a・1466／詳細d1-4123183cd3640b4e・1419カード・24025項目・20096効果、原本r21／13手修正を維持。原本・接続・入力4268SHA変更0、Google書込・Wiki取得0。以後の更新も以下の隔離候補と同一成果物検証を用い、新しい版の外部公開は別途対象と許可を確認します。
 <!-- /review-current-20261013 -->
 
 ## 1. 編集原本を確認する
@@ -81,6 +80,7 @@ node tests/ui-presentation-loading-smoke.mjs $candidateRoot
 node tests/ui-mobile-navigation-smoke.mjs $candidateRoot
 node tests/ui-priority67-smoke.mjs $candidateRoot
 node tests/ui-sharing-comparison-smoke.mjs $candidateRoot
+node tests/ui-share-url-invalidation-smoke.mjs $candidateRoot
 node tests/ui-search-audit.mjs $candidateRoot
 node tests/ui-advanced-search-audit.mjs $candidateRoot
 ./.venv/Scripts/python.exe scripts/check_release.py $candidateRoot --compare $releaseProof
@@ -92,7 +92,7 @@ node tests/ui-advanced-search-audit.mjs $candidateRoot
 
 候補の試験が通った後で、既存不変バンドルを消さずに変更分だけをローカルsiteへ採用し、`check_release.py site --compare <同じ記録JSON>` で全ファイル一致を再確認します。Git差分にprivateや原本がないことを確認し、検証済み変更だけをチェックポイント保存します。新しい不変バンドルはignore対象なので、必要なsiteの追加には `git add -f site` を使い、`.gitattributes` の `site/** -text` を維持します。コミットしただけでは公開しません。
 
-外部公開は別途許可された時だけ行います。`publish: ` で始まるmainへのpushまたはPagesの手動実行は公開操作です。新Pages経路は同じコミットのWindows／Linux検証とLinux UI・検索試験の成功を待ち、試験したsiteから作ったartifactの全ファイル集合／SHAを照合してそのartifactを配置します。CI内でUIを再生成せず、公開後に匿名URLと全ファイルを照合します。今回このクラウド実行・外部公開・匿名照合は未実施です。
+外部公開は別途許可された時だけ行います。`publish: ` で始まるmainへのpushまたはPagesの手動実行は公開操作です。新Pages経路は同じコミットのWindows／Linux検証とLinux UI・検索試験の成功を待ち、試験したsiteから作ったartifactの全ファイル集合／SHAを照合してそのartifactを配置します。CI内でUIを再生成せず、公開後に匿名URLと全ファイルを照合します。UI27／94f07aaではこの経路のクラウド実行・公開・匿名照合を実施済みです。結果は公開完了記録を参照してください。
 
 ## 5. 復旧は別の候補で確認する
 
@@ -111,9 +111,18 @@ node tests/ui-advanced-search-audit.mjs $candidateRoot
 
 以下の日時付き記録は当時の操作・版・公開結果を保持した履歴です。「現行」「最新」「未収録」等の表現が残っていても、現状には本書冒頭・HANDOFFのcurrent-state・検証記録冒頭を優先します。古い公開コマンドや旧版の試験をそのまま今回の更新へ流用しません。
 
-指定保留47個別ページ・実在新規基礎カード本番追加、補完／曖昧検索、発動確率・高度な可変値検索、名前付き保存／所持登録、索引分割／Worker／app全面分割は保留のままです。曖昧表記7項目と、思い出チャージの旧参考値のみ96項目は推測補完しません（範囲検索は構造化44項目）。全効果の独立公式網羅・Google実画面・実機Safari等は未確認、新しいクラウドCI／公開workflowも未実行です。取得・編集原本・公開の自動同期やアカウント導入は追加していません。
+指定保留47個別ページ・実在新規基礎カード本番追加、補完／曖昧検索、発動確率・高度な可変値検索、名前付き保存／所持登録、索引分割／Worker／app全面分割は保留のままです。曖昧表記7項目と、思い出チャージの旧参考値のみ96項目は推測補完しません（範囲検索は構造化44項目）。全効果の独立公式網羅・Google実画面・実機Safari等は未確認、クラウドCI／公開workflowはUI27／94f07aaで実行・検証済みです。取得・編集原本・公開の自動同期やアカウント導入は追加していません。
 
 ---
+
+## UI27公開前の状態記録（履歴）
+
+<!-- previous-ui27-local -->
+採用された優先1〜9の実装・ローカル検証は完了。現行はUI27、基礎 `v1-93a6a8b8d40e754a`、詳細 `d1-4123183cd3640b4e`、site108ファイル。原本r21／13手修正・基礎1,466・詳細1,419／24,025項目／20,096効果を維持しています。Git保存は優先1〜2 `6b9f07a`、3〜5 `05e3302`、6〜7 `318a782`、共有・比較と本節の整理は本節を含む最終Gitチェックポイントを参照してください。[UI27仕様](docs/ui-v27-spec.md)・[継続記録](docs/review-continuation-20261013.md)・[最終検証](docs/verification.md)。
+
+最後に確認した公開版はUI26。本作業でpush・公開・Google原本書込・Wiki取得は行っていません。以下はローカル候補の生成・検査・Git保存までの手順で、公開・原本変更・取得再開を自動実行しません。最終固定候補は `private/candidates/review-adopted-final-20261013`、検証証拠は `private/audits/review-adopted-final-20261013`。Python378成功／実symlink権限依存1skip、JS97成功、UI6幅・タッチ2設定、検索450（独立97）、新条件／共有比較各3幅、108ファイル一致検査が合格しています。
+ローカル採用後も最終候補と108ファイル・UI5資産が一致し、非UI103ファイルは不変です。証拠は `private/audits/review-adopted-final-20261013/local-adoption.json`。
+<!-- /previous-ui27-local -->
 
 ## 優先順位1〜2の実装時点の手順（以下は履歴）
 
